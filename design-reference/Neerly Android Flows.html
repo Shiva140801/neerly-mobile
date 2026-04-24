@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Neerly · Android Flows</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="design.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  body { margin: 0; background: #f0eee8; }
+  /* Canvas intro panel */
+  .canvas-intro {
+    padding: 80px 80px 40px; max-width: 1100px;
+  }
+  .canvas-intro .eyebrow {
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(40,30,20,0.55); font-weight: 600;
+  }
+  .canvas-intro h1 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: 76px; line-height: 1; letter-spacing: -0.02em;
+    margin: 16px 0 12px; color: rgba(40,30,20,0.9);
+  }
+  .canvas-intro h1 em { color: #2E75B6; font-style: italic; }
+  .canvas-intro p { font-size: 17px; line-height: 1.55; color: rgba(60,50,40,0.7); max-width: 640px; }
+  .legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; }
+  .legend .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px 6px 8px; border-radius: 999px;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    font-size: 13px; font-weight: 500; color: #17252F;
+  }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="neerly-frame.jsx"></script>
+<script type="text/babel" src="flows-customer.jsx"></script>
+<script type="text/babel" src="flows-customer-extra.jsx"></script>
+<script type="text/babel" src="flows-vendor.jsx"></script>
+<script type="text/babel" src="flows-driver.jsx"></script>
+<script type="text/babel" src="flows-admin.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+const W = 380, H = 800;
+const AB = (label, id, Screen) => (
+  <DCArtboard id={id} label={label} width={W} height={H}>
+    <Screen/>
+  </DCArtboard>
+);
+
+function Intro() {
+  return (
+    <div className="canvas-intro">
+      <div className="eyebrow">Neerly · Android mobile flows</div>
+      <h1>Water, <em>sorted.</em></h1>
+      <p>
+        End-to-end Android flows across four roles — Customer, Vendor, Driver, and Admin —
+        for a water-delivery marketplace. Each column is a user journey. Drag frame labels
+        to reorder. Click any frame to focus. Placeholders stand in for real imagery.
+      </p>
+      <div className="legend">
+        <div className="chip"><span className="dot" style={{background:'#2E75B6'}}/> Customer</div>
+        <div className="chip"><span className="dot" style={{background:'#17A2B8'}}/> Vendor</div>
+        <div className="chip"><span className="dot" style={{background:'#F07820'}}/> Driver</div>
+        <div className="chip"><span className="dot" style={{background:'#7B2CBF'}}/> Admin</div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Intro/>
+      <DesignCanvas>
+        <DCSection id="cust-onboard" title="Customer · Onboarding" subtitle="Splash → phone → OTP → name → location → address">
+          {AB('01 Splash',        'splash',  window.ScreenSplash)}
+          {AB('02 Welcome',       'welcome', window.ScreenWelcome)}
+          {AB('03 Phone',         'phone',   window.ScreenPhone)}
+          {AB('04 OTP',           'otp',     window.ScreenOTP)}
+          {AB('05 Name',          'name',    window.ScreenName)}
+          {AB('06 Location ask',  'locask',  window.ScreenLocationPerm)}
+          {AB('07 OS permission', 'permos',  window.ScreenPermDialog)}
+          {AB('08 Address · GPS', 'addr',    window.ScreenAddressGPS)}
+        </DCSection>
+
+        <DCSection id="cust-order" title="Customer · Browse & Order" subtitle="Home → vendor → cart → checkout → confirmation → live tracking">
+          {AB('01 Home',          'home',    window.ScreenHome)}
+          {AB('02 Vendor detail', 'vendor',  window.ScreenVendorDetail)}
+          {AB('03 Cart',          'cart',    window.ScreenCart)}
+          {AB('04 Order placed',  'placed',  window.ScreenOrderPlaced)}
+          {AB('05 Live tracking', 'track',   window.ScreenTracking)}
+        </DCSection>
+
+        <DCSection id="cust-account" title="Customer · Account" subtitle="Subscriptions, wallet and refundable deposits">
+          {AB('01 Subscriptions', 'subs',    window.ScreenSubs)}
+          {AB('02 Wallet',        'wallet',  window.ScreenWallet)}
+          {AB('03 Deposits',      'deps',    window.ScreenDeposits)}
+        </DCSection>
+
+        <DCSection id="vendor" title="Vendor · Operations" subtitle="Daily dashboard, incoming orders, order prep, catalog, earnings and subscription routes">
+          {AB('01 Dashboard',     'v-dash',  window.VendorDashboard)}
+          {AB('02 Incoming',      'v-in',    window.VendorIncoming)}
+          {AB('03 Order detail',  'v-ord',   window.VendorOrderDetail)}
+          {AB('04 Catalog',       'v-cat',   window.VendorCatalog)}
+          {AB('05 Earnings',      'v-earn',  window.VendorEarnings)}
+          {AB('06 Subs today',    'v-subs',  window.VendorSubs)}
+        </DCSection>
+
+        <DCSection id="driver" title="Driver · Deliveries" subtitle="From offline to completed drop with OTP, photo proof and COD">
+          {AB('01 Off-duty',      'd-off',   window.DriverOffDuty)}
+          {AB('02 On-duty',       'd-on',    window.DriverOnDuty)}
+          {AB('03 New assign',    'd-new',   window.DriverNewAssign)}
+          {AB('04 Navigating',    'd-nav',   window.DriverInProgress)}
+          {AB('05 Complete',      'd-comp',  window.DriverComplete)}
+        </DCSection>
+
+        <DCSection id="admin" title="Admin · Operations (mobile)" subtitle="City-level oversight: KPIs, vendor KYC, dispute triage and live surge">
+          {AB('01 Overview',      'a-over',  window.AdminDashboard)}
+          {AB('02 Verify vendor', 'a-ven',   window.AdminVendorVerify)}
+          {AB('03 Dispute',       'a-disp',  window.AdminDispute)}
+          {AB('04 Surge',         'a-surge', window.AdminSurge)}
+        </DCSection>
+      </DesignCanvas>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
