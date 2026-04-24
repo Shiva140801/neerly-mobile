@@ -21,6 +21,7 @@ mapsCompose = "6.1.2"
 playServicesMaps = "19.0.0"
 ksp = "2.0.21-1.0.25"
 googleServices = "4.4.2"
+razorpay = "1.6.40"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 mockk = "1.13.13"
@@ -69,6 +70,8 @@ firebase-messaging      = { group = "com.google.firebase", name = "firebase-mess
 
 maps-compose            = { group = "com.google.maps.android", name = "maps-compose",            version.ref = "mapsCompose" }
 play-services-maps      = { group = "com.google.android.gms", name = "play-services-maps",      version.ref = "playServicesMaps" }
+
+razorpay-checkout       = { group = "com.razorpay",         name = "checkout",                    version.ref = "razorpay" }
 
 # --- Test dependencies ---
 junit4                   = { group = "junit", name = "junit", version.ref = "junit" }

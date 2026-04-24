@@ -83,6 +83,9 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
 
+    // Razorpay Checkout for in-app UPI / card payments
+    implementation(libs.razorpay.checkout)
+
     // --- Testing ---
     testImplementation(libs.junit4)
     testImplementation(libs.mockk)

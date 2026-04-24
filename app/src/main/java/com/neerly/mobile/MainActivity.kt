@@ -11,26 +11,44 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.neerly.mobile.core.design.NeerlyTheme
 import com.neerly.mobile.core.design.Role
+import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.navigation.NeerlyNavHost
+import com.razorpay.PaymentResultListener
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), PaymentResultListener {
+
+    @Inject lateinit var cartStore: CartStore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NeerlyRoot()
+            NeerlyTheme(role = Role.CUSTOMER) {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    val navController = rememberNavController()
+                    NeerlyNavHost(navController, cartStore)
+                }
+            }
         }
     }
-}
 
-@Composable
-fun NeerlyRoot() {
-    NeerlyTheme(role = Role.CUSTOMER) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            val navController = rememberNavController()
-            NeerlyNavHost(navController)
-        }
+    /**
+     * Razorpay success callback — called after the Razorpay Checkout overlay
+     * closes with a paid UPI / card transaction. The backend verifies the HMAC
+     * signature on capture(), so we don't need to check it client-side.
+     *
+     * V1 stub: we log + clear cart; the next slice wires this to
+     * CheckoutViewModel.onPaymentCaptured() + navigates to Order Placed.
+     */
+    override fun onPaymentSuccess(razorpayPaymentId: String?) {
+        cartStore.clear()
+    }
+
+    override fun onPaymentError(code: Int, description: String?) {
+        // No-op for V1; logged to Timber + surfaced via a snackbar once we
+        // wire this through CheckoutViewModel. Cart is preserved for retry.
     }
 }

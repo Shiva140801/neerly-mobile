@@ -1,9 +1,14 @@
 package com.neerly.mobile.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.neerly.mobile.data.cart.CartStore
+import com.neerly.mobile.feature.address.AddressListScreen
 import com.neerly.mobile.feature.auth.AddressScreen
 import com.neerly.mobile.feature.auth.LanguageScreen
 import com.neerly.mobile.feature.auth.NameScreen
@@ -11,11 +16,15 @@ import com.neerly.mobile.feature.auth.OtpScreen
 import com.neerly.mobile.feature.auth.PhoneScreen
 import com.neerly.mobile.feature.auth.SplashScreen
 import com.neerly.mobile.feature.auth.WelcomeScreen
-import com.neerly.mobile.feature.address.AddressListScreen
+import com.neerly.mobile.feature.cart.CartScreen
+import com.neerly.mobile.feature.checkout.CheckoutScreen
 import com.neerly.mobile.feature.complaint.ComplaintFileScreen
 import com.neerly.mobile.feature.customer.CustomerHomeScreen
 import com.neerly.mobile.feature.customer.VendorDetailScreen
 import com.neerly.mobile.feature.notification.NotificationFeedScreen
+import com.neerly.mobile.feature.order.OrderHistoryScreen
+import com.neerly.mobile.feature.order.OrderPlacedScreen
+import com.neerly.mobile.feature.order.OrderTrackingScreen
 import com.neerly.mobile.feature.review.ReviewSubmitScreen
 import com.neerly.mobile.feature.vendor.VendorOnboardingWizard
 
@@ -36,8 +45,15 @@ object Routes {
     const val ComplaintFile = "customer/complaint?orderId={orderId}"
     const val NotificationFeed = "notifications"
 
-    // Week-1 customer shell (ROADMAP_NEXT Week 1-2)
+    // Week-1 customer shell
     const val AddressList = "customer/addresses"
+
+    // Week-2 cart → checkout → order
+    const val Cart = "customer/cart"
+    const val Checkout = "customer/checkout"
+    const val OrderPlaced = "customer/order/{orderId}/placed/{orderNumber}"
+    const val OrderTracking = "customer/order/{orderId}"
+    const val OrderHistory = "customer/orders"
 
     fun otp(phone: String): String = "otp/$phone"
     fun vendorDetail(vendorId: String): String = "customer/vendor/$vendorId"
@@ -45,10 +61,12 @@ object Routes {
         "customer/review/$orderId/${vendorName.replace("/", "-")}"
     fun complaintFile(orderId: String?): String =
         if (orderId.isNullOrBlank()) "customer/complaint?orderId=" else "customer/complaint?orderId=$orderId"
+    fun orderPlaced(orderId: String, orderNumber: String) = "customer/order/$orderId/placed/$orderNumber"
+    fun orderTracking(orderId: String) = "customer/order/$orderId"
 }
 
 @Composable
-fun NeerlyNavHost(nav: NavHostController) {
+fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
     NavHost(navController = nav, startDestination = Routes.Splash) {
         composable(Routes.Splash) {
             SplashScreen(onDone = { nav.navigate(Routes.Welcome) { popUpTo(Routes.Splash) { inclusive = true } } })
@@ -75,14 +93,17 @@ fun NeerlyNavHost(nav: NavHostController) {
             })
         }
         composable(Routes.CustomerHome) {
-            CustomerHomeScreen(onVendorClick = { id -> nav.navigate(Routes.vendorDetail(id)) })
+            CustomerHomeScreen(
+                onVendorClick = { id -> nav.navigate(Routes.vendorDetail(id)) },
+                onOrderClick = { id -> nav.navigate(Routes.orderTracking(id)) }
+            )
         }
         composable(Routes.VendorDetail) { entry ->
             val vendorId = entry.arguments?.getString("vendorId").orEmpty()
             VendorDetailScreen(
                 vendorId = vendorId,
                 onBack = { nav.popBackStack() },
-                onAddToCart = { /* TODO cart in Session 3 */ }
+                onAddToCart = { nav.navigate(Routes.Cart) }
             )
         }
         composable(Routes.VendorOnboarding) {
@@ -119,6 +140,54 @@ fun NeerlyNavHost(nav: NavHostController) {
                 onBack = { nav.popBackStack() },
                 onAddNew = { /* TODO wire AddressScreen in create mode */ },
                 onEdit = { /* TODO wire AddressScreen in edit mode with id */ }
+            )
+        }
+        composable(Routes.Cart) {
+            CartScreen(
+                onBack = { nav.popBackStack() },
+                onCheckout = { nav.navigate(Routes.Checkout) }
+            )
+        }
+        composable(Routes.Checkout) {
+            CheckoutScreen(
+                cart = cartStore,
+                onBack = { nav.popBackStack() },
+                onOrderPlaced = { order ->
+                    nav.navigate(Routes.orderPlaced(order.id, order.orderNumber)) {
+                        popUpTo(Routes.CustomerHome)
+                    }
+                },
+                onLaunchPayment = { order, _ ->
+                    // Razorpay integration launches from the host Activity; for V1 navigate
+                    // to the placed screen after a successful launch. Payment capture
+                    // is handled in the activity's onPaymentSuccess callback.
+                    nav.navigate(Routes.orderPlaced(order.id, order.orderNumber)) {
+                        popUpTo(Routes.CustomerHome)
+                    }
+                }
+            )
+        }
+        composable(Routes.OrderPlaced) { entry ->
+            val orderId = entry.arguments?.getString("orderId").orEmpty()
+            val orderNumber = entry.arguments?.getString("orderNumber").orEmpty()
+            OrderPlacedScreen(
+                orderId = orderId,
+                orderNumber = orderNumber,
+                onTrack = { nav.navigate(Routes.orderTracking(orderId)) { popUpTo(Routes.CustomerHome) } },
+                onHome = { nav.popBackStack(Routes.CustomerHome, inclusive = false) }
+            )
+        }
+        composable(Routes.OrderTracking) {
+            OrderTrackingScreen(
+                onBack = { nav.popBackStack() },
+                onRateOrder = { id -> nav.navigate(Routes.reviewSubmit(id, "this order")) },
+                onFileComplaint = { id -> nav.navigate(Routes.complaintFile(id)) }
+            )
+        }
+        composable(Routes.OrderHistory) {
+            OrderHistoryScreen(
+                onBack = { nav.popBackStack() },
+                onOpen = { id -> nav.navigate(Routes.orderTracking(id)) }
             )
         }
     }
