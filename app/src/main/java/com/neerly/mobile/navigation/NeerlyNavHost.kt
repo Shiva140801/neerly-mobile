@@ -11,8 +11,11 @@ import com.neerly.mobile.feature.auth.OtpScreen
 import com.neerly.mobile.feature.auth.PhoneScreen
 import com.neerly.mobile.feature.auth.SplashScreen
 import com.neerly.mobile.feature.auth.WelcomeScreen
+import com.neerly.mobile.feature.complaint.ComplaintFileScreen
 import com.neerly.mobile.feature.customer.CustomerHomeScreen
 import com.neerly.mobile.feature.customer.VendorDetailScreen
+import com.neerly.mobile.feature.notification.NotificationFeedScreen
+import com.neerly.mobile.feature.review.ReviewSubmitScreen
 import com.neerly.mobile.feature.vendor.VendorOnboardingWizard
 
 object Routes {
@@ -27,8 +30,17 @@ object Routes {
     const val VendorDetail = "customer/vendor/{vendorId}"
     const val VendorOnboarding = "vendor/onboarding"
 
+    // Session 7 – Trust & Ops
+    const val ReviewSubmit = "customer/review/{orderId}/{vendorName}"
+    const val ComplaintFile = "customer/complaint?orderId={orderId}"
+    const val NotificationFeed = "notifications"
+
     fun otp(phone: String): String = "otp/$phone"
     fun vendorDetail(vendorId: String): String = "customer/vendor/$vendorId"
+    fun reviewSubmit(orderId: String, vendorName: String): String =
+        "customer/review/$orderId/${vendorName.replace("/", "-")}"
+    fun complaintFile(orderId: String?): String =
+        if (orderId.isNullOrBlank()) "customer/complaint?orderId=" else "customer/complaint?orderId=$orderId"
 }
 
 @Composable
@@ -71,6 +83,32 @@ fun NeerlyNavHost(nav: NavHostController) {
         }
         composable(Routes.VendorOnboarding) {
             VendorOnboardingWizard(onSubmitted = { nav.popBackStack() })
+        }
+        composable(Routes.ReviewSubmit) { entry ->
+            val orderId = entry.arguments?.getString("orderId").orEmpty()
+            val vendorName = entry.arguments?.getString("vendorName").orEmpty()
+            ReviewSubmitScreen(
+                orderId = orderId,
+                vendorName = vendorName,
+                onSubmit = { _, _ -> nav.popBackStack() },
+                onBack = { nav.popBackStack() }
+            )
+        }
+        composable(Routes.ComplaintFile) { entry ->
+            val orderId = entry.arguments?.getString("orderId").orEmpty().takeIf { it.isNotBlank() }
+            ComplaintFileScreen(
+                orderId = orderId,
+                onSubmit = { _, _, _ -> nav.popBackStack() },
+                onBack = { nav.popBackStack() }
+            )
+        }
+        composable(Routes.NotificationFeed) {
+            NotificationFeedScreen(
+                items = emptyList(),
+                loading = false,
+                onOpenItem = { /* TODO open deep link from payload */ },
+                onBack = { nav.popBackStack() }
+            )
         }
     }
 }

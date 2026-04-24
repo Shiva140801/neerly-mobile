@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Centered water-drop glyph — matches Neerly canvas hue. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 C64,44 70,54 70,64 C70,72 62,78 54,78 C46,78 38,72 38,64 C38,54 44,44 54,30 Z" />
+</vector>
