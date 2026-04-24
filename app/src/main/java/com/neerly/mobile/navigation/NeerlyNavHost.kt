@@ -11,6 +11,7 @@ import com.neerly.mobile.feature.auth.OtpScreen
 import com.neerly.mobile.feature.auth.PhoneScreen
 import com.neerly.mobile.feature.auth.SplashScreen
 import com.neerly.mobile.feature.auth.WelcomeScreen
+import com.neerly.mobile.feature.address.AddressListScreen
 import com.neerly.mobile.feature.complaint.ComplaintFileScreen
 import com.neerly.mobile.feature.customer.CustomerHomeScreen
 import com.neerly.mobile.feature.customer.VendorDetailScreen
@@ -34,6 +35,9 @@ object Routes {
     const val ReviewSubmit = "customer/review/{orderId}/{vendorName}"
     const val ComplaintFile = "customer/complaint?orderId={orderId}"
     const val NotificationFeed = "notifications"
+
+    // Week-1 customer shell (ROADMAP_NEXT Week 1-2)
+    const val AddressList = "customer/addresses"
 
     fun otp(phone: String): String = "otp/$phone"
     fun vendorDetail(vendorId: String): String = "customer/vendor/$vendorId"
@@ -108,6 +112,13 @@ fun NeerlyNavHost(nav: NavHostController) {
                 loading = false,
                 onOpenItem = { /* TODO open deep link from payload */ },
                 onBack = { nav.popBackStack() }
+            )
+        }
+        composable(Routes.AddressList) {
+            AddressListScreen(
+                onBack = { nav.popBackStack() },
+                onAddNew = { /* TODO wire AddressScreen in create mode */ },
+                onEdit = { /* TODO wire AddressScreen in edit mode with id */ }
             )
         }
     }

@@ -1,5 +1,7 @@
 package com.neerly.mobile.data.api
 
+import com.neerly.mobile.data.auth.AuthInterceptor
+import com.neerly.mobile.data.auth.TokenAuthenticator
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -29,8 +31,13 @@ object NetworkModule {
         .build()
 
     @Provides @Singleton
-    fun provideOkHttp(): OkHttpClient = OkHttpClient.Builder()
+    fun provideOkHttp(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
         .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
+        .authenticator(tokenAuthenticator)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
