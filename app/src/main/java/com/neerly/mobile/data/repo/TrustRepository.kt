@@ -13,8 +13,21 @@ import javax.inject.Singleton
 @Singleton
 class TrustRepository @Inject constructor(private val api: NeerlyApi) {
 
-    suspend fun submitReview(orderId: String, rating: Int, text: String?): ReviewResponse =
-        api.createReview(CreateReviewRequest(orderId, rating, text))
+    suspend fun submitReview(
+        orderId: String,
+        rating: Int,
+        text: String?,
+        vendorRating: Int? = null,
+        waterQualityRating: Int? = null
+    ): ReviewResponse = api.createReview(
+        CreateReviewRequest(
+            orderId = orderId,
+            rating = rating,
+            vendorRating = vendorRating,
+            waterQualityRating = waterQualityRating,
+            text = text
+        )
+    )
 
     suspend fun myReviews(): List<ReviewResponse> = api.myReviews()
 

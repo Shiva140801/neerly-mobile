@@ -8,8 +8,15 @@ import java.math.BigDecimal
 @JsonClass(generateAdapter = true)
 data class CreateReviewRequest(
     val orderId: String,
-    val rating: Int,
+    val rating: Int,                         // overall (averages vendor + waterQuality if both present)
+    val vendorRating: Int? = null,           // PRD §13: 2-axis rating
+    val waterQualityRating: Int? = null,
     val text: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ReferralEntryRequest(
+    val referrerCode: String
 )
 
 @JsonClass(generateAdapter = true)
@@ -68,7 +75,31 @@ data class ComplaintResponse(
     val priority: String,
     val slaDeadline: String,
     val slaBreached: Boolean,
-    val filedAt: String
+    val filedAt: String,
+    val resolutionAction: String? = null,
+    val resolutionNotes: String? = null,
+    val awardedAmount: java.math.BigDecimal? = null,
+    val resolvedAt: String? = null,
+    val closedAt: String? = null,
+    val messages: List<ComplaintMessageDto> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class ComplaintMessageDto(
+    val id: String,
+    val authorId: String,
+    val authorRole: String,
+    val message: String,
+    val attachments: List<String> = emptyList(),
+    val isInternal: Boolean,
+    val createdAt: String
+)
+
+@JsonClass(generateAdapter = true)
+data class AppendComplaintMessageRequest(
+    val message: String,
+    val attachments: List<String> = emptyList(),
+    val isInternal: Boolean = false
 )
 
 // ------------------------------ Notifications -------------------------

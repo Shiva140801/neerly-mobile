@@ -9,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,23 +17,29 @@ import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
 
 /**
- * Customer review submission screen — one review per (customer, order).
- * Backend: POST /api/v1/customer/reviews  (see CustomerReviewController).
+ * Customer review submission. PRD §13: 2-axis rating — vendor experience +
+ * water quality. Both 1-5 stars; optional written review applies to both.
  *
- * Wired to view-model-less for now; caller owns the actual API call so the
- * screen stays presentational. PRD §9: 1-5 stars, text optional.
+ * The "overall" rating sent to the backend's `rating` field is the average
+ * of the two; vendor + waterQuality fields are also sent for backwards
+ * compat with single-axis aggregation.
+ *
+ * Stays presentational — the caller (NavHost) wires the API call.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewSubmitScreen(
     orderId: String,
     vendorName: String,
-    onSubmit: (rating: Int, text: String?) -> Unit,
+    onSubmit: (rating: Int, vendorRating: Int, waterQualityRating: Int, text: String?) -> Unit,
     onBack: () -> Unit
 ) {
-    var rating by remember { mutableIntStateOf(0) }
+    var vendorStars by remember { mutableIntStateOf(0) }
+    var waterStars by remember { mutableIntStateOf(0) }
     var text by remember { mutableStateOf("") }
     var submitting by remember { mutableStateOf(false) }
+
+    val canSubmit = vendorStars in 1..5 && waterStars in 1..5 && !submitting
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
@@ -58,29 +63,23 @@ fun ReviewSubmitScreen(
             Text("Order #${orderId.take(8)}", fontSize = 13.sp, color = NeerlyColors.Ink500)
             Spacer(Modifier.height(NeerlySpacing.x6))
 
-            Text("How was it?", fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(NeerlySpacing.x3))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (i in 1..5) {
-                    val isOn = i <= rating
-                    val bg = if (isOn) NeerlyColors.CustomerPrimary else NeerlyColors.Ink100
-                    val fg = if (isOn) NeerlyColors.Paper else NeerlyColors.Ink500
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(NeerlyRadius.md))
-                            .background(bg)
-                            .clickable { rating = i },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("★", fontSize = 24.sp, color = fg)
-                    }
-                }
-            }
+            StarSection(
+                label = "Vendor experience",
+                hint = "Driver, packaging, on-time delivery",
+                rating = vendorStars,
+                onRate = { vendorStars = it }
+            )
+            Spacer(Modifier.height(NeerlySpacing.x5))
+            StarSection(
+                label = "Water quality",
+                hint = "Taste, cleanliness, container condition",
+                rating = waterStars,
+                onRate = { waterStars = it }
+            )
 
             Spacer(Modifier.height(NeerlySpacing.x6))
-            Text("Tell us more (optional)", fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
+            Text("Tell us more (optional)",
+                fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(NeerlySpacing.x3))
             OutlinedTextField(
                 value = text,
@@ -94,9 +93,10 @@ fun ReviewSubmitScreen(
             Button(
                 onClick = {
                     submitting = true
-                    onSubmit(rating, text.takeIf { it.isNotBlank() })
+                    val overall = (vendorStars + waterStars + 1) / 2  // round half-up
+                    onSubmit(overall, vendorStars, waterStars, text.takeIf { it.isNotBlank() })
                 },
-                enabled = rating in 1..5 && !submitting,
+                enabled = canSubmit,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
             ) {
@@ -104,6 +104,30 @@ fun ReviewSubmitScreen(
                     fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(NeerlySpacing.x3))
+        }
+    }
+}
+
+@Composable
+private fun StarSection(label: String, hint: String, rating: Int, onRate: (Int) -> Unit) {
+    Text(label, fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
+    Text(hint, fontSize = 12.sp, color = NeerlyColors.Ink500)
+    Spacer(Modifier.height(NeerlySpacing.x3))
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        for (i in 1..5) {
+            val isOn = i <= rating
+            val bg = if (isOn) NeerlyColors.CustomerPrimary else NeerlyColors.Ink100
+            val fg = if (isOn) NeerlyColors.Paper else NeerlyColors.Ink500
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(NeerlyRadius.md))
+                    .background(bg)
+                    .clickable { onRate(i) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("★", fontSize = 22.sp, color = fg)
+            }
         }
     }
 }

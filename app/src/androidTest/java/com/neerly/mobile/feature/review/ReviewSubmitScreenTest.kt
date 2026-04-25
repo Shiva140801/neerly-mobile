@@ -16,57 +16,66 @@ class ReviewSubmitScreenTest {
     @get:Rule val rule = createComposeRule()
 
     @Test
-    fun reviewScreen_rendersHeadingAndVendorName() {
+    fun reviewScreen_rendersHeadingAndTwoAxes() {
         rule.setContent {
             NeerlyTheme {
                 ReviewSubmitScreen(
                     orderId = "abc12345",
                     vendorName = "Sri Ganesh Water Supply",
-                    onSubmit = { _, _ -> },
+                    onSubmit = { _, _, _, _ -> },
                     onBack = {}
                 )
             }
         }
         rule.onNodeWithText("Sri Ganesh Water Supply").assertIsDisplayed()
-        rule.onNodeWithText("How was it?").assertIsDisplayed()
+        rule.onNodeWithText("Vendor experience").assertIsDisplayed()
+        rule.onNodeWithText("Water quality").assertIsDisplayed()
         rule.onNodeWithText("Submit review").assertIsDisplayed().assertIsNotEnabled()
     }
 
     @Test
-    fun reviewScreen_selectingStar_enablesSubmit() {
+    fun reviewScreen_bothAxesRated_enablesSubmit() {
         rule.setContent {
             NeerlyTheme {
                 ReviewSubmitScreen(
                     orderId = "abc12345",
                     vendorName = "Sri Ganesh",
-                    onSubmit = { _, _ -> },
+                    onSubmit = { _, _, _, _ -> },
                     onBack = {}
                 )
             }
         }
-        // There are 5 '★' buttons — tap the first one to register rating=1.
-        rule.onAllNodesWithText("★")[0].performClick()
+        // 10 star buttons in total (5 vendor + 5 water). Tap the 5th and 10th.
+        val stars = rule.onAllNodesWithText("★")
+        stars[4].performClick()   // 5-star vendor
+        stars[9].performClick()   // 5-star water
         rule.waitForIdle()
         rule.onNodeWithText("Submit review").assertIsEnabled()
     }
 
     @Test
-    fun reviewScreen_submitFiresCallback() {
-        var captured: Pair<Int, String?>? = null
+    fun reviewScreen_submitFiresCallbackWithBothAxes() {
+        var captured: Quadruple<Int, Int, Int, String?>? = null
         rule.setContent {
             NeerlyTheme {
                 ReviewSubmitScreen(
                     orderId = "o",
                     vendorName = "V",
-                    onSubmit = { r, t -> captured = r to t },
+                    onSubmit = { overall, vendor, water, text ->
+                        captured = Quadruple(overall, vendor, water, text)
+                    },
                     onBack = {}
                 )
             }
         }
-        rule.onAllNodesWithText("★")[4].performClick()  // 5 stars
+        val stars = rule.onAllNodesWithText("★")
+        stars[4].performClick()   // 5-star vendor
+        stars[9].performClick()   // 5-star water
         rule.waitForIdle()
         rule.onNodeWithText("Submit review").performClick()
         rule.waitForIdle()
-        assert(captured?.first == 5) { "expected rating 5, got $captured" }
+        assert(captured?.b == 5 && captured?.c == 5) { "expected 5/5, got $captured" }
     }
 }
+
+private data class Quadruple<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
