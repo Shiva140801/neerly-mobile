@@ -1,0 +1,3321 @@
+Neerly — User Flows UX - Deep Edition
+NEERLY
+Water, sorted.
+User Flows — UX Handoff
+Version 2.0 — Deep Edition
+Every screen. Every element. Every copy string.
+Every edge case. Every error.
+Supersedes User Flows v1.0 — that document is deprecated.
+For: UX Designers, Content Writers, Developers, QA
+Page 1 of 106 | Confidential — Neerly © 2026
+
+-- 1 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Contents
+Part A — Foundations
+1. How to Use This Document
+2. Copy Conventions & Tone
+3. Design Patterns & Components
+4. Screen Naming Conventions
+5. Shared UI Strings (Errors, Empty States, Loading)
+Part B — Entry & Authentication
+6. App Launch & Entry Points
+7. Customer Registration (New User)
+8. Vendor Registration — Tier-1
+9. Vendor Registration — Tier-2
+10. Driver Registration & Onboarding
+11. Login (All Roles — Returning Users)
+12. Role Selection, Switching & Multi-Role
+13. Admin-Light Mobile Access
+Part C — Customer App
+14. Home & Browse
+15. Vendor Detail & Product
+16. Cart & Checkout
+17. Order Tracking
+18. Order History & Detail
+19. Subscriptions
+20. Returns & Deposits
+21. Wallet
+22. Profile & Settings
+23. Reviews & Complaints
+Part D — Vendor App
+24. Vendor Dashboard
+25. Incoming Order (3-Min Acceptance)
+26. Order Management
+27. Catalog Management
+28. Team & Drivers
+29. Subscription Today-List
+Page 2 of 106 | Confidential — Neerly © 2026
+
+-- 2 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+30. Returns, Pickups & Damage Claims
+31. Earnings & Payouts
+32. Business Settings
+33. Compliance
+Part E — Driver App
+34. Driver Home & Shift
+35. Delivery Execution
+36. Return Pickup
+37. COD Reconciliation
+Part F — Admin-Light Mobile
+38. Admin Dashboard (Mobile)
+39. Mobile Admin Tasks
+Part G — Cross-Cutting
+40. Notifications (All Roles)
+41. Help & Support
+42. Global Navigation Maps
+Page 3 of 106 | Confidential — Neerly © 2026
+
+-- 3 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+1. How to Use This Document
+1.1 Who This Is For
+Primary audience: UX designers creating wireframes and high-fidelity designs for the Neerly
+Android app. Secondary audience: content writers refining copy, developers implementing
+screens, QA engineers building test cases.
+1.2 What's New in V2.0
+• Full suggested copy for every element (headers, subtitles, buttons, placeholder text, help
+text)
+• All error messages verbatim for every validation and edge case
+• Admin-light mobile flows added (previously out of scope)
+• Expanded empty-state and loading-state treatment for every screen
+• Accessibility notes where critical (contrast, touch targets, screen reader hints)
+• API call annotations so developers know which endpoint backs each action
+1.3 How to Read a Screen Entry
+Every screen follows this template:┌─ SCREEN ID
+──────────────────────────────────────────┐│ Title + purpose
+││ Entry from / Exit to 	││ Elements (with copy)
+││ Validations 	││ API calls 	││
+Loading states 	││ Error states 	││
+Empty states 	││ Edge cases 	││
+Accessibility notes
+│└───────────────────────────────────────────────────────
+─┘
+1.4 Copy Convention in This Document
+• Copy strings are shown in "double quotes" — use verbatim
+• Placeholders in angle brackets: "<vendor name>", "<amount>", "<date>"
+• Primary language: English; Telugu translations as TODO for content team
+• Use sentence case (not Title Case) — more natural, less formal
+• Use contractions ('you're', 'we'll') — more conversational
+• Numbers in digits (not words) except beginning of sentence
+1.5 Cross-Reference Lookups
+Every screen has a unique ID. To find a screen:
+• Search this PDF for the ID (e.g., 'S-CUST-REG-02')
+• Or look in the navigation map (Section 42)
+• Or scan the contents for the relevant section
+Page 4 of 106 | Confidential — Neerly © 2026
+
+-- 4 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Page 5 of 106 | Confidential — Neerly © 2026
+
+-- 5 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+2. Copy Conventions & Tone
+2.1 Brand Voice
+• Friendly but professional — like a helpful shopkeeper
+• Confident, not apologetic
+• Clear over clever — avoid jargon and cutesy phrases
+• Respectful of user's time — short sentences, scannable
+• Warm but not saccharine
+2.2 Do's
+• "Order placed!" not "Your order has been successfully placed"
+• "Try again" not "Please try again"
+• "Delivery photo required" not "Kindly capture the delivery photograph"
+• "Address saved" not "Your address has been saved successfully"
+2.3 Don'ts
+• Avoid 'Please' everywhere — use sparingly for genuine apology
+• Avoid 'Kindly' — too formal for mobile
+• Avoid 'successfully' — it's noise; if we're showing the message, it succeeded
+• Avoid exclamation marks except for genuine celebration (order placed, subscription
+created)
+• Avoid 'Oops' or similar — feels infantilizing in serious contexts (payment failures)
+2.4 Error Message Format
+Every error message answers three questions:
+• What happened? (in one short phrase)
+• Why? (if useful to user)
+• What can they do? (action to take)
+Examples:
+BAD: "Error: Transaction failed. Code 402."GOOD: "Payment failed. Your card was
+declined — try another payment method."BAD: "An error occurred. Please try
+again."GOOD: "Couldn't place order. Check your connection and retry."BAD: "Invalid
+input."GOOD: "Phone number should start with 6, 7, 8, or 9."
+2.5 Button Copy
+• Action verbs always: "Send OTP" not "OTP"
+• Primary CTAs are specific: "Pay ₹845" not "Pay now"
+• Destructive actions: red color + clear verb: "Delete" not "Remove" (when permanent)
+Page 6 of 106 | Confidential — Neerly © 2026
+
+-- 6 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Cancel/back buttons: "Cancel" for decisions, "Back" for navigation
+• Avoid "Submit" — use the actual action: "Create account", "Place order", "Send invite"
+2.6 Empty State Copy
+Every empty state has:
+• Why it's empty (not accusatory, just factual)
+• What user can do about it (CTA)
+• Illustration tone: friendly, not sad
+Examples:
+No orders yet: "No orders yet" "Start by browsing vendors near you" CTA: "Browse
+vendors"No addresses saved: "No saved addresses" "Save an address to order faster next
+time" CTA: "Add address"
+2.7 Confirmation Copy
+• Success toasts are short: "Address saved", "Review posted"
+• Destructive confirmations spell out consequence: "Delete this address? Active orders
+using it will not be affected."
+• Irreversible actions include word "permanent": "Account deletion is permanent after 30
+days"
+2.8 Regional Sensitivity
+• Avoid westernisms (no "awesome", "rockstar")
+• Amounts in Indian format: ₹1,45,000 (not ₹145,000)
+• Dates default to DD/MM/YYYY in display; ISO in backend
+• Times in 12-hour with AM/PM
+• Address order: flat → building → street → area → city → pincode
+Page 7 of 106 | Confidential — Neerly © 2026
+
+-- 7 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+3. Design Patterns & Components
+3.1 Core Principles
+P1 — Thumb-first
+• Primary CTAs at bottom; back arrow at top-left
+• Critical actions within bottom 40% of screen
+• Long forms use progressive disclosure, not scroll-to-bottom
+P2 — Transparent
+• All fees shown upfront at cart, not surprise at payment
+• Delivery time shown honestly (include buffer, don't under-promise)
+• Surge multiplier disclosed as distinct line item
+P3 — Low literacy friendly
+• Every icon paired with label for critical actions
+• Numeric keyboards for phone/OTP/amount inputs
+• Audio cues for vendor/driver alerts (not silent UI)
+• Language switcher top-right, always accessible
+P4 — Network-aware
+• Offline banner at top when disconnected
+• Cached lists still usable offline (greyed out)
+• Form drafts saved locally; restore on return
+• Photo uploads in background, retry on failure
+P5 — Role-aware accent colors
+• Customer: blue (#2E75B6)
+• Vendor: teal (#17A2B8)
+• Driver: orange (#F07820)
+• Admin: purple (#7B2CBF)
+• Role indicator visible in every top bar
+3.2 Component Library
+Component 	Purpose 	When Used
+Bottom sheet 	Secondary actions, filters,
+confirmations
+Address picker, filters, product details
+Full modal 	Critical decisions, photo
+capture
+Delete confirmation, new-order alert
+Inline error 	Form validation feedback 	Below input fields
+Page 8 of 106 | Confidential — Neerly © 2026
+
+-- 8 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Component 	Purpose 	When Used
+Toast (snackbar) 	Non-critical success/info 	"Added to cart", "Review posted"
+Banner (persistent) System state info 	Offline mode, surge active, account
+suspended
+Pull-to-refresh 	Refreshable lists 	Orders, reviews, deposits
+Infinite scroll 	Long paginated lists 	Order history, reviews
+Skeleton loader 	Loading placeholder 	All list loads, not spinners
+Empty state 	Zero-data state 	Empty cart, no orders yet
+Progress stepper 	Multi-step flow indicator 	Registration, checkout, tracking
+Status pill 	Entity status label 	Order status, vendor status
+Floating action
+button
+Primary add action 	Add address, new subscription
+3.3 Global Navigation
+Customer Bottom Tab Bar (5 tabs)
+┌─────────┬─────────┬─────────┬─────────┬─────────┐│ Home
+│ Orders │ Subs │ Wallet │ Profile ││	
+🏠 │	
+📦 │	
+🔄 │	
+💰 │	
+👤
+│└─────────┴─────────┴─────────┴─────────┴─────────┘Tab
+labels (verbatim copy): - Home - Orders - Subs (not "Subscriptions" — too long) -
+Wallet - Profile
+Vendor Bottom Tab Bar (5 tabs)
+┌─────────┬─────────┬─────────┬─────────┬─────────┐│Dashboa
+rd│ Orders │ Catalog │ Earn │ More ││	
+📊 │	
+📦 │	
+🏪 │	
+💰 │ ⋯
+│└─────────┴─────────┴─────────┴─────────┴─────────┘Tab
+labels: - Dashboard - Orders - Catalog - Earn 	(not "Earnings" — consistent length) -
+More 	(holds: Team, Settings, Compliance, Help)
+Driver Bottom Tab Bar (3 tabs)
+┌──────────┬──────────┬──────────┐│ Today │ History │ Profile ││
+🚚 │	
+📋 │	
+👤 │└──────────┴──────────┴──────────┘
+Admin-Light Bottom Tab Bar (4 tabs)
+Page 9 of 106 | Confidential — Neerly © 2026
+
+-- 9 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+┌────────┬────────┬────────┬────────┐│Overview│Vendors │Disputes│
+More ││
+📊 │
+🏪 │
+⚖ │ ⋯
+│└────────┴────────┴────────┴────────┘
+Page 10 of 106 | Confidential — Neerly © 2026
+
+-- 10 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+4. Screen Naming Conventions
+Every screen has a unique ID for cross-reference. Format: `S-<ROLE>-<FLOW>-<NUMBER>`
+4.1 Role Codes
+Code 	Meaning
+CUST 	Customer-role screens
+VEND 	Vendor-role screens
+DRIV 	Driver-role screens
+ADMN 	Admin-role screens (mobile admin-light)
+AUTH 	Authentication screens (shared across roles)
+COMMON 	Shared / system-level screens
+ERR 	Error state screens
+EMPTY 	Empty state screens
+4.2 Flow Codes
+Code 	Meaning
+REG 	Registration
+LOG 	Login
+ROL 	Role selection / switching
+TOT 	TOTP / 2FA
+HOM 	Home / dashboard
+VEN 	Vendor detail
+CAT 	Catalog
+CRT 	Cart
+CHK 	Checkout
+TRK 	Tracking
+HIS 	History
+SUB 	Subscription
+RET 	Return
+WAL 	Wallet
+Page 11 of 106 | Confidential — Neerly © 2026
+
+-- 11 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Code 	Meaning
+PRF 	Profile
+REV 	Review
+CMP 	Complaint
+DSH 	Dashboard (vendor/admin)
+ORD 	Order management
+TEA 	Team
+EAR 	Earnings
+PAY 	Payout
+SET 	Settings
+DEL 	Delivery
+SHF 	Shift
+COD 	COD reconciliation
+DMG 	Damage claim
+COMPL 	Compliance
+Page 12 of 106 | Confidential — Neerly © 2026
+
+-- 12 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+5. Shared UI Strings
+These strings appear across many screens. Keep consistent.
+5.1 Generic Error Messages
+Context 	Copy
+Network offline 	"No internet connection"
+Network timeout 	"Couldn't connect. Check your internet and retry."
+Server 5xx 	"Something went wrong on our end. We're looking into it."
+Rate limited 	"Too many requests. Try again in a few minutes."
+Session expired 	"Session expired. Log in again to continue."
+Token invalid 	"Your session ended. Please log in again."
+Permission denied 	"You don't have permission for this action."
+Invalid input (generic) 	"Please check the details and try again."
+Upload failed 	"Upload failed. Tap to retry."
+Action blocked 	"This action isn't available right now."
+Not found 	"We couldn't find what you're looking for."
+5.2 Generic Empty States
+Context 	Title + Body + CTA
+No orders 	"No orders yet" | "Browse vendors to place your first order" |
+"Browse vendors"
+No active orders 	"No active orders" | "All your orders are completed" | "View
+history"
+No addresses 	"No saved addresses" | "Save an address to order faster" | "Add
+address"
+No subscriptions 	"No subscriptions yet" | "Save time with recurring deliveries" |
+"Create subscription"
+No deposits 	"No active deposits" | "You have no containers to return" | "(no
+CTA)"
+No reviews (vendor side) "No reviews yet" | "Reviews will appear here once customers
+rate their orders" | "(no CTA)"
+No payouts 	"No payouts yet" | "Your first payout will appear after your first
+week of orders" | "(no CTA)"
+Page 13 of 106 | Confidential — Neerly © 2026
+
+-- 13 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Context 	Title + Body + CTA
+Empty cart 	"Your cart is empty" | "Add items to get started" | "Browse
+vendors"
+5.3 Loading State Strings
+Context 	Text Shown
+Initial app load 	Logo + thin progress bar (no text)
+Placing order 	"Placing your order..."
+Finding vendor 	"Finding nearest vendor..."
+Processing payment 	"Processing payment..."
+Uploading photo 	"Uploading photo..." + progress %
+Verifying OTP 	"Verifying..."
+Saving address 	"Saving address..."
+Submitting review 	"Posting your review..."
+Loading list 	Skeleton loaders (no text)
+Long operation (>5s) 	"Still working... hang tight."
+5.4 Success Toast Messages
+Context 	Toast Text
+Address saved 	"Address saved"
+Address updated 	"Changes saved"
+Address deleted 	"Address removed"
+Added to cart 	"Added to cart"
+Review posted 	"Review posted"
+Subscription created 	"Subscription active from <date>"
+Subscription paused 	"Paused until <date>"
+Payment successful 	"Payment successful"
+Wallet topped up 	"₹<amount> added to wallet"
+Profile updated 	"Profile updated"
+Logged out 	"Logged out"
+Page 14 of 106 | Confidential — Neerly © 2026
+
+-- 14 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Context 	Toast Text
+Order cancelled 	"Order cancelled. Refund initiated."
+Complaint filed 	"Complaint <ticket #> created"
+5.5 Confirmation Dialog Strings
+Context 	Title + Body + Primary + Secondary
+Cancel order 	"Cancel this order?" | "You may be charged a cancellation fee
+depending on the vendor's status." | "Cancel order" | "Keep order"
+Delete address 	"Delete this address?" | "Active orders or subscriptions using this
+address won't be affected." | "Delete" | "Keep"
+End subscription 	"End this subscription?" | "You'll no longer receive deliveries. You
+can create a new one anytime." | "End subscription" | "Keep"
+Logout 	"Log out?" | "You'll need to enter your phone number to log back in."
+| "Log out" | "Cancel"
+Delete account 	"Delete your Neerly account?" | "Your data will be permanently
+deleted after 30 days. This cannot be undone." | "Delete account" |
+"Cancel"
+Switch role 	"Switch to <role>?" | "You'll be taken to the <role> dashboard." |
+"Switch" | "Cancel"
+Page 15 of 106 | Confidential — Neerly © 2026
+
+-- 15 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+6. App Launch & Entry Points
+6.1 S-COMMON-SPLASH — Splash / App Launch
+Purpose 	Initialize app, check auth, route user appropriately
+Entry from 	App icon tap, deeplink, notification tap, Play Store install
+Exit to 	Destination varies by auth/role state (see decision tree below)
+Duration 	Max 2 seconds; extend to 5s max with progress bar
+Elements
+• Neerly logo centered, large
+• Tagline below logo: "Water, sorted."
+• Small thin progress bar appears if load > 2s (bottom of screen)
+• Background: brand blue gradient
+No user interaction
+This is an auto-progressing screen. No taps accepted.
+API calls
+• GET /api/v1/public/app-version — checks min supported version
+• GET /api/v1/health — checks backend status
+• Silent refresh: POST /api/v1/auth/refresh (if refresh token present)
+Destination Decision Tree
+SPLASH LAUNCHES│├─ App version < min required? ──────►
+S-COMMON-UPDATE│├─ Backend in maintenance mode? ─────►
+S-COMMON-MAINT│├─ No refresh token in Keystore? ─────► S-CUST-REG-01
+(Welcome)│├─ Refresh token present but expired? ► S-AUTH-LOG-01 (Welcome
+Back)│├─ Refresh succeeded? ────────────────┐│ 	││ ├─
+Account status check: 	││ │ ├─ SUSPENDED ────────────────►
+S-COMMON-SUSPEND│ │ ├─ DELETION_PENDING ─────────► Reactivation
+modal (Section 22)│ │ └─ ACTIVE ──┐ 	││ │ 	│ 	││ ├─
+Role check: 	││ │ ├─ No roles (shouldn't happen)► S-CUST-REG-01│ │
+├─ 1 role only ──────────────► that role's home│ │ └─ Multiple roles: 	││
+│ 	├─ Has remembered choice ► that role's home│ │ 	└─ No preference
+────────► S-AUTH-ROL-01│ ││ └─ For vendor role, also check: ││ 	├─
+PENDING_VERIFICATION ─────► S-VEND-DSH-PENDING│ 	├─ OFFBOARDING
+──────────────► S-VEND-DSH-OFFBOARD│ 	└─ ACTIVE
+─────────────────► S-VEND-DSH-01│└─ Error/timeout during checks
+──────► Retry with exponential backoff (3 attempts) 	then
+fallback to cached state if available
+Page 16 of 106 | Confidential — Neerly © 2026
+
+-- 16 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Error / edge cases
+• Network completely absent: wait 5s, show "No internet — Retry" button at bottom; logo
+stays
+• Backend returns 503: auto-retry 3 times with 2s/4s/8s backoff
+• All retries fail: route to S-COMMON-MAINT
+• Deeplink present but requires auth user doesn't have: after auth, route to deeplink
+destination
+• Deeplink to screen user can't access (e.g., vendor page for customer-only user): route to
+login then prompt role add
+Accessibility
+• Screen reader announces "Neerly, loading"
+• Progress bar has role=progressbar with aria-label
+6.2 S-COMMON-UPDATE — Force Update Required
+Purpose 	Require user to update before continuing
+Entry from 	Splash if app version below minimum
+Exit to 	Play Store (external)
+Elements
+• Illustration: phone with download arrow
+• Header: "Update required"
+• Body: "This version of Neerly is no longer supported. Update to continue using the app."
+• Primary CTA: "Update Now" → opens Play Store app page
+• Current version shown small at bottom: "Version 1.0.0"
+No back button / no skip
+• Hardware back button does nothing on this screen
+Edge cases
+• Play Store unavailable: show secondary text "Alternatively, download from neerly.in"
+Copy rationale
+• "Update required" not "Please update" — direct without begging
+• "Update Now" not "Download" — more specific
+6.3 S-COMMON-MAINT — Maintenance Mode
+Purpose 	Inform user platform is temporarily down
+Page 17 of 106 | Confidential — Neerly © 2026
+
+-- 17 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Entry from 	Splash when backend signals maintenance
+Exit to 	Splash (on successful retry)
+Elements
+• Illustration: tools / wrench
+• Header: "We'll be back shortly"
+• Body: "Neerly is briefly down for maintenance. We're working to get back as quickly as
+possible."
+• Estimated time (if provided by backend): "Expected back: 3:45 PM"
+• Primary CTA: "Retry" (polls /health)
+• Secondary link: "View status page" (opens status.neerly.in if available)
+Behaviour
+• Auto-retry every 30s in background
+• Manual retry enabled always
+• On success → return to splash, normal flow resumes
+Error copy refinements
+• If no ETA from backend: "We're working to get back soon." (no specific time)
+• If maintenance is planned (scheduled): "Planned maintenance. Back by <time>."
+6.4 S-COMMON-OFFLINE — Offline State
+Purpose 	Inform when device has no network
+Entry from 	Any screen detecting network loss
+Exit to 	Resume prior screen on reconnect
+Behaviour (not a full screen — banner + state)
+• Top banner appears: "No internet — some features unavailable"
+• Cached data still viewable (orders, vendors browsed before)
+• Write actions (place order, submit review) disabled with greyed-out CTAs
+• Tapping disabled CTA shows toast: "Check your internet first"
+• On reconnection: banner changes to "Back online" for 2 seconds then disappears
+Full offline screen (only shown at app start with no cache)
+• Illustration: disconnected wifi icon
+• Header: "No internet connection"
+• Body: "Check your connection and try again."
+• Primary CTA: "Retry"
+Page 18 of 106 | Confidential — Neerly © 2026
+
+-- 18 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+6.5 S-COMMON-SUSPEND — Account Suspended
+Purpose 	Inform user their account is suspended
+Entry from 	Splash or any API call returning ACCOUNT_SUSPENDED
+Exit to 	Contact support (external) OR role switch (if other active role)
+Elements
+• Illustration: lock icon
+• Header: "Your account is suspended"
+• Body (dynamic): "<Reason from backend>"
+• If temporary: "Suspension ends on <date>"
+• If permanent: "To discuss this, contact support."
+• Primary CTA: "Contact support" → WhatsApp deeplink pre-filled with user ID
+• Secondary (if user has other role): "Continue as <other role>"
+Edge cases
+• Multi-role user suspended in one role: other role still works
+• All roles suspended: no switch option shown, only support
+Page 19 of 106 | Confidential — Neerly © 2026
+
+-- 19 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+7. Customer Registration (New User)
+Full flow from app install to first home screen.
+7.1 Flow Overview
+S-CUST-REG-01 ─► S-CUST-REG-02 ─► S-CUST-REG-03 ─► S-CUST-REG-04
+Welcome 	Phone Entry 	OTP 	Name 	│
+▼ 	S-CUST-REG-05 	Language
+│ 	▼ 	S-CUST-REG-06
+Location Permission 	│
+┌────────┴────────┐ 	▼ 	▼
+S-CUST-REG-07A S-CUST-REG-07B 	Address (GPS) Address
+(Manual) 	│ 	│
+└────────┬─────────┘ 	▼
+S-CUST-REG-08 	Referral (optional)
+│ 	▼ 	S-CUST-HOM-01
+Home
+7.2 S-CUST-REG-01 — Welcome
+Purpose 	Brand intro + route to signup or vendor intent
+Entry from 	S-COMMON-SPLASH (no session)
+Exit to 	S-CUST-REG-02 (Get Started) OR S-VEND-REG-01 (I'm a
+vendor)
+Elements
+• Neerly logo (large, centered)
+• Tagline: "Water, sorted."
+• Hero illustration: water can + phone
+• Value prop subtitle: "Order clean water from trusted suppliers near you."
+• Primary CTA: "Get Started" (blue, full-width, bottom)
+• Secondary link below: "I sell water → Register as vendor"
+• Language toggle top-right: "EN | తె" (tappable to switch)
+• Fine print at footer: "By continuing you agree to our Terms and Privacy Policy." (with
+hyperlinks)
+Validations
+None on this screen.
+API calls
+None until user taps "Get Started".
+Page 20 of 106 | Confidential — Neerly © 2026
+
+-- 20 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Loading states
+None — static screen.
+Edge cases
+• User taps language toggle: whole screen re-renders in new language instantly (no server
+call for labels)
+• User taps vendor link: routes to S-VEND-REG-01 (skip customer signup)
+• Back button (hardware): closes app (this is root screen)
+Accessibility
+• Primary CTA has aria-label "Get started with customer signup"
+• Vendor link distinct from CTA, not styled as button
+• Logo has alt text "Neerly, water sorted"
+7.3 S-CUST-REG-02 — Phone Entry
+Purpose 	Capture phone number for OTP
+Entry from 	S-CUST-REG-01 (Get Started)
+Exit to 	S-CUST-REG-03 (OTP sent)
+Elements
+• Back arrow top-left
+• Header: "Enter your mobile number"
+• Subtitle: "We'll send you a one-time password"
+• Input row: country code "+91" (locked, non-editable grey) + phone input
+• Phone placeholder: "Mobile number"
+• Input type: numeric keyboard, 10 digits max, no country code prefix
+• Primary CTA: "Send OTP" (disabled until 10 valid digits entered)
+• Footer: "Trouble signing in? Contact support" (link)
+Validations (on type, real-time)
+Condition 	Error Copy
+Less than 10 digits 	No error shown (CTA just disabled)
+10 digits but doesn't start with 6/7/8/9 "Enter a valid Indian mobile number"
+Non-numeric (shouldn't happen with
+numeric keyboard)
+Auto-strip non-digits silently
+Empty field tapped then moved away No error (CTA disabled is enough)
+Page 21 of 106 | Confidential — Neerly © 2026
+
+-- 21 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+API calls
+• On CTA tap: Firebase SDK verifyPhoneNumber() — no backend call
+Loading state
+• CTA transforms: "Send OTP" → spinner + "Sending..."
+• Phone input becomes read-only during send
+• Back button disabled during send
+Success
+• On OTP dispatched: navigate to S-CUST-REG-03
+Error states
+Error Scenario 	User-Facing Copy 	User Action
+Rate limit: 3 requests in
+hour
+"Too many attempts. Try again after <time
+remaining>."
+Countdown; CTA
+disabled
+Firebase unreachable 	"Can't send OTP right now. Try again in a
+moment."
+Retry button
+Invalid phone (passed
+validation but Firebase
+rejects)
+"This number can't receive SMS. Try
+another number or contact support."
+Back to edit
+Timeout (10s) 	"Still trying to send OTP... Tap retry if it's
+taking too long." + Retry button
+Retry or back
+Edge cases
+• User enters number with spaces/dashes: auto-strip (98765-43210 → 9876543210)
+• User pastes number with +91 prefix: auto-strip the prefix
+• User pastes longer number: trim to last 10 digits
+• User taps CTA rapidly: button debounces (ignore 2nd tap within 1s)
+• Number already registered with DELETED status: proceed to OTP; backend handles as
+new signup
+• Number already registered with ACTIVE status: OTP sent; on exchange, login flow
+triggers (not signup)
+Accessibility
+• Phone field has aria-label "Mobile phone number"
+• Country code visually distinct from input field
+• CTA disabled state announced to screen reader
+7.4 S-CUST-REG-03 — OTP Verification
+Page 22 of 106 | Confidential — Neerly © 2026
+
+-- 22 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Purpose 	Verify user owns the phone number
+Entry from 	S-CUST-REG-02 (OTP sent)
+Exit to 	S-CUST-REG-04 (new user) OR S-CUST-HOM-01 (returning)
+OR S-AUTH-ROL-01 (multi-role)
+Elements
+• Back arrow top-left
+• Header: "Enter OTP"
+• Subtitle: "Sent to +91 <masked phone> — Change number" (link for Change)
+• OTP input: 4 boxes, auto-advance, numeric keyboard
+• Auto-read from SMS (Android SMS Retriever API — no extra permission required)
+• Below input: "Didn't receive OTP? Resend" (disabled for 30s with countdown "Resend in
+29s")
+• Primary CTA: "Verify" (auto-submits on 4 digits entered, or manual submit)
+Validations (on complete OTP)
+Condition 	Behaviour
+4 digits entered 	Auto-submit
+Less than 4 digits + manual
+submit
+Toast: "Enter the 4-digit OTP"
+Wrong OTP 	Error below boxes: "Wrong OTP — <N> attempts left" —
+boxes clear
+5 wrong attempts 	Full-screen lockout message (see error states)
+API calls
+• Firebase SDK signInWithPhoneAuthCredential(code) — returns Firebase ID Token
+• On Firebase success: POST /api/v1/auth/exchange with { firebaseIdToken, role:
+'CUSTOMER', deviceId, appVersion }
+Loading state
+• During verify: boxes greyed, spinner between "Verifying..." text
+• Duration: usually < 1.5s
+Success paths
+Backend Response 	Next Screen
+isNewUser=true 	S-CUST-REG-04 (Name)
+isNewUser=false, single role 	S-CUST-HOM-01 or respective role home
+isNewUser=false, multiple roles 	S-AUTH-ROL-01
+Page 23 of 106 | Confidential — Neerly © 2026
+
+-- 23 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Backend Response 	Next Screen
+isNewUser=false,
+status=DELETION_PENDING
+Reactivation modal (Section 22)
+isNewUser=false,
+status=SUSPENDED
+S-COMMON-SUSPEND
+Error states
+Error 	Copy 	Behaviour
+Wrong OTP 	"Wrong OTP — <n> attempts left" 	Clear boxes, refocus
+first box
+5 wrong attempts 	Full message: "Too many wrong attempts.
+Try again in 15 minutes."
+OTP screen disabled
+for 15 min countdown
+OTP expired (5 min) 	"OTP expired. Request a new one." 	Resend becomes
+primary CTA
+Network error during
+verify
+"Couldn't verify — check your connection
+and retry."
+Retry button
+Firebase verification
+failure
+"Something went wrong. Try again or
+request a new OTP."
+Retry OR resend
+Exchange endpoint
+fails after Firebase
+success
+"Almost there... retrying..." (auto-retry up to
+3x)
+If all fail: "Can't reach
+our servers. Check
+internet." + Retry
+Edge cases
+• User closes app during OTP wait: returns to this screen with OTP input empty; can
+request new OTP
+• User receives OTP after SMS Retriever timed out: auto-read fails, user enters manually
+— still works
+• User on dual-SIM device: OTP goes to number registered; if not received in 30s, Resend
+• User taps Resend: same OTP flow; timer resets to 30s
+• User taps Change number: returns to S-CUST-REG-02 with field pre-filled
+• User enters phone belonging to a deleted account: exchange endpoint returns
+status=DELETED → allow fresh registration
+Accessibility
+• OTP boxes have aria-label "OTP digit <n>"
+• Error messages have role=alert so screen reader announces them
+• Auto-advance announced as "Moving to next digit"
+Page 24 of 106 | Confidential — Neerly © 2026
+
+-- 24 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+7.5 S-CUST-REG-04 — Name Entry
+Purpose 	Capture user's display name
+Entry from 	S-CUST-REG-03 (new user)
+Exit to 	S-CUST-REG-05 (Language)
+Elements
+• Back arrow top-left (with warning if pressed: "Go back? You'll lose progress.")
+• Header: "What should we call you?"
+• Subtitle: "This helps drivers recognize you at delivery."
+• First name input (required): placeholder "First name"
+• Last name input (optional): placeholder "Last name (optional)"
+• Primary CTA: "Continue" (disabled until first name valid)
+Validations
+Condition 	Error Copy
+First name empty 	(no error; CTA just disabled)
+First name < 2 chars 	"Name is too short"
+First name > 50 chars 	Truncate at 50; (no error)
+Only numbers or symbols 	"Name can only contain letters"
+Mostly symbols/numbers (e.g.,
+'...')
+"Enter a valid name"
+API calls
+• On CTA tap: PATCH /api/v1/customer/profile with { displayName: firstName + (lastName
+? ' ' + lastName : '') }
+Edge cases
+• User enters single-word name (common): accepted
+• User enters Telugu/Hindi script: accepted (Unicode validation, 2+ chars)
+• User pastes name with excess whitespace: auto-trim
+• User goes back: name draft cached locally; pre-filled on return
+7.6 S-CUST-REG-05 — Language Selection
+Purpose 	Set preferred language
+Entry from 	S-CUST-REG-04
+Page 25 of 106 | Confidential — Neerly © 2026
+
+-- 25 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Exit to 	S-CUST-REG-06
+Elements
+• Back arrow top-left
+• Header: "Choose your language"
+• Subtitle: "You can change this later in settings."
+• Radio list (large touch targets):
+• 	"English"
+• 	"తెలుగు (Telugu)"
+• 	"हंदी (Hindi)" — greyed with label "(Coming soon)" in V1.0
+• Auto-selection: device locale if Telugu or English; else English
+• Primary CTA: "Continue"
+Behaviour
+• Selecting a language re-renders the screen in that language immediately (test it feels
+right)
+• Hindi row is visible but non-tappable with greyed styling
+API calls
+• On CTA tap: PATCH /api/v1/customer/profile with { preferredLanguage: 'en'|'te' }
+Edge cases
+• User taps Hindi (greyed): no response; small toast "Hindi coming soon"
+• User goes back after language change: name screen now in new language
+7.7 S-CUST-REG-06 — Location Permission
+Purpose 	Ask for location to find nearby vendors
+Entry from 	S-CUST-REG-05
+Exit to 	S-CUST-REG-07A (allowed) OR S-CUST-REG-07B (denied)
+Elements
+• Illustration: map pin with water drop
+• Header: "Allow location access"
+• Subtitle: "So we can find water suppliers near you."
+• Bullet benefits list:
+• 	• "See vendors in your area"
+• 	• "Get accurate delivery times"
+• 	• "We never track you when the app is closed"
+• Primary CTA: "Allow location" — triggers Android system dialog
+Page 26 of 106 | Confidential — Neerly © 2026
+
+-- 26 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Secondary: "I'll enter my address manually" (link, muted color)
+Behaviour
+• Tap primary → Android system permission prompt appears
+• User grants: proceed to S-CUST-REG-07A
+• User denies: proceed to S-CUST-REG-07B
+• User taps secondary: skip permission, proceed to S-CUST-REG-07B
+Edge cases
+• Permission already granted (app re-launched mid-signup): skip this screen, go directly to
+07A
+• Permission denied previously + "Don't ask again" checked: show 07B directly; link
+"Enable location in settings" if user wants
+Page 27 of 106 | Confidential — Neerly © 2026
+
+-- 27 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+7.8 S-CUST-REG-07A — First Address (With GPS)
+Purpose 	Capture first delivery address using GPS
+Entry from 	S-CUST-REG-06 (allowed)
+Exit to 	S-CUST-REG-08
+Elements
+• Back arrow top-left
+• Header: "Where should we deliver?"
+• Interactive map widget (upper half of screen):
+• 	— Draggable pin at current location
+• 	— Blue dot showing user's exact position
+• 	— Hint overlay: "Drag pin to exact location"
+• Reverse-geocoded address appears below map (auto-filled, editable):
+• 	— Flat/House Number (required): "e.g., 204"
+• 	— Building Name (required): "e.g., Lakshmi Residency"
+• 	— Street (required): "e.g., 12th Road"
+• 	— Landmark (optional): "e.g., Near Bank of India"
+• 	— Area: auto-filled (read-only, derived from pin)
+• 	— Pincode: auto-filled (editable if wrong)
+• Additional (optional, collapsible section): "Add details for better delivery"
+• 	— Floor number: "e.g., 2nd floor"
+• 	— Has lift? toggle
+• 	— Delivery instructions (100 char): "e.g., Call guard at main gate"
+• Address label (radio): "Home" (default) | "Work" | "Other"
+• If Other selected: custom label field appears, placeholder "Label (e.g., Mom's house)"
+• Primary CTA: "Save Address"
+Validations
+Field 	Rule 	Error
+Flat/House Number 	1-50 chars, required 	"Flat or house number required"
+Building Name 	2-200 chars, required 	"Building name required"
+Street 	2-200 chars, required 	"Street required"
+Landmark 	Max 200 chars, optional 	(no error)
+Pincode 	6 digits, 1st digit 1-9 	"Enter a valid 6-digit pincode"
+Custom label 	2-30 chars if selected Other 	"Enter a label"
+Page 28 of 106 | Confidential — Neerly © 2026
+
+-- 28 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Service area check on save
+• Backend validates pincode against serviceable_areas
+• If serviceable: address saved, proceed to S-CUST-REG-08
+• If NOT serviceable: modal appears (see below), still saves address
+Service-area-not-served Modal
+• Title: "We don't serve this area yet"
+• Body: "<Pincode> isn't on our map. We'll notify you when we launch there."
+• Subscribe field: user's phone already shown, checkbox "Notify me when Neerly comes
+here" (pre-checked)
+• Primary CTA: "Continue" (proceeds with address saved but flagged)
+• Secondary: "Enter different address"
+API calls
+• Reverse geocoding: GET /api/v1/customer/geocode?lat=X&lng=Y
+• Pincode validation: GET /api/v1/customer/pincode/<pincode>/serviceable
+• Save: POST /api/v1/customer/addresses with full payload
+Loading states
+• Map load: skeleton grey tile until Google Maps ready (2-4s typical)
+• Reverse geocode on pin drag: subtle shimmer on address fields while updating
+• Save CTA: spinner "Saving..."
+Error states
+Error 	Copy
+Map failed to load 	"Map unavailable. Enter address manually." (switches to 07B)
+Reverse geocode failed 	"Couldn't detect address. Please enter manually." (fields
+editable, not auto-filled)
+Save failed (network) 	"Couldn't save address. Retry."
+Save failed (validation from
+server)
+"Please check address details." + field-level errors
+Edge cases
+• User drags pin outside 1km of initial location: show info "This is far from your current
+location. Are you sure?" (not blocking)
+• GPS accuracy low (> 100m): warning "Your location may be inaccurate — check the pin"
+• User taps map to move pin (vs drag): also works, pin animates to tapped position
+• Landmark field overflows: allow up to 200 chars, show character count at 150
+Page 29 of 106 | Confidential — Neerly © 2026
+
+-- 29 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Accessibility
+• Map has role=application with aria-label "Map for choosing address"
+• Pin position announced: "Pin at <area name>"
+• Fields have clear labels for screen reader
+7.9 S-CUST-REG-07B — First Address (Manual)
+Purpose 	Capture address without GPS
+Entry from 	S-CUST-REG-06 (denied) OR from 07A error
+Exit to 	S-CUST-REG-08
+Elements
+• Same fields as 07A but no map
+• Pincode field at top (so we can validate serviceability early):
+• 	— "Pincode" (required): large input, numeric keyboard
+• 	— As user types, autocomplete shows matching areas (from city database)
+• Rest of fields: Flat, Building, Street, Landmark, Floor, Lift, Instructions, Label
+• Small map preview below fields (after address geocoded on save): "Is this location
+correct?"
+• Primary CTA: "Save Address"
+Flow difference
+• On save: backend geocodes address text → returns lat/lng
+• If geocoding ambiguous: show map preview with pin, ask user to confirm or adjust
+• If geocoding fails: accept address as-is with warning "We couldn't pin your exact
+location. Delivery may be slightly delayed."
+7.10 S-CUST-REG-08 — Referral Code (Optional)
+Purpose 	Allow referral code entry for reward
+Entry from 	S-CUST-REG-07A/B
+Exit to 	S-CUST-HOM-01
+Skip condition 	Hidden if referral code pre-filled via deeplink
+Elements
+• Illustration: gift icon or people connecting
+• Header: "Got a referral code?"
+• Subtitle: "Get ₹75 off your first order when a friend refers you."
+• Input field: placeholder "Enter code (e.g., SHIVA2026)"
+Page 30 of 106 | Confidential — Neerly © 2026
+
+-- 30 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Auto-uppercase on input
+• Primary CTA: "Apply & Continue"
+• Secondary: "Skip — I don't have a code" (text link, not button)
+Validations
+Condition 	Copy
+Empty + primary tap 	Small inline: "Enter a code or tap Skip"
+Invalid format (< 4 or > 20 chars) "Enter a valid code"
+Valid format entered 	On CTA: call backend to validate
+API calls
+• POST /api/v1/customer/referral/claim with { code }
+Success
+• Backend validates + creates ReferralClaim + credits unlocked (later, on first order)
+• Small celebration toast: "Referral applied! You'll get ₹75 on first order."
+• Navigate to S-CUST-HOM-01
+Error states
+Error 	Copy
+Code not found 	"This code doesn't exist. Check and retry, or tap Skip."
+Code expired 	"This code has expired. Tap Skip to continue."
+Code already used by you 	"You've already used a referral code."
+Network error 	"Couldn't verify code. Retry or Skip."
+Edge cases
+• User arrives via deeplink with code: screen skipped, code auto-applied, toast shows
+• Invalid code from deeplink: show screen with code pre-filled + error pre-shown
+• User taps Skip: no API call, direct to home
+• User taps Apply with whitespace only: same as empty
+Page 31 of 106 | Confidential — Neerly © 2026
+
+-- 31 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+8. Vendor Registration — Tier-1
+For vendors who already have FSSAI license. Fastest route to going live.
+8.1 Flow Overview
+S-VEND-REG-01 ─► (phone/OTP shared with S-CUST-REG-02/03) 	│
+▼ 	S-VEND-REG-03 (Choose path: Tier-1) 	│
+▼S-VEND-REG-04 ─► S-VEND-REG-05 ─► S-VEND-REG-06 ─►
+S-VEND-REG-07Business Basics Address+Hours Service Area FSSAI Upload
+│ 	▼S-VEND-REG-08 ─► S-VEND-REG-09 ─►
+S-VEND-REG-10 ─► S-VEND-REG-11Other Docs Owner KYC 	Bank Details
+Review & Submit 	│ 	▼
+S-VEND-REG-12 	Success (waiting)
+│ 	[Admin verifies] 	Approved / Rejected
+8.2 S-VEND-REG-01 — Vendor Welcome
+Purpose 	Brand intro for vendors + kick off onboarding
+Entry from 	Link on S-CUST-REG-01 OR direct deeplink
+Exit to 	S-VEND-REG-02 (phone entry shared screen) on continue
+Elements
+• Header: "Sell water to customers in your area"
+• Hero illustration: shop + phone + water delivery
+• Value prop cards (3 cards, scrollable):
+• 	Card 1: "Steady orders" — "Get consistent on-demand and subscription orders from
+verified customers."
+• 	Card 2: "Weekly payouts" — "Get paid every Monday. No chasing payments."
+• 	Card 3: "Low commission" — "10% standard — as low as 6% at volume."
+• Expected setup info: "Verification takes 24-48 hours if documents are ready."
+• Primary CTA: "Start Onboarding"
+• Secondary (link): "Don't have FSSAI? Start with Tier-2 (3-4 weeks)"
+• Tertiary (small): "Already have an account? Log in"
+Edge cases
+• User already has vendor account (returning): detect after phone OTP → route to login
+instead
+• User is existing customer: after OTP, shows "You already have a customer account. Add
+vendor role?" modal
+Page 32 of 106 | Confidential — Neerly © 2026
+
+-- 32 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+8.3 S-VEND-REG-02 — Phone + OTP
+Identical to S-CUST-REG-02/03 flow. Shared component. See Section 7.3 and 7.4 for full detail.
+• One difference: role hint sent to backend as VENDOR_OWNER
+• On success, routes to S-VEND-REG-03 (path picker)
+8.4 S-VEND-REG-03 — Choose Onboarding Path
+Purpose 	Route vendor to Tier-1 or Tier-2 flow
+Entry from 	S-VEND-REG-02 (OTP success)
+Exit to 	S-VEND-REG-04 (Tier-1) OR S-VEND-T2-01 (Tier-2)
+Elements
+• Header: "Do you have an FSSAI license?"
+• Subtitle: "Your path depends on your documentation status."
+• Option cards (tappable):
+• 	Option 1: "Yes, all documents ready" — "Go live in 24-48 hours"
+• 	Option 2: "I have FSSAI but some docs pending" — "Upload what you have; complete
+later"
+• 	Option 3: "No, I need help with FSSAI" — "Our partner will file it (3-4 weeks)"
+• Helpful link: "What's FSSAI? → Learn more" (opens info sheet)
+Options 1 and 2 route to Tier-1 (this section). Option 3 routes to Tier-2 (Section 9).
+Info sheet content
+• Title: "About FSSAI"
+• Body: "FSSAI (Food Safety and Standards Authority of India) license is legally required
+to sell packaged water. There are two types: Registration (turnover < ₹12 lakh) and State
+License (₹12L-₹20Cr)."
+• CTA: "OK, got it"
+8.5 S-VEND-REG-04 — Business Basics
+Purpose 	Capture basic business entity details
+Entry from 	S-VEND-REG-03 (path chosen)
+Exit to 	S-VEND-REG-05
+Elements
+• Progress indicator at top: "Step 1 of 8" + visual bar
+• Back arrow with warning modal on press: "Go back? You'll lose progress."
+Page 33 of 106 | Confidential — Neerly © 2026
+
+-- 33 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Header: "Tell us about your business"
+• Fields:
+• 	— Business name (required): placeholder "As shown on FSSAI license"
+• 	— Proprietor name (required): placeholder "Your full name"
+• 	— Business type (dropdown): "Proprietor" (default) / "Partnership" / "Private Limited" /
+"LLP"
+• 	— Category (multi-select checkboxes, at least 1 required):
+• 	• "Water Supplier (cans, bottles)"
+• 	• "Tanker Operator (bulk water)"
+• 	— Years in business (number, 0-100): placeholder "e.g., 3"
+• 	— Primary phone for business (required, can differ from login phone)
+• Primary CTA: "Continue"
+Validations
+Field 	Rule 	Error
+Business name 	2-200 chars 	"Business name required"
+Proprietor name 	2-100 chars,
+letters+spaces
+"Enter a valid name"
+Category 	At least 1 selected 	"Select at least one category"
+Years in business 	Integer 0-100 	"Enter years (0-100)"
+Business phone 	Valid +91 mobile
+format
+"Enter a valid mobile number"
+API calls
+• On Continue: PATCH /api/v1/vendor/me with business basics payload
+• Creates vendor record if not yet existing; updates if exists
+8.6 S-VEND-REG-05 — Business Address & Hours
+Purpose 	Capture shop location + operating hours
+Entry from 	S-VEND-REG-04
+Exit to 	S-VEND-REG-06
+Elements
+• Progress: "Step 2 of 8"
+• Header: "Where is your shop?"
+• Map widget (same as customer address screen)
+• Shop address fields:
+Page 34 of 106 | Confidential — Neerly © 2026
+
+-- 34 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• 	— Shop/Flat number, Building, Street, Landmark, Pincode (same format as customer)
+• Divider
+• Sub-header: "Your working hours"
+• Day-by-day hour configurator:
+• 	— Each day has: toggle (open/closed), open time picker, close time picker
+• 	— "Copy to all days" button (sets every day to Mon-Fri hours)
+• 	— Default: Mon-Sat 6:00 AM to 9:00 PM, Sun closed
+• Lunch break toggle: "Have a lunch break?"
+• 	— If toggled on: time pickers for lunch start/end
+• Primary CTA: "Continue"
+Validations
+• At least 1 day must be open
+• Close time must be after open time
+• Lunch break must be within working hours
+8.7 S-VEND-REG-06 — Service Area
+Purpose 	Define which areas the vendor delivers to
+Entry from 	S-VEND-REG-05
+Exit to 	S-VEND-REG-07
+Elements
+• Progress: "Step 3 of 8"
+• Header: "Where do you deliver?"
+• Subtitle: "You can change this anytime."
+• Tab selector: "By Pincode" | "By Radius" | "Custom Area (coming soon)"
+• By Pincode tab (default):
+• 	— Autocomplete pincode input
+• 	— Chips appear for added pincodes, with X to remove
+• 	— Hint: "Add all pincodes you deliver to"
+• 	— Hyderabad pincodes shown as suggestions based on business pincode
+• By Radius tab:
+• 	— Map with circle around business location
+• 	— Slider: 1-15 km (default 5 km)
+• 	— Preview list below map: "Covers X pincodes: <list>"
+• Primary CTA: "Continue"
+Validations
+• At least 1 pincode (or non-zero radius) required
+Page 35 of 106 | Confidential — Neerly © 2026
+
+-- 35 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Max 30 pincodes (to prevent overload)
+8.8 S-VEND-REG-07 — FSSAI Upload
+Purpose 	Upload FSSAI license
+Entry from 	S-VEND-REG-06
+Exit to 	S-VEND-REG-08
+Elements
+• Progress: "Step 4 of 8"
+• Header: "Upload your FSSAI license"
+• Subtitle: "Registration Certificate or State License — both accepted."
+• FSSAI number input (required): 14-digit, format-masked, numeric keyboard
+• License type radio (required):
+• 	"FSSAI Registration (turnover < ₹12 lakh/year)"
+• 	"FSSAI State License (₹12L - ₹20Cr/year)"
+• 	"FSSAI Central License (above ₹20Cr/year)"
+• Expiry date picker (required)
+• Upload widget: "Upload license photo"
+• 	— Camera icon + Gallery icon options
+• 	— After upload: thumbnail preview with "Retake" option
+• 	— Max 5 MB, PDF or JPG/PNG
+• Quality hint: "Make sure the license number and expiry are clearly visible."
+• Primary CTA: "Continue"
+Validations
+Field 	Rule 	Error
+FSSAI number 	14 digits, all numeric 	"FSSAI number must be 14
+digits"
+License type 	One selected 	"Choose license type"
+Expiry date 	In future 	"This license has expired.
+Please renew before
+onboarding."
+Photo 	Uploaded successfully 	"Upload the license photo"
+Photo quality 	Sharp enough (basic client-side
+check)
+"Photo is blurry — retake"
+Edge cases
+Page 36 of 106 | Confidential — Neerly © 2026
+
+-- 36 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• License expires within 30 days: warning "This license expires soon — you may need to
+renew during verification." (not blocking)
+• User pastes photo from gallery: check dimensions (min 800px)
+• PDF upload: show first page as thumbnail
+• Upload > 5MB: "Photo too large. Use a smaller image."
+8.9 S-VEND-REG-08 — Other Compliance Documents
+Purpose 	Upload additional mandatory/optional compliance docs
+Entry from 	S-VEND-REG-07
+Exit to 	S-VEND-REG-09
+Elements
+• Progress: "Step 5 of 8"
+• Header: "Other documents"
+• Subtitle: "Mandatory documents marked with *"
+• Collapsible sections per document:
+• 	1. Shop Establishment Certificate * — number + expiry + photo upload
+• 	2. PAN * — number (format-masked AAAAA9999A) + photo upload
+• 	3. GSTIN (required only if turnover > ₹20L) — number + photo upload
+• 	4. Trade License (if required by state) — optional
+• 	5. Groundwater Permit (if applicable) — optional
+• Each section header shows:
+• 	— Green check if complete
+• 	— Red * if mandatory and incomplete
+• GSTIN turnover question: "Is your annual turnover above ₹20 lakh?" (Yes makes GSTIN
+mandatory)
+• Primary CTA: "Continue" (enabled when all mandatory complete)
+Validations (per field)
+• Shop Establishment number: free text 4-50 chars
+• PAN: format check (5 letters + 4 digits + 1 letter), error "Enter a valid PAN"
+• GSTIN: 15-char format with state code, checksum, error "Enter a valid GSTIN"
+• Photos: same size/quality checks as FSSAI
+8.10 S-VEND-REG-09 — Owner KYC
+Purpose 	Verify proprietor's identity
+Entry from 	S-VEND-REG-08
+Page 37 of 106 | Confidential — Neerly © 2026
+
+-- 37 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Exit to 	S-VEND-REG-10
+Elements
+• Progress: "Step 6 of 8"
+• Header: "Verify your identity"
+• Subtitle: "Required by regulations. Data is encrypted."
+• ID type dropdown (required):
+• 	"Aadhaar" (default)
+• 	"Voter ID"
+• 	"Passport"
+• 	"Driving License"
+• ID number (format-masked per type):
+• 	Aadhaar: 12 digits, display masked after entry (XXXX XXXX 1234)
+• 	Voter ID: format varies, 10-20 alphanumeric
+• 	Passport: 1 letter + 7 digits
+• 	Driving License: 16 chars alphanumeric
+• Front photo upload (required for all)
+• Back photo upload (required for Aadhaar and Voter ID)
+• Selfie capture (required, live camera only, NO gallery upload):
+• 	— Large button: "Take selfie"
+• 	— Opens camera directly
+• 	— Overlay oval guide
+• Liveness check: blink prompt (V1.1)
+• Privacy reassurance: "We only share with regulated partners for verification."
+• Primary CTA: "Continue"
+Validations
+• Aadhaar: must pass Verhoeff checksum
+• PAN-style format for each ID type
+• Front photo mandatory, back photo for applicable types
+• Selfie must be recent (cannot be uploaded from gallery)
+8.11 S-VEND-REG-10 — Bank Details
+Purpose 	Capture payout destination
+Entry from 	S-VEND-REG-09
+Exit to 	S-VEND-REG-11
+Elements
+• Progress: "Step 7 of 8"
+Page 38 of 106 | Confidential — Neerly © 2026
+
+-- 38 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Header: "Where should we send payouts?"
+• Subtitle: "Payouts are weekly on Mondays via NEFT/IMPS."
+• Fields:
+• 	— Account holder name (required, must match PAN or business name)
+• 	— Bank account number (required, numeric)
+• 	— Confirm account number (required, must match first — prevents typos)
+• 	— IFSC code (required): 11 chars, auto-fetches bank + branch name on valid IFSC
+• 	— Bank/branch preview (auto-populated): e.g., "HDFC Bank, Jubilee Hills Branch"
+• 	— Account type radio: "Savings" / "Current"
+• 	— Cancelled cheque photo upload (required): placeholder shows sample
+• Security notice: "Bank details are encrypted. We never share them outside payment
+partners."
+• Primary CTA: "Continue"
+Validations
+• Account number: 9-18 digits (varies by bank)
+• Confirm account number: exact match required
+• IFSC: 11 chars, format "AAAA0XXXXXX" (4 letters + 0 + 6 alphanumeric)
+• Invalid IFSC: "Enter a valid IFSC code"
+• Account number mismatch: "Account numbers don't match"
+• Cheque photo required: "Upload a cancelled cheque"
+8.12 S-VEND-REG-11 — Review & Submit
+Purpose 	Final review before submission
+Entry from 	S-VEND-REG-10
+Exit to 	S-VEND-REG-12 (success)
+Elements
+• Progress: "Step 8 of 8"
+• Header: "Review your details"
+• Scrollable summary (each section has Edit link):
+• 	— Business info
+• 	— Address & hours
+• 	— Service area
+• 	— FSSAI (shows license number and expiry)
+• 	— Other documents (checklist of what's uploaded)
+• 	— Owner KYC (ID type + last 4 digits)
+• 	— Bank details (bank + last 4 digits)
+Page 39 of 106 | Confidential — Neerly © 2026
+
+-- 39 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Commission info box: "Your commission rate: 10% standard. Reduces to 8% above 500
+orders/month, 6% above 1,500."
+• Terms acceptance checkboxes (both required):
+• 	"I have read and agree to the Neerly Vendor Terms" (with hyperlink)
+• 	"All information provided is accurate and true"
+• Primary CTA: "Submit for Verification" (disabled until both checked)
+Edit flow
+• Tapping Edit in any section returns to that step with data pre-filled
+• On save, returns to review screen
+8.13 S-VEND-REG-12 — Submission Success
+Purpose 	Confirm submission and set expectations
+Entry from 	S-VEND-REG-11 (submit tap)
+Exit to 	Splash (on close); later, vendor dashboard post-approval
+Elements
+• Illustration: checkmark on document
+• Header: "Application submitted"
+• Body: "Our team will verify your details within 24-48 hours. We'll SMS and notify you
+once approved."
+• Reference number card: "Application ID: VND-2026-XXXXX" (for support reference)
+• What happens next list:
+• 	1. "Our team reviews your documents"
+• 	2. "We cross-check your FSSAI against FoSCoS"
+• 	3. "You'll get a notification once approved"
+• 	4. "Log in and add products to go live"
+• Primary CTA: "Close" (exits to splash; next login routes to dashboard)
+• Secondary link: "Track application status" (→ limited dashboard showing pending state)
+Post-approval experience
+• SMS: "Welcome to Neerly! Your application is approved. Log in to add products."
+• Push: Same message
+• Next login → role picker shows Vendor → vendor dashboard with onboarding checklist
+Post-rejection experience
+• SMS + push: "Your application needs attention. <Reason from admin>"
+• Login → shows rejection reason + "Fix issues and resubmit" CTA
+• Opens edit flow starting from the flagged section
+Page 40 of 106 | Confidential — Neerly © 2026
+
+-- 40 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+9. Vendor Registration — Tier-2
+For vendors without FSSAI. Compliance partner (CA firm) files it on their behalf.
+9.1 Flow Overview
+S-VEND-T2-01 ─► Phone/OTP (shared) ─► S-VEND-T2-02 ─► S-VEND-T2-03 T2
+Welcome 	Business Info Address+Hours
+│ 	▼S-VEND-T2-07 ◄── S-VEND-T2-06 ◄──
+S-VEND-T2-05 ◄── S-VEND-T2-04Partner Consent Bank Details KYC 	Service
+Area │ ▼S-VEND-T2-08 ─► S-VEND-T2-09 (Waiting state, partner
+contact)Review+Submit 	│ 	│ (partner works on FSSAI, updates via SMS)
+▼ 	S-VEND-T2-10 (FSSAI approved → Active)
+9.2 S-VEND-T2-01 — Tier-2 Welcome
+Entry from 	S-VEND-REG-03 (chose 'Need help with FSSAI')
+Exit to 	S-VEND-T2-02 on continue OR S-VEND-REG-01 to
+reconsider
+Elements
+• Illustration: handshake / partnership visual
+• Header: "Start selling water in 3-4 weeks"
+• Subtitle: "Our compliance partner will help you get FSSAI license."
+• Transparency cards:
+• 	Card 1: "Partner fee" — "Approximately ₹2,500, paid directly to partner"
+• 	Card 2: "Commission" — "12% for first 3 months, then 10%"
+• 	Card 3: "Timeline" — "FSSAI filing takes 3-4 weeks; we'll keep you updated"
+• Note: "You can start accepting orders only after FSSAI is approved."
+• Primary CTA: "Start Application"
+• Secondary link: "I'll get FSSAI myself" → back to S-VEND-REG-01
+Copy rationale
+• We're transparent about the partner fee because hiding it causes distrust
+• We're explicit about timeline to set realistic expectations
+• Reassurance that they're not alone (partner handles it)
+9.3 S-VEND-T2-02 through S-VEND-T2-04
+Identical to Tier-1's corresponding screens. Reuse. See Sections 8.5, 8.6, 8.7 respectively.
+• S-VEND-T2-02 = Business Basics (same as S-VEND-REG-04)
+Page 41 of 106 | Confidential — Neerly © 2026
+
+-- 41 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• S-VEND-T2-03 = Address & Hours (same as S-VEND-REG-05)
+• S-VEND-T2-04 = Service Area (same as S-VEND-REG-06)
+9.4 S-VEND-T2-05 — KYC (Simpler)
+Purpose 	Basic identity verification
+Entry from 	S-VEND-T2-04
+Exit to 	S-VEND-T2-06
+Elements
+• Header: "Verify your identity"
+• Subtitle: "Partner will use these to file FSSAI for you."
+• PAN (required): number + photo
+• Aadhaar (required): number + photo (front) + photo (back)
+• Selfie (required): live camera
+• Primary CTA: "Continue"
+9.5 S-VEND-T2-06 — Existing Documents
+Purpose 	Collect any docs vendor already has
+Entry from 	S-VEND-T2-05
+Exit to 	S-VEND-T2-07
+Elements
+• Header: "What documents do you have?"
+• Subtitle: "Upload what's ready. Partner will help with the rest."
+• Checklist (each is optional):
+• 	— Shop Establishment Certificate (upload if available)
+• 	— Trade License (upload if available)
+• 	— Groundwater permit (upload if available)
+• 	— GSTIN (if already registered)
+• 	— Bank account ready (toggle)
+• Primary CTA: "Continue"
+Edge cases
+• If "Nothing yet": that's fine — partner will help with all of them
+9.6 S-VEND-T2-07 — Partner Consent
+Page 42 of 106 | Confidential — Neerly © 2026
+
+-- 42 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Purpose 	Get explicit consent for data sharing with partner
+Entry from 	S-VEND-T2-06
+Exit to 	S-VEND-T2-08
+Elements
+• Header: "Your compliance partner"
+• Partner card:
+• 	— Partner name: "<Partner Firm Name>"
+• 	— Credentials: "CA firm, 15+ years experience, registered with Neerly"
+• 	— Contact: WhatsApp + phone (tap to call/chat)
+• What partner will do (bullet list):
+• 	• "Collect any remaining documents from you"
+• 	• "File FSSAI application on your behalf"
+• 	• "Handle follow-ups with the authority"
+• 	• "Notify you at each stage"
+• Fee box: "Partner fee: ₹2,500 (one-time, paid directly to partner, not via Neerly)"
+• Consent checkboxes (both required):
+• 	"I authorise the partner to file FSSAI on my behalf"
+• 	"I agree to share my documents with the partner for this purpose"
+• Privacy note: "Partner agrees to not use your data beyond FSSAI filing."
+• Primary CTA: "I Agree, Continue"
+• Secondary: "I'll think about it" → back to S-VEND-REG-01
+9.7 S-VEND-T2-08 — Review & Submit
+Same structure as Tier-1's S-VEND-REG-11, but with partner consent shown and no FSSAI
+details.
+• Confirmation box: "Partner will contact you within 2 business days"
+• Primary CTA: "Submit Application"
+9.8 S-VEND-T2-09 — Waiting State (Partner in progress)
+Purpose 	Show progress while partner works on FSSAI
+Entry from 	S-VEND-T2-08 (submitted)
+Exit to 	S-VEND-DSH-01 (once FSSAI approved)
+Elements
+• Illustration: clock / in-progress indicator
+• Header: "Application received"
+Page 43 of 106 | Confidential — Neerly © 2026
+
+-- 43 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Status stepper (vertical):
+• 	✓ "Application submitted" (done, with timestamp)
+• 	◯ "Partner will contact you" (in progress, pulsing)
+• 	◯ "Documents collected"
+• 	◯ "FSSAI filed with authority"
+• 	◯ "FSSAI approved — You're live!"
+• Current step highlighted in blue
+• Partner contact card: WhatsApp + phone
+• Expected timeline reminder: "3-4 weeks for FSSAI approval"
+• Primary CTA: "Got it" (exits app / minimal navigation)
+• Secondary: "Update documents" (if partner asked for more)
+Notifications received during this phase
+• "Partner <Name> will call you today" (when partner engaged)
+• "Partner needs <doc> — tap to upload" (doc collection)
+• "FSSAI application filed on <date>" (filed with authority)
+• "FSSAI approved! You're live on Neerly" (final success)
+Page 44 of 106 | Confidential — Neerly © 2026
+
+-- 44 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+10. Driver Registration & Onboarding
+Drivers don't self-register. Vendor adds them; they get an SMS and complete onboarding.
+10.1 Flow Overview
+(Vendor uses vendor app to add driver — see Section 28) 	│ 	│ Backend creates User
+with DRIVER role, 	│ creates VendorTeamMember, sends SMS 	▼SMS: "<Vendor
+Name> invited you to drive on Neerly. Download app: <link>" 	│ 	▼S-DRIV-REG-01
+─► Phone/OTP (shared with customer reg) ─► S-DRIV-REG-02 Welcome
+Basic Info 	│
+▼ 	S-DRIV-REG-03
+Permissions 	│
+▼ 	S-DRIV-REG-04
+Training Walkthrough 	│
+▼ 	S-DRIV-HOM-01
+Driver Home (Off-duty)
+10.2 S-DRIV-REG-01 — Driver Welcome
+Purpose 	Brand intro for drivers
+Entry from 	Deeplink from vendor's SMS OR direct app install + phone
+match
+Elements
+• Illustration: delivery scooter with water
+• Header: "Welcome to Neerly"
+• Subtitle (personalised if deeplink): "<Vendor Name> invited you to drive."
+• Subtitle (generic if no deeplink): "You've been invited to drive."
+• Value props (cards):
+• 	"Flexible schedule — Work on your shift"
+• 	"Clear assignments — See deliveries, routes, and OTPs"
+• 	"Vendor support — Your vendor is always a tap away"
+• Primary CTA: "Continue"
+10.3 S-DRIV-REG-02 — Basic Info
+Purpose 	Confirm driver details (most pre-filled)
+Entry from 	Phone/OTP success
+Exit to 	S-DRIV-REG-03
+Page 45 of 106 | Confidential — Neerly © 2026
+
+-- 45 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Elements
+• Header: "Confirm your details"
+• Subtitle: "<Vendor Name> added these. You can edit if needed."
+• Pre-filled fields (editable):
+• 	— Name (from vendor's invite)
+• 	— Vehicle type (editable dropdown)
+• 	— Vehicle registration number
+• Additional fields (driver fills):
+• 	— Emergency contact name (required)
+• 	— Emergency contact phone (required)
+• 	— Preferred language (same as customer)
+• Primary CTA: "Continue"
+10.4 S-DRIV-REG-03 — Permissions
+Purpose 	Request required Android permissions
+Entry from 	S-DRIV-REG-02
+Exit to 	S-DRIV-REG-04
+Elements
+• Header: "We need a few permissions"
+• Subtitle: "These help you work smoothly."
+• Permission cards (each with icon, title, explanation, "Allow" button):
+• 	1. Location (Always)
+• 	"So customers can track your delivery in real-time"
+• 	Note: "We only track during active deliveries, not off-shift."
+• 	2. Camera
+• 	"For delivery and pickup photos (required at every delivery)"
+• 	3. Notifications
+• 	"To receive new delivery assignments"
+• After each Allow tap: triggers Android system dialog
+• Progress indicator: "2 of 3 granted"
+• Skip option: "Skip for now" (only enabled if all permissions already handled)
+• If skipped: warning screen "You won't be able to receive or complete deliveries without
+these. Continue?"
+10.5 S-DRIV-REG-04 — Training Walkthrough
+Purpose 	Show driver how to use app
+Page 46 of 106 | Confidential — Neerly © 2026
+
+-- 46 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Entry from 	S-DRIV-REG-03
+Exit to 	S-DRIV-HOM-01
+Elements
+• 4-slide carousel with progress dots
+• Slide 1: "Receive delivery assignments" — screenshot of new order alert
+• Slide 2: "Navigate to customer" — screenshot of map view
+• Slide 3: "Complete with OTP + photo (always required)" — screenshot of photo capture
+• Slide 4: "Collect cash for COD orders" — screenshot of COD summary
+• Per-slide:
+• 	— Image/screenshot (large)
+• 	— Title (short)
+• 	— 1-2 line explanation
+• Navigation: swipe or next arrow
+• Skip link top-right: "Skip"
+• Final slide CTA: "Got it, let's go"
+Page 47 of 106 | Confidential — Neerly © 2026
+
+-- 47 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+11. Login (All Roles — Returning Users)
+Universal returning-user login flow. Phone-OTP based for all roles.
+11.1 S-AUTH-LOG-01 — Welcome Back
+Purpose 	Route returning user to login
+Entry from 	S-COMMON-SPLASH (expired/missing session) OR manual
+logout
+Exit to 	S-AUTH-LOG-02 (OTP screen, shared with registration)
+Elements
+• Subtle Neerly branding (smaller logo than registration welcome)
+• Header: "Welcome back"
+• Subtitle: "Enter your mobile number to log in."
+• Phone input with auto-fill (Android autofill framework + last-login cache):
+• 	— Pre-filled if last-login number cached
+• 	— Editable
+• Primary CTA: "Send OTP"
+• Secondary link: "Use different number" (clears pre-fill)
+• Footer: "New to Neerly? Sign up" + "Need help? Contact support"
+Silent authentication
+• This screen is only shown when silent auth fails
+• Silent auth attempt happens on splash screen; typical users skip this screen 90% of the
+time
+Edge cases
+• Phone is registered but account status != ACTIVE: proceed to OTP, show appropriate
+screen post-verify (suspend, deletion-pending)
+• Phone not registered: proceed to OTP (Firebase will send OTP to any valid number); on
+exchange, backend returns 'not found' → show modal "No Neerly account for this
+number. Sign up?" with button to start registration
+11.2 S-AUTH-LOG-02 — OTP (Shared with Registration)
+Identical to S-CUST-REG-03. See Section 7.4.
+Post-verify routing decisions:
+Backend Response Status 	Next Screen
+ACTIVE, single role 	Direct to that role's home
+Page 48 of 106 | Confidential — Neerly © 2026
+
+-- 48 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Backend Response Status 	Next Screen
+ACTIVE, multiple roles, no preference S-AUTH-ROL-01 (role picker)
+ACTIVE, multiple roles, preference
+saved
+Direct to preferred role's home
+SUSPENDED (any role) 	S-COMMON-SUSPEND
+DELETION_PENDING 	Reactivation modal
+DELETED 	Modal: "This account is deleted. Sign up as new
+user?"
+Vendor role with
+PENDING_VERIFICATION
+S-VEND-DSH-PENDING (not normal dashboard)
+Vendor role with OFFBOARDING 	S-VEND-DSH-OFFBOARD (wind-down)
+11.3 Reactivation Modal (Deletion Pending User)
+• Title: "Welcome back!"
+• Body: "Your account is scheduled for deletion on <date>. Log in to cancel the deletion
+and keep your account."
+• Primary CTA: "Keep my account" (reactivates, then routes to home)
+• Secondary CTA: "Continue with deletion" (logs out, deletion proceeds)
+• Small link: "Why am I seeing this?" → info sheet
+11.4 Forced Logout Scenarios — User Experience
+Scenario 	What User Sees 	Copy
+User tapped 'Logout' 	Return to Welcome Back 	(No message needed)
+Refresh token expired
+(7+ days idle)
+Welcome Back on next open 	"Please log in again"
+Suspicious login
+detected, security
+logout
+Welcome Back + toast 	"Signed out for security. Log in
+again."
+Admin suspended
+account
+S-COMMON-SUSPEND 	Full suspension screen
+Account scheduled for
+deletion
+Reactivation modal on next login
+attempt
+As above
+Token blacklisted
+mid-session
+Current screen closes →
+Welcome Back
+Toast: "Session ended. Log in
+again."
+Page 49 of 106 | Confidential — Neerly © 2026
+
+-- 49 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Scenario 	What User Sees 	Copy
+Device changed +
+single-device
+preference
+Welcome Back on this device 	Toast: "Logged in elsewhere.
+Log in to continue here."
+Page 50 of 106 | Confidential — Neerly © 2026
+
+-- 50 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+12. Role Selection, Switching & Multi-Role
+12.1 S-AUTH-ROL-01 — Role Picker
+Purpose 	Let user choose which role to operate as
+Entry from 	OTP success with > 1 role, OR Profile → 'Switch role'
+Exit to 	Chosen role's home
+Shown when 	Only if user has multiple roles AND no remembered
+preference
+Elements
+• Header: "Continue as"
+• Subtitle: "You have access to multiple roles."
+• Card per role (large, tappable, full-width):
+• 	Customer card: blue accent, customer icon
+• 	Title: "Customer"
+• 	Subtitle: "Browse vendors and order water"
+• 	Vendor card: teal accent, vendor icon
+• 	Title: "Vendor"
+• 	Subtitle: "Manage <Business Name>"
+• 	Driver card: orange accent, driver icon
+• 	Title: "Driver"
+• 	Subtitle: "Deliver for <Vendor Name>"
+• 	Admin card: purple accent, admin icon
+• 	Title: "Admin"
+• 	Subtitle: "Platform operations"
+• Below cards: checkbox "Remember my choice" (unchecked by default)
+• Footer: "Logged in as +91 <masked phone>" + "Change number" link
+Role card interaction
+• Tap role card → (if admin) TOTP challenge first, else confirm switch
+• Confirmation modal: "Continue as <role>?"
+• 	Body: "You'll be taken to the <role> dashboard."
+• 	Primary CTA: "Yes, continue"
+• 	Secondary: "Cancel"
+• (Skip confirmation if only one role available)
+Edge cases
+• User has admin role: tapping admin card triggers S-AUTH-TOT-01 (TOTP) first
+• User's vendor role has SUSPENDED status: vendor card shown but greyed with badge
+"Suspended"; tap shows suspension details
+Page 51 of 106 | Confidential — Neerly © 2026
+
+-- 51 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• User's driver role has REMOVED status: driver card hidden
+• User set Remember Choice previously but wants to switch: accessible from Profile →
+Switch Role
+12.2 S-AUTH-TOT-01 — TOTP Challenge (Admin Only)
+Purpose 	Second factor for admin role
+Entry from 	S-AUTH-ROL-01 (admin card tap)
+Exit to 	Admin dashboard on success
+Elements
+• Illustration: shield with lock
+• Header: "Verify with authenticator"
+• Subtitle: "Enter the 6-digit code from your authenticator app."
+• 6-box input, numeric
+• Primary CTA: "Verify"
+• Secondary: "Lost access to authenticator?" (info modal on tap)
+Validations and errors
+Scenario 	Response
+Correct code 	Proceed to admin dashboard
+Wrong code 	"Wrong code. Try again." (input clears)
+3 wrong 	"Too many wrong attempts. Log in again." → returns to role
+picker
+Network error 	"Couldn't verify — retry"
+12.3 Mid-Session Role Switching
+Entry point: Role indicator in header
+• Every screen shows role badge top-right: "Customer Mode" / "Vendor Mode" etc.
+• Tappable — opens bottom sheet with role picker (smaller version of S-AUTH-ROL-01)
+Bottom sheet
+• Title: "Switch role"
+• Currently active role highlighted with checkmark
+• Other roles tappable as cards
+• Cancel button at bottom
+Switch behaviour
+Page 52 of 106 | Confidential — Neerly © 2026
+
+-- 52 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• On tap of new role: confirmation "Switch to <role>? Your current session state will be
+cleared."
+• Confirm → silent re-auth with new role → navigate to new role's home
+• App state clears (cart, filters, etc.)
+12.4 Role Conflict Rules
+Rule 	Enforcement
+Can't order from your own
+vendor
+Backend blocks at order creation: "You can't order from
+your own business"
+Can't be driver for yourself 	Vendor app blocks adding self as driver: "You can't add
+yourself as a driver"
+Admin impersonation 	Via admin tool, time-limited, audit-logged
+Switching role forces re-auth 	Silent if same JWT can be reissued, explicit if session
+revoked
+12.5 Adding a Role (Become Vendor / Customer Later)
+Customer → Vendor
+Step 1: Customer opens app, logs in
+Step 2: Profile → "Become a vendor"
+Step 3: Modal: "Add vendor role to this account?"
+Step 4: Confirm → starts vendor onboarding flow (S-VEND-REG-03 onwards)
+Step 5: Phone OTP skipped (already verified)
+Step 6: On approval: next login shows role picker
+Vendor → Customer
+Step 7: Vendor opens app, logs in as vendor
+Step 8: Switch role → "Become a customer"
+Step 9: Confirm → customer role added instantly (no verification needed)
+Step 10: 	Next login: role picker shows both
+Page 53 of 106 | Confidential — Neerly © 2026
+
+-- 53 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+13. Admin-Light Mobile Access
+Admins using the super-app on mobile for on-the-go tasks. Full admin work happens on the web
+portal.
+13.1 Admin-Light Scope
+Available on mobile
+• Vendor verification (approve/reject)
+• Dispute triage (view, basic decisions)
+• Surge toggle (on/off)
+• Vendor suspension (temporary)
+• Compliance alerts (view)
+• Basic metrics / dashboard
+NOT available on mobile (web portal only)
+• Payout override
+• User deletion
+• Role management (adding/removing admin roles)
+• Bulk operations
+• Financial reports export
+• System configuration
+13.2 S-ADMN-LOG-01 — Admin Login Flow
+Uses shared phone OTP flow + TOTP challenge (see S-AUTH-TOT-01).
+• Same as customer/vendor login, but admin role requires TOTP before dashboard access
+13.3 S-ADMN-DSH-01 — Admin Dashboard (Mobile)
+Purpose 	Quick overview of platform state
+Entry from 	Login → role picker → admin
+Elements
+• Top bar: "Admin Mode" badge (purple), date
+• KPI cards (2x2):
+• 	— Orders today: count + trend arrow
+• 	— GMV today: ₹ amount
+• 	— Active vendors: count
+• 	— Active disputes: count (red if > 0)
+Page 54 of 106 | Confidential — Neerly © 2026
+
+-- 54 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Alert banner if any critical (platform down, high error rate, etc.)
+• Quick action cards:
+• 	— "Vendor verification queue (X pending)" → vendor list
+• 	— "Open disputes (X)" → disputes list
+• 	— "Compliance alerts (X)" → compliance screen
+• 	— "Toggle surge" → surge control
+• Tab bar: Overview | Vendors | Disputes | More
+13.4 S-ADMN-VEN-LST-01 — Vendor Verification Queue
+Entry from 	Dashboard card or Vendors tab
+Elements
+• Filter pills: Pending | Approved | Rejected | Suspended
+• Sort: Oldest first (default) / Newest / By tier
+• Vendor cards:
+• 	— Business name, tier badge
+• 	— Submitted date
+• 	— Status pill
+• 	— Critical flags (e.g., expired license)
+• Tap → S-ADMN-VEN-DET-01
+13.5 S-ADMN-VEN-DET-01 — Vendor Verification Detail
+Elements
+• Business info summary (read-only)
+• FSSAI section:
+• 	— License number
+• 	— Expiry
+• 	— Photo (tap to zoom)
+• 	— Action: "Verify on FoSCoS" (opens external link with number pre-filled)
+• Other docs sections (same pattern)
+• KYC section with ID photos
+• Bank details (last 4 digits visible; full requires web portal)
+• Decision buttons at bottom:
+• 	— "Approve" (green)
+• 	— "Reject" (red)
+• 	— "Request info" (amber)
+Approve flow
+Page 55 of 106 | Confidential — Neerly © 2026
+
+-- 55 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Step 11: 	Tap Approve
+Step 12: 	Confirmation modal: "Approve <Business Name>?"
+Step 13: 	Note field (optional)
+Step 14: 	TOTP re-verification (security layer)
+Step 15: 	Submit → vendor status → ACTIVE, notification sent
+Step 16: 	Toast: "Vendor approved"
+Reject flow
+Step 17: 	Tap Reject
+Step 18: 	Reason picker (radio): "Documents unclear" | "FSSAI invalid" | "Business not
+found" | "Other"
+Step 19: 	Detailed note (required)
+Step 20: 	TOTP verification
+Step 21: 	Submit → vendor notified
+13.6 S-ADMN-DIS-LST-01 — Disputes List
+• Tabs: Open | Under review | Escalated | Resolved
+• Sort: Oldest / SLA due / Priority
+• Dispute cards:
+• 	— Ticket # (NEE-CMP-XXXXX)
+• 	— Category pill (Quality / Quantity / etc.)
+• 	— Customer + Vendor names
+• 	— Time elapsed since filed
+• 	— SLA indicator (green/amber/red)
+• Tap → dispute detail
+13.7 S-ADMN-DIS-DET-01 — Dispute Detail
+Elements
+• Ticket # + category
+• Order detail link (collapsed, tap to expand)
+• Customer description + photos (scroll through)
+• Vendor response (if submitted) + evidence photos
+• Decision section:
+• 	— Radio: Resolve for customer / Resolve for vendor / Partial / Dismiss
+• 	— Refund amount field (if applicable)
+• 	— Vendor penalty amount (if applicable)
+• 	— Award vendor strike toggle
+• 	— Admin notes (private)
+• 	— Notification preview (what goes to customer + vendor)
+Page 56 of 106 | Confidential — Neerly © 2026
+
+-- 56 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Primary CTA: "Submit decision" → TOTP re-verify → execute
+• Secondary: "Escalate to L2" (pass to senior admin)
+13.8 S-ADMN-SUR-01 — Surge Control
+Elements
+• Current state banner: "Surge: OFF" or "Surge: ON (1.3x)"
+• Active triggers list (if on):
+• 	— Trigger name, contribution, scope
+• 	— Toggle per trigger
+• Manual override section:
+• 	— "Force surge ON for <city/pincode>"
+• 	— Multiplier slider (1.0 - 1.5)
+• 	— Duration picker
+• 	— Reason input
+• Primary CTA: "Apply" → TOTP re-verify
+• Warning: "Customers will see surge pricing immediately."
+13.9 S-ADMN-MOR-01 — More Menu
+• Items:
+• 	— Compliance alerts
+• 	— Vendor suspension (search + suspend)
+• 	— Impersonate user (debug, audit-logged)
+• 	— Switch back to customer/vendor role
+• 	— Audit log viewer (read-only)
+• 	— Open web portal (deeplink with session token)
+• 	— Log out
+Page 57 of 106 | Confidential — Neerly © 2026
+
+-- 57 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+14. Home & Browse (Customer)
+14.1 S-CUST-HOM-01 — Home / Browse
+Purpose 	Primary customer landing; browse vendors
+Entry from 	Post-login, tab bar Home, after splash
+Elements (top to bottom)
+• Top app bar:
+• 	— Left: Hamburger menu icon
+• 	— Center: "Deliver to: <label>, <area>" (tappable; opens address switcher)
+• 	— Right: Notification bell with badge, role mode indicator
+• Search bar: "Search vendors or products" (tap opens search screen)
+• Surge banner (conditional): "Surge pricing active — subscribers not affected"
+• First-order banner (conditional): "₹100 off your first order with code NEERLY100"
+• Quick-reorder section (if user has past orders):
+• 	— Horizontal scrollable cards
+• 	— "Reorder from <Vendor>" with product preview + price
+• Vendors section header: "Vendors near you"
+• Filter chips below header: "All" | "Featured" | "Open now" | "Highest rated" | "Tanker
+available"
+• Vendor cards (scrollable list):
+• 	— Vendor photo or initials-avatar
+• 	— Business name + "Tier-1" or "Tier-2" badge
+• 	— Rating: "⭐ 4.5 (243)"
+• 	— Delivery time estimate: "20-30 min"
+• 	— Minimum order: "Min ₹100"
+• 	— Distance: "2.1 km"
+• 	— Price range chip: "₹60-120 per 20L"
+• 	— "Closed" overlay with next open time if outside hours
+• Bottom tab bar: Home (active) | Orders | Subs | Wallet | Profile
+API calls
+• GET /api/v1/customer/vendors?pincode=X&lat=Y&lng=Z&sort=ranking
+• GET /api/v1/customer/surge/status (for banner)
+Loading states
+• Initial load: skeleton vendor cards (grey placeholders)
+• Pull-to-refresh: standard Android refresh spinner
+• Infinite scroll: small loader at bottom
+Empty states
+Page 58 of 106 | Confidential — Neerly © 2026
+
+-- 58 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Condition 	Copy
+No vendors in this area 	"No vendors here yet" | "We're expanding — join the waitlist" |
+CTA: "Notify me"
+All vendors closed 	"All vendors currently closed" | "Next opening: <time>" | (no
+CTA)
+Filter returns nothing 	"No vendors match these filters" | "Try clearing filters" | CTA:
+"Clear filters"
+Error states
+• Network error: "Couldn't load vendors — pull to refresh"
+• Service area change failed: "Couldn't update area — try again"
+Address switcher (bottom sheet)
+• Triggered: tap on top address bar
+• Content: list of saved addresses, primary marked with badge
+• Each row: label, building, short address, distance estimate from current location
+• '+ Add new address' at bottom
+• Tap address → closes sheet, Home refreshes for new area
+Edge cases
+• User's primary address is now non-serviceable: banner at top "<area> no longer
+serviceable — choose different address"
+• User switches to non-serviceable address: empty-state with message
+• Surge applies to all vendors but subscribers see special tag on their subscribed vendor
+• New vendor just went live: badge "New" for 7 days
+14.2 S-CUST-SEA-01 — Search Screen
+Purpose 	Search vendors or products
+Entry from 	Tap search bar on Home
+Elements
+• Back arrow + search input (auto-focused, keyboard open)
+• Recent searches chips (if any)
+• Popular searches section
+• Results section (updates as user types):
+• 	— Vendor results
+• 	— Product results (with vendor shown)
+Empty state (no query yet)
+Page 59 of 106 | Confidential — Neerly © 2026
+
+-- 59 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• "Search for vendors, products, or 'ice'"
+• Popular: "20L jars", "Mineral water", "Tanker service", "Event water"
+No results state
+• "No results for '<query>'"
+• Suggestions: "Try different keywords or browse vendors"
+• CTA: "Back to home"
+Page 60 of 106 | Confidential — Neerly © 2026
+
+-- 60 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+15. Vendor Detail & Product
+15.1 S-CUST-VEN-01 — Vendor Detail
+Purpose 	Vendor's products, info, reviews
+Entry from 	Tap vendor card on Home or search
+Elements
+• Header image / banner (vendor's photo or default)
+• Back arrow, share icon, favorite heart toggle
+• Floating info row on image:
+• 	— Business name (large)
+• 	— Tier badge
+• 	— "⭐ 4.5 (243 reviews)" (tappable to reviews)
+• Info strip below banner:
+• 	— Delivery time to selected address
+• 	— Minimum order
+• 	— Distance
+• 	— "Open until 9 PM" or "Closed — Opens 6 AM"
+• FSSAI number: "FSSAI: 12345678901234" (displayed prominently — trust signal)
+• Tab selector: "Products" | "Reviews" | "About"
+Products tab (default)
+• Products grouped by category accordions:
+• 	— "20L Jars" (count in header)
+• 	— "Bottles (1L, 500ml)"
+• 	— "Dispensers"
+• 	— "Tankers"
+• 	— "Event packages"
+• Product cards within each group:
+• 	— Product photo (square thumbnail)
+• 	— Name, size, water type
+• 	— Price: ₹60 (prominent)
+• 	— Container mode indicator: 'Keep' or 'Transfer-return'
+• 	— "+" or "Add" button → add to cart
+• Floating cart bar at bottom (appears when items added):
+• 	— "X items in cart"
+• 	— "View cart" button
+• 	— Small total amount shown
+Reviews tab
+Page 61 of 106 | Confidential — Neerly © 2026
+
+-- 61 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Aggregate rating at top: big number + star, breakdown by star (5/4/3/2/1 with bar graph)
+• Two sub-ratings shown: Vendor experience, Water quality (each with their own avg)
+• Filter chips: "All" | "5 star" | "4 star" | "With photos" | "Recent"
+• Review cards:
+• 	— Customer initials avatar + first name
+• 	— Ratings (2 rows: vendor, water)
+• 	— Review text
+• 	— Vendor's response (if any), with vendor badge
+• 	— Date
+About tab
+• Business description
+• Address (with map preview)
+• Business hours table
+• Contact info: phone (call button)
+• Compliance badges: FSSAI verified, Partner verified
+• Years in business
+• Total orders delivered
+15.2 S-CUST-VEN-PROD-01 — Product Detail (Bottom Sheet)
+Purpose 	Full product details before adding to cart
+Entry from 	Tap product card on vendor detail
+Elements
+• Bottom sheet (swipe down to close)
+• Product photo carousel (if multiple)
+• Name, size, water type
+• Price: "₹60" + per-unit clarification if needed
+• Description text
+• Container policy section (if applicable):
+• 	— Radio: "Keep the container (₹400 deposit)" | "Transfer to my container"
+• 	— Info expand: "Deposit refunded when you return container within <N> days"
+• Quantity stepper: - [1] +
+• Availability info: "Available until 9 PM today" or "Out of stock"
+• Total calculation: "₹60 × 2 + ₹800 deposit = ₹920"
+• Primary CTA: "Add to cart" (bottom, full-width)
+Edge cases
+• Quantity exceeds daily capacity: "Only X available today" — clamp qty
+Page 62 of 106 | Confidential — Neerly © 2026
+
+-- 62 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Product becomes OUT_OF_STOCK while sheet open: "This product just went out of
+stock" → disable add
+• Container mode options depend on product: toggle hidden if only one mode
+Page 63 of 106 | Confidential — Neerly © 2026
+
+-- 63 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+16. Cart & Checkout
+16.1 S-CUST-CRT-01 — Cart
+Purpose 	Review items before checkout
+Entry from 	Floating cart bar, Home cart icon
+Elements
+• Top bar: "Your cart" + close arrow
+• Vendor name card: logo, name (only one vendor per cart — multi-vendor in V1.1)
+• Line items:
+• 	— Photo, name, size
+• 	— Qty stepper (- [2] +)
+• 	— Unit price × qty = subtotal for item
+• 	— Container mode indicator + edit link
+• 	— Swipe-left to delete item
+• Promo code section (collapsed):
+• 	— "Have a promo code? Apply" (expand)
+• 	— Expanded: input + Apply button
+• 	— Applied state: "NEERLY100 applied (-₹100)" + X to remove
+• Bill summary (prominent):
+• 	— "Subtotal: ₹120"
+• 	— "Delivery fee: ₹25" (strike-through if free subscriber, or shows "FREE" if over ₹400
+threshold)
+• 	— "Surge surcharge: ₹12" (only if active, with info icon)
+• 	— "Deposit: ₹800" (with info icon: "Refundable on container return")
+• 	— "Discount: -₹100" (if promo)
+• 	— Divider line
+• 	— "Total: ₹857" (large, bold)
+• Delivery to section:
+• 	— Address card + "Change" link
+• Requested slot:
+• 	— "As soon as possible" (default radio)
+• 	— "Choose a slot" → opens slot picker
+• Delivery instructions: free-text field, placeholder "Any special instructions?"
+• Primary CTA: "Proceed to Pay — ₹857" (bottom)
+Validations
+Page 64 of 106 | Confidential — Neerly © 2026
+
+-- 64 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Condition 	Message
+Below minimum order 	"Add ₹<difference> more — minimum order is ₹<min>" + CTA
+disabled
+Vendor now closed 	"Vendor just closed. Try again at <next opening>"
+Product unavailable 	"One or more items are no longer available" + X to remove
+Surge changed since
+adding
+"Surge updated — total is now ₹<new>"
+Invalid promo 	"Code invalid or expired"
+Empty cart
+• "Your cart is empty"
+• "Add items to get started"
+• CTA: "Browse vendors"
+16.2 S-CUST-CHK-01 — Checkout / Payment Method
+Purpose 	Choose payment method
+Entry from 	Cart Proceed tap
+Elements
+• Top bar: "Checkout" + back arrow
+• Order summary card (collapsed, tap to expand)
+• Total prominent: "Pay ₹857"
+• Payment method radio list:
+• 	UPI (default) → opens Razorpay Checkout with UPI apps
+• 	Card → opens Razorpay Checkout with card entry
+• 	Wallet: "Pay from Wallet (balance ₹230)" — only enabled if balance >= total; shows
+deficit warning otherwise
+• 	Cash on Delivery — "₹20 COD fee applies"
+• Terms reminder: "By paying you agree to Neerly's cancellation policy" (link)
+• Primary CTA: "Pay ₹857" (amount updates based on method, e.g., +₹20 for COD)
+Validations
+Method 	Validation
+UPI 	None client-side (Razorpay handles)
+Card 	None client-side
+Page 65 of 106 | Confidential — Neerly © 2026
+
+-- 65 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Method 	Validation
+Wallet 	Balance >= total; otherwise disabled with message "Need
+₹<deficit> more in wallet"
+COD 	Some vendors may not accept COD — hidden if vendor doesn't
+offer
+16.3 S-CUST-CHK-02 — Razorpay Checkout Overlay
+Razorpay-provided UI, not ours. Users select UPI app, enter PIN, etc.
+• On success: returns to our app, routes to S-CUST-CHK-03
+• On failure: returns to our app, shows error modal (see below)
+Error handling post-Razorpay
+Error 	Copy
+Payment declined 	"Payment failed. Try another method." → back to checkout
+Network dropped
+mid-payment
+"We're not sure if your payment went through. We'll update
+you shortly." → shows pending screen
+User cancelled Razorpay 	Silent return to checkout (no error)
+16.4 S-CUST-CHK-03 — Order Placed Confirmation
+Purpose 	Confirm order placement
+Entry from 	Razorpay success (or COD / wallet direct success)
+Exit to 	S-CUST-TRK-01 (tracking) on continue
+Elements
+• Green checkmark animation (large)
+• Header: "Order placed!"
+• Order number: "Order #NEE-2026-042200001"
+• Current status: "Finding nearest vendor..." + spinner
+• Receipt-style summary (condensed)
+• Estimated delivery: "<time range>"
+• Primary CTA: "Track order" → S-CUST-TRK-01
+• Secondary: "Back to home"
+Page 66 of 106 | Confidential — Neerly © 2026
+
+-- 66 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+17. Order Tracking
+17.1 S-CUST-TRK-01 — Live Tracking
+Purpose 	Real-time order status + driver tracking
+Entry from 	Post-checkout, Orders list, push notification
+Elements (state-dependent)
+• Top bar: order #, close arrow
+• Status stepper (horizontal): 5 dots labeled Placed → Accepted → Preparing →
+Dispatched → Delivered
+• Current step highlighted + ETAs under each
+• Status-specific content below (see state table)
+• Driver info card (when dispatched):
+• 	— Driver photo / initials
+• 	— Name + vehicle
+• 	— Call button (masked number)
+• 	— Chat button (V1.1)
+• OTP card (prominent, when dispatched):
+• 	— Large 4-digit OTP
+• 	— "Share this with driver when they arrive"
+• Map (when dispatched):
+• 	— Driver icon (real-time moving)
+• 	— Customer marker (destination)
+• 	— Route line
+• 	— ETA label above driver
+• Order summary (collapsed, expandable)
+• Actions:
+• 	— "Cancel order" (only if status allows + within grace)
+• 	— "Contact vendor" (phone link)
+• 	— "Report issue" (once delivered)
+Status-specific states
+Status 	Display
+PLACED 	"Finding a vendor..." + spinner; no map
+VENDOR_ASSIGNED "Notifying vendor" + 3-min countdown
+VENDOR_REJECTED "Trying another vendor..." (silent if auto-retry)
+VENDOR_ACCEPTED "Vendor accepted! Preparing your order" + vendor info
+PREPARING 	"Your order is being prepared" + vendor info
+Page 67 of 106 | Confidential — Neerly © 2026
+
+-- 67 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Status 	Display
+DISPATCHED 	Map appears + driver info + OTP prominent
+ARRIVING 	Banner: "Driver arriving in <N> min" (prominent)
+DELIVERED 	Celebration animation + "Delivered at <time>" + "Rate your experience"
+CTA
+CANCELLED 	"Order cancelled — <reason>" + "Refund status: <state>" + support
+button
+Cancel order flow
+Step 22: 	Tap Cancel
+Step 23: 	Confirmation modal: "Cancel this order?"
+Step 24: 	If in grace: "Full refund will be processed."
+Step 25: 	If after grace (vendor accepted): "Cancellation fee of ₹<X> applies."
+Step 26: 	Optional reason picker
+Step 27: 	Confirm → order cancelled, refund initiated, user sees cancellation state
+Edge cases
+• Firestore listener drops: app falls back to polling backend every 15s (invisible to user)
+• User closes and reopens app: resumes at current state from backend
+• Order delivered while user was away: opens to delivered state with review prompt
+Page 68 of 106 | Confidential — Neerly © 2026
+
+-- 68 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+18. Order History & Detail
+18.1 S-CUST-HIS-01 — Orders List
+Entry from 	Tab bar 'Orders'
+Elements
+• Top bar: "Your orders"
+• Tab selector: "All" | "Active" | "Completed" | "Cancelled"
+• Search bar: "Find an order by number or vendor"
+• Date range filter: "This week" | "This month" | "Custom"
+• Order cards (most recent first):
+• 	— Order # + placed date
+• 	— Vendor logo + name
+• 	— Products summary (e.g., "2× 20L Jar")
+• 	— Total amount
+• 	— Status pill (colored: green delivered, amber active, red cancelled)
+• Pull to refresh
+• Infinite scroll
+Empty states
+• No orders ever: "No orders yet" + CTA "Browse vendors"
+• No active orders: "No active orders" + link to completed
+• Search no results: "No orders match '<query>'"
+18.2 S-CUST-HIS-02 — Order Detail
+Elements
+• Top bar: order # + back arrow
+• Status timeline (vertical for detail): each stage with timestamp
+• Delivery photo (if delivered, large)
+• Pickup photo (if container returned during delivery)
+• Order items (read-only list)
+• Bill summary (same structure as cart)
+• Payment info: method + last 4 digits / UPI id masked
+• Delivery info: address, driver name (masked contact)
+• Timeline of events: ordered, accepted, dispatched, delivered
+• Invoice link: "Download invoice (PDF)" → fetches and opens
+• Actions (state-dependent):
+• 	— Active: "Track" (→ S-CUST-TRK-01), "Cancel" (if allowed)
+• 	— Delivered: "Reorder", "Rate & review", "Report issue"
+Page 69 of 106 | Confidential — Neerly © 2026
+
+-- 69 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• 	— Cancelled: "View refund status", "Reorder"
+Page 70 of 106 | Confidential — Neerly © 2026
+
+-- 70 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+19. Subscriptions
+19.1 S-CUST-SUB-01 — Subscriptions List
+Entry from 	Tab bar 'Subs'
+Elements
+• Top bar: "Your subscriptions"
+• Education banner (for first-time users): "Save time with recurring deliveries — 10% off*
+per order" (*if applicable)
+• Active subscriptions cards:
+• 	— Vendor logo + name
+• 	— Product: "2× 20L Plain Jar"
+• 	— Frequency: "Every alternate day at 7-9 AM"
+• 	— Next delivery: "Tomorrow (Apr 23)"
+• 	— Status pill: Active / Paused / Scheduled to end
+• 	— Quick actions row: "Skip today" | "Pause" | "Details"
+• Floating action button: "+ New subscription"
+Empty state
+• "No subscriptions yet"
+• "Save time with recurring deliveries"
+• CTA: "Create subscription"
+19.2 S-CUST-SUB-02 — Create Subscription (Wizard)
+Multi-step with back navigation.
+Step 1: Choose Vendor
+• Header: "Choose a vendor"
+• Preferred vendors (ordered from before) shown first
+• All serviceable vendors listed below
+• Filter: "Rating 4+", "Delivery in morning", etc.
+Step 2: Choose Product
+• Products from chosen vendor
+• Quantity stepper per product
+• Container mode (if applicable)
+Step 3: Frequency
+• Radio: Daily | Alternate days | Twice weekly | Weekly | Custom
+• If Custom: day checkboxes (M T W T F S S)
+Page 71 of 106 | Confidential — Neerly © 2026
+
+-- 71 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Step 4: Delivery Slot
+• Time picker showing vendor's slot options (e.g., 6-9 AM, 9-12 PM, 2-5 PM, 5-9 PM)
+• Capacity indicator per slot: "High" / "Medium" / "Full"
+• Full slots disabled with "Full" label
+Step 5: Address
+• Pre-selected: primary address
+• Can change
+Step 6: Start Date
+• Date picker, default tomorrow
+• Min: tomorrow (not same day)
+• Max: 30 days from now
+Step 7: Payment Mode
+• Radio:
+• 	— "UPI AutoPay (recommended)" — automatic monthly billing
+• 	— "Prepaid wallet" — balance debited per delivery
+• 	— "Postpaid monthly (V1.1)" — greyed
+• If UPI AutoPay selected: "Set up mandate" → redirects to Razorpay mandate flow
+Step 8: Review
+• Summary of all choices
+• Monthly estimate: "Approx ₹2,100/month (30 deliveries)"
+• Terms: "I understand I can pause, skip, or end this subscription anytime"
+• Primary CTA: "Create Subscription"
+Success screen
+• "Subscription active from <date>"
+• "First delivery on <date> between <slot>"
+• CTA: "Done"
+19.3 S-CUST-SUB-03 — Subscription Detail
+Elements
+• Header: product + vendor
+• Status card: Active / Paused (with resume date)
+• Schedule: frequency, slot, next delivery
+• Monthly estimate + payment mode
+• Upcoming deliveries (next 7 days) with skip toggle per date
+• Recent deliveries (last 30 days) with status per delivery
+Page 72 of 106 | Confidential — Neerly © 2026
+
+-- 72 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Action sheet:
+• 	— "Skip specific dates"
+• 	— "Pause"
+• 	— "Modify" (quantity, slot, address)
+• 	— "Switch vendor"
+• 	— "End subscription" (destructive)
+19.4 S-CUST-SUB-04 — Skip Dates
+• Calendar widget for current + next month
+• Tap dates to toggle skip
+• Selected dates shown as chips above calendar
+• Info: skips before 10 PM previous day are free; after = 50% fee
+• Fee warning shown if late skip
+• Primary CTA: "Confirm skips"
+19.5 S-CUST-SUB-05 — Pause
+• Date range picker: pause from / pause until
+• Max 30 days allowed
+• Reason (optional radio list)
+• Info: "No deliveries during pause; AutoPay charges skip too"
+• Primary CTA: "Pause subscription"
+19.6 S-CUST-SUB-06 — End Subscription
+• Warning: "End this subscription?"
+• Body: "You'll stop receiving deliveries. You can create a new subscription anytime."
+• Reason picker (optional)
+• Primary CTA: "End subscription" (destructive red)
+• Secondary: "Cancel"
+• Confirmation: "Subscription ended"
+Page 73 of 106 | Confidential — Neerly © 2026
+
+-- 73 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+20. Returns & Deposits
+20.1 S-CUST-RET-01 — Deposits Dashboard
+Entry from 	Profile → 'My deposits' OR Wallet tab section
+Elements
+• Top bar: "Your deposits"
+• Summary card: "₹2,400 held in deposits (3 containers)"
+• Active deposits list:
+• 	— Product + vendor
+• 	— Amount
+• 	— Status pill: Active / Overdue / Grace / Forfeit pending
+• 	— Countdown: "Return in 2 days" OR "Overdue by 1 day — grace ends tomorrow"
+• 	— Primary action: "Return container" → S-CUST-RET-02
+• Past deposits (collapsible): refunded / forfeited
+Empty state
+• "No active deposits"
+• "You have no containers to return."
+• (No CTA)
+20.2 S-CUST-RET-02 — Schedule Return
+Elements
+• Header: "How would you like to return?"
+• Option 1: "Schedule pickup"
+• 	— Date picker + slot picker
+• 	— Pickup fee info: "₹25 pickup fee" (or "Free" if vendor offers)
+• Option 2: "Auto-pickup on next delivery" (only if subscribed to this vendor)
+• 	— "Container will be picked up during your subscription delivery on <date>"
+• Option 3: "Drop off at vendor"
+• 	— Vendor location map + distance
+• 	— Bonus info: "Get ₹20 wallet credit for dropping off"
+• Primary CTA: "Confirm return"
+Edge cases
+• No subscription: Option 2 hidden
+• Vendor doesn't offer pickup: Option 1 hidden
+• Vendor drop-off only in certain hours: show vendor hours
+Page 74 of 106 | Confidential — Neerly © 2026
+
+-- 74 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+20.3 S-CUST-RET-03 — Forfeit Dispute
+• Triggered by push: "Vendor requested deposit forfeit. Dispute within 7 days."
+• Screen elements:
+• 	— Vendor's reason + photos
+• 	— Your options: Accept (lose deposit) / Dispute (admin review)
+• 	— Dispute form: explanation + photos upload
+• Primary CTA: "Submit dispute"
+Page 75 of 106 | Confidential — Neerly © 2026
+
+-- 75 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+21. Wallet
+21.1 S-CUST-WAL-01 — Wallet Home
+Entry from 	Tab bar 'Wallet'
+Elements
+• Balance card (prominent): "₹230" large font
+• Actions row: "+ Add money" | "View transactions" | "View deposits"
+• Recent transactions (last 10):
+• 	— Icon (credit ↑ / debit ↓)
+• 	— Description
+• 	— Amount (colored: green credit, red debit)
+• 	— Date
+• Link: "See all transactions"
+21.2 S-CUST-WAL-02 — Add Money
+• Amount input (numeric)
+• Quick select chips: ₹200, ₹500, ₹1000, ₹2000
+• Validation: min ₹100, max ₹10,000 without KYC
+• If near limit: info box "Complete KYC to increase limit to ₹1,00,000"
+• Primary CTA: "Add ₹<amount>" → Razorpay
+• Success: balance updates, toast "₹<amount> added to wallet"
+21.3 S-CUST-WAL-03 — Transactions History
+• Infinite scroll list
+• Filter: All | Credits | Debits | By type
+• Each transaction: description, amount, date, reference (order # etc.)
+• Tap → detailed view with receipt
+Page 76 of 106 | Confidential — Neerly © 2026
+
+-- 76 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+22. Profile & Settings
+22.1 S-CUST-PRF-01 — Profile Home
+Entry from 	Tab bar 'Profile'
+Elements
+• Avatar (initials or photo)
+• Name, phone (masked), email
+• Edit profile icon
+• Section links:
+• 	— Addresses (X saved)
+• 	— Payment methods
+• 	— Subscriptions
+• 	— Deposits
+• 	— Notifications
+• 	— Language
+• 	— Help & Support
+• Referral card: "Invite a friend — you both get ₹75" with code + Share button
+• Danger zone (at bottom, muted):
+• 	— Logout
+• 	— Delete account
+• Footer: Terms, Privacy, About, Version
+22.2 S-CUST-PRF-02 — Edit Profile
+• Name (editable)
+• Email: add/change → verification email sent
+• Phone: display only ("To change phone, contact support")
+• Profile photo: upload/change
+22.3 S-CUST-PRF-03 — Addresses Management
+• List of saved addresses
+• Primary address badge
+• Tap → edit
+• Tap Edit in list → address edit screen
+• '+ Add new address' button
+• Long-press or swipe → Delete (with confirmation)
+• Tap "Set as primary" if not primary
+• Delete blocked if active orders/subs: "Can't delete — has active orders/subs"
+Page 77 of 106 | Confidential — Neerly © 2026
+
+-- 77 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+22.4 S-CUST-PRF-04 — Notification Preferences
+• Toggles:
+• 	— Push notifications
+• 	— SMS notifications
+• 	— Email notifications
+• 	— Marketing & promotions (separate)
+• Per-category controls (V1.1): order updates, subscriptions, deposits, promos
+22.5 S-CUST-PRF-05 — Delete Account Flow
+Step 1: Warning
+• Header: "Delete your Neerly account?"
+• What's deleted: profile, addresses, subscriptions (stopped)
+• What's retained: financial records (anonymized, 7 years per tax law)
+• Timeline: "30-day cooling off period — logging back in restores the account"
+• Primary CTA: "Continue deletion"
+• Secondary: "Cancel"
+Step 2: Feedback (optional)
+• "Why are you leaving?"
+• Radio: Too expensive / Service issues / Moving / Not using / Other
+• Free text: "Anything you'd like us to know?"
+• Skip button
+Step 3: OTP Confirmation
+• "Enter OTP to confirm"
+• Primary CTA: "Delete my account"
+Step 4: Cooling-Off Notice
+• Illustration: calendar with 30 days marked
+• "Your account will be deleted on <date + 30>."
+• "Log in before then to cancel."
+• Signed out automatically
+Page 78 of 106 | Confidential — Neerly © 2026
+
+-- 78 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+23. Reviews & Complaints
+23.1 S-CUST-REV-01 — Write Review
+Entry from 	Auto-prompt after delivery OR Order Detail → 'Rate'
+Elements
+• Header: "How was your experience?"
+• Vendor info card (logo + name)
+• Vendor experience rating: 5 stars, tap to select
+• Water quality rating: 5 stars, separate row
+• Optional: written review (500 char): placeholder "Tell us about your experience"
+• Character counter
+• Toggle: "Share anonymously"
+• Primary CTA: "Post review" (disabled until both ratings set)
+• Info: "You can edit your review for 24 hours after posting."
+Success
+• Toast: "Review posted"
+• Return to order detail
+23.2 S-CUST-CMP-01 — File Complaint
+Entry from 	Order Detail → 'Report Issue'
+Elements
+• Header: "What went wrong?"
+• Category selection (card-style radio):
+• 	— Water quality issue
+• 	— Wrong quantity
+• 	— Wrong product
+• 	— Container damaged at delivery
+• 	— Delivery delay (> 2hr)
+• 	— Driver behaviour
+• 	— Other
+• Description (required, min 20 chars): "Describe what happened"
+• Photo upload (up to 5): "Add photos"
+• What do you want? radio:
+• 	— "Refund (full)"
+• 	— "Refund (partial)"
+• 	— "Replacement delivery"
+Page 79 of 106 | Confidential — Neerly © 2026
+
+-- 79 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• 	— "Apology only"
+• Primary CTA: "Submit complaint"
+Success
+• "Ticket NEE-CMP-XXXXX created"
+• "We'll respond within 12-24 hours"
+• CTA: "Done" → return to order detail
+23.3 S-CUST-CMP-02 — Complaint Detail
+• Ticket # + current status
+• Status timeline: Filed → Vendor responding → Admin reviewing → Resolved
+• SLA countdown: "Response expected within <time>"
+• Vendor's response (when received)
+• Admin's decision (when resolved)
+• Resolution details: refund amount, replacement info
+• Actions: "Appeal" (if dissatisfied with resolution)
+Page 80 of 106 | Confidential — Neerly © 2026
+
+-- 80 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+24. Vendor Dashboard
+24.1 S-VEND-DSH-01 — Active Dashboard
+Entry from 	Login, tab bar Dashboard
+Elements
+• Top bar: business name, role badge (Vendor, teal), notification bell, profile icon
+• Today's summary cards (2x2 grid):
+• 	— "Orders today: 12" → orders screen
+• 	— "Revenue today: ₹2,450"
+• 	— "Pending acceptance: 1" (pulsing red if > 0) → incoming order
+• 	— "Subs due today: 8" → subscriptions today
+• Surge banner (if active): "Surge in effect: ₹<amount> per order"
+• Live order feed:
+• 	— "Current orders" section
+• 	— Each row: Order #, customer area, products, status pill, action (accept/dispatch/etc.)
+• Today's subscription deliveries:
+• 	— Grouped by slot: "6-9 AM (3 orders)" expandable
+• 	— Each: customer name, product, address
+• Quick actions row:
+• 	— "Close early" button
+• 	— "Add driver"
+• 	— "Today's pickups"
+• Compliance alert banner (if any doc expiring within 30 days)
+• Tab bar: Dashboard | Orders | Catalog | Earn | More
+24.2 S-VEND-DSH-PENDING — Pending Verification State
+• Illustration: document being reviewed
+• Header: "Your application is under review"
+• Body: "Our team is verifying your details. Typically takes 24-48 hours."
+• Reference: "Application ID: <VND-XXX>"
+• For Tier-2: progress stepper showing partner work stages
+• Support link: "Questions? Contact us"
+• Limited tab bar: only Dashboard + More (to reach settings/support)
+24.3 S-VEND-DSH-OFFBOARD — Offboarding Wind-Down
+• Top banner (yellow): "Offboarding mode — <N> days remaining"
+• Active subscriptions to complete (list with countdown)
+Page 81 of 106 | Confidential — Neerly © 2026
+
+-- 81 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Pending deposits awaiting return
+• Unpaid earnings balance
+• Cannot accept new on-demand orders (CTA disabled with explanation)
+• "Cancel offboarding" link (if within grace period, e.g., first 7 days)
+Page 82 of 106 | Confidential — Neerly © 2026
+
+-- 82 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+25. Incoming Order (3-Min Acceptance)
+25.1 S-VEND-ORD-INC-01 — New Order Alert
+Purpose 	Critical — vendor must accept/reject within 3 minutes
+Entry from 	FCM push (loud alert + vibration), dashboard card tap
+Elements
+• Full-screen modal (cannot dismiss with back button)
+• Alert sound (distinctive, plays once)
+• Vibration pattern
+• Large countdown timer: "3:00" → "0:00" (turns red at 30s)
+• Progress ring around timer
+• Order details card (scrollable if long):
+• 	— "New order #NEE-2026-042200001"
+• 	— Customer area (not full address — privacy): "Jubilee Hills"
+• 	— Distance: "2.3 km"
+• 	— Products list: "2× 20L Plain Jar"
+• 	— Payment: "UPI — ₹845"
+• 	— Requested slot: "ASAP"
+• Two large action buttons:
+• 	— Left (grey): "Reject"
+• 	— Right (green, larger): "Accept"
+Accept action
+Step 28: 	Tap Accept
+Step 29: 	Button loads: "Accepting..."
+Step 30: 	On success: modal closes, order appears in current orders list, toast "Order
+accepted"
+Step 31: 	Backend captures payment, customer notified
+Reject action
+Step 32: 	Tap Reject
+Step 33: 	Bottom sheet: "Why are you rejecting?"
+Step 34: 	Radio: "Too far from service area" | "Out of stock" | "Out of capacity" | "Other"
+Step 35: 	If Other: free-text field
+Step 36: 	Confirm reject → backend routes to next vendor
+Step 37: 	Modal closes, toast: "Order passed to next vendor"
+Timeout behaviour
+• At 0:00: modal auto-closes
+• Backend treats as TIMED_OUT
+Page 83 of 106 | Confidential — Neerly © 2026
+
+-- 83 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Toast shown after close: "Order missed — passed to next vendor"
+• Small badge on dashboard increments "Missed orders: X"
+Edge cases
+• Multiple orders arrive simultaneously: queue shown; first accepted, others in pending
+• Vendor app backgrounded: push notification brings it forward
+• Vendor app force-closed: push still arrives; on tap, app opens directly to this modal
+• Network drops mid-accept: "Accepting..." stays, retries automatically; if fails 3x →
+"Couldn't confirm — check orders list"
+Page 84 of 106 | Confidential — Neerly © 2026
+
+-- 84 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+26. Vendor Order Management
+26.1 S-VEND-ORD-LST-01 — Orders List
+Entry from 	Tab bar 'Orders'
+Elements
+• Tabs: All | Active | Completed | Cancelled | Today | Week
+• Search: "Order # or customer area"
+• Sort: Latest / By slot / By value
+• Order cards:
+• 	— Order # + placed time
+• 	— Customer area + distance
+• 	— Products summary + total
+• 	— Payment method
+• 	— Status pill + next-action hint ("Accept", "Ready", "Dispatch")
+• Tap → S-VEND-ORD-DET-01
+26.2 S-VEND-ORD-DET-01 — Order Detail
+Elements
+• Header: order #, status, placed time
+• Customer info card (masked phone + call button): area + full address
+• Products list with container mode per item
+• Payment breakdown
+• Status timeline
+• Next action CTA (status-dependent, prominent):
+• 	— VENDOR_ACCEPTED: "Mark ready for dispatch"
+• 	— PREPARING: "Assign driver"
+• 	— DISPATCHED: shows driver + OTP + live location
+• Secondary actions:
+• 	— "Cancel (incurs penalty if already accepted)"
+• 	— "Call customer"
+• 	— "Flag issue"
+Cancel after acceptance flow
+Step 38: 	Tap Cancel
+Step 39: 	Warning modal: "Cancelling an accepted order incurs a penalty of ₹<amount>
++ a strike against your rating."
+Step 40: 	Reason picker: "Product unavailable" | "Staff issue" | "Emergency" | "Other"
+Step 41: 	Confirm
+Page 85 of 106 | Confidential — Neerly © 2026
+
+-- 85 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Step 42: 	Toast: "Order cancelled. Customer refunded."
+26.3 S-VEND-ORD-DISPATCH-01 — Driver Assignment
+Entry from 	Order detail → 'Assign driver'
+Elements
+• Bottom sheet: "Assign driver"
+• Tabs: On-duty | Off-duty
+• On-duty drivers list:
+• 	— Driver name + photo
+• 	— Current deliveries count (e.g., "2 active")
+• 	— Distance to customer (estimated)
+• 	— Availability indicator
+• Tap driver → confirmation "Assign <driver> to this order?"
+• On confirm: driver gets push, order moves to DISPATCHED
+Edge cases
+• No on-duty drivers: banner "No drivers on shift — start one or call" + links
+• Driver too busy (4+ active): warning but allowed
+Page 86 of 106 | Confidential — Neerly © 2026
+
+-- 86 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+27. Vendor Catalog Management
+27.1 S-VEND-CAT-LST-01 — Catalog
+Entry from 	Tab bar 'Catalog'
+Elements
+• Top: Stats row "X products — Y available now"
+• Floating '+ Add product' button
+• Filter chips: All / Available / Out of stock / Paused
+• Product grid (2 columns):
+• 	— Product card: photo, name, size, price
+• 	— Status pill: Available (green) / Out of stock (amber) / Paused (grey)
+• 	— Quick toggle: Available ⇄ Out of stock
+• 	— Tap → edit
+27.2 S-VEND-CAT-ADD-01 — Add Product (Wizard)
+Multi-step wizard.
+Step 1: Choose from Platform Templates
+• Search: "Type to find"
+• Categories shown as collapsible:
+• 	— 20L Jars (Plain / Cool / Chilled / RO / Mineral)
+• 	— Bottles (1L, 2L, 500ml)
+• 	— Dispensers
+• 	— Tankers (1000L, 2000L, 5000L)
+• 	— Event packages (V1.2)
+• Tap template → go to step 2
+Step 2: Set Price
+• Platform band shown: "Price band: ₹60 - ₹120"
+• Price input with live band validation
+• Error if outside band: "Price must be between ₹60 and ₹120"
+Step 3: Photo
+• Upload from camera or gallery
+• Preview with retake option
+• Quality check
+Step 4: Description (optional)
+• Free text, 500 chars
+Page 87 of 106 | Confidential — Neerly © 2026
+
+-- 87 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Placeholder: "What makes this product special?"
+Step 5: Container Policy
+• Keep mode toggle: "Customer keeps container"
+• 	— If on: deposit amount (within platform band) + retention hours
+• Transfer-return mode toggle
+• Late fee: default 10% per day (editable)
+• Grace period hours: default 48 (editable)
+Step 6: Return Modes
+• Checkboxes:
+• 	— Scheduled pickup
+• 	— Drop-off at shop
+• If pickup: fee type (Free / Flat / Distance-tiered) + amount
+• If drop-off: bonus amount to customer
+Step 7: Availability
+• Available all day (toggle)
+• Or: time range picker (start/end)
+• Daily capacity: number input
+Step 8: Review & Save
+• Summary of all settings
+• Primary CTA: "Add to catalog"
+27.3 S-VEND-CAT-EDIT-01 — Edit Product
+• Same wizard pre-filled
+• Delete button in footer (with warning if has active subscriptions or deposits)
+Page 88 of 106 | Confidential — Neerly © 2026
+
+-- 88 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+28. Vendor Team & Drivers
+28.1 S-VEND-TEA-LST-01 — Team
+Entry from 	More → Team
+Elements
+• Stats: "X drivers — Y on shift"
+• '+ Add driver' button
+• Driver cards:
+• 	— Name, phone (masked), vehicle type
+• 	— Status pill: Off-duty / On-duty / Delivering / Invited / Removed
+• 	— Live indicator dot if delivering
+• 	— Today's deliveries count, COD collected today
+• Tap → driver detail
+28.2 S-VEND-TEA-ADD-01 — Add Driver
+Elements
+• Header: "Add driver"
+• Phone (+91 + 10 digits)
+• Driver name
+• Driving license number
+• DL photo upload
+• Vehicle type dropdown
+• Vehicle registration
+• Primary CTA: "Send invite"
+Success
+• "Invite sent to <driver phone>"
+• Driver appears in team list with status "Invited"
+• Once driver logs in: status → "Off-duty" (onboarding complete)
+28.3 S-VEND-TEA-DET-01 — Driver Detail
+• Profile info (name, phone masked, vehicle)
+• Performance metrics: on-time %, deliveries completed, avg rating from customers
+• Today's assignments list
+• Weekly summary chart
+• COD reconciliation status
+Page 89 of 106 | Confidential — Neerly © 2026
+
+-- 89 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Actions: "Remove driver" (confirmation: "This will revoke driver's access. Confirm?")
+Page 90 of 106 | Confidential — Neerly © 2026
+
+-- 90 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+29. Vendor Subscription Today-List
+29.1 S-VEND-SUB-TODAY — Today's Subscriptions
+Entry from 	Dashboard card OR 6 AM push
+Elements
+• Header: "Today's deliveries"
+• Summary: "Total: 8 deliveries across 4 slots"
+• Grouped by slot (accordions):
+• 	— "6-9 AM (3 deliveries)"
+• 	— Each delivery row: customer name, product, address snippet, status pill, actions
+• Bulk actions per slot:
+• 	— "Assign all to driver"
+• 	— "Dispatch all"
+• End-of-day check-in prompt (9 PM):
+• 	— Modal: "Confirm today's deliveries"
+• 	— List with radio per delivery: Delivered / Missed / Partial
+• 	— Primary: "Submit check-in"
+• 	— Missed deliveries: credit issued to customer automatically
+Page 91 of 106 | Confidential — Neerly © 2026
+
+-- 91 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+30. Vendor Returns, Pickups & Damage Claims
+30.1 S-VEND-RET-LST-01 — Returns Dashboard
+Elements
+• Tabs: Scheduled pickups | Drop-offs awaiting | Completed today
+• Scheduled pickups list:
+• 	— Customer + address + slot
+• 	— Actions: Accept (assign driver) / Propose alternate slot / Cancel
+• Drop-offs awaiting list:
+• 	— Customer + expected time
+• 	— Primary action: "Confirm drop-off" → photo required
+• Completed today: reference list
+30.2 S-VEND-RET-DMG-01 — Raise Damage Claim
+Entry from 	During pickup completion by driver OR manual via return detail
+Elements
+• Header: "Damage claim"
+• Context: order #, customer name, product
+• Category radio:
+• 	— "Minor scratches (10% deduction)"
+• 	— "Broken tap (30%)"
+• 	— "Broken handle (50%)"
+• 	— "Cracked body (100%)"
+• 	— "Lost/not returned (100%)"
+• Photos (required, 2-4): camera upload
+• Optional note: "Describe the damage"
+• Deduction preview: "Deposit: ₹400 → Refund: ₹200 (50% deducted)"
+• Primary CTA: "Submit claim"
+Post-submission
+• Customer gets notification with 48-hour dispute window
+• Claim appears in vendor's claims list with status PENDING_CUSTOMER
+Page 92 of 106 | Confidential — Neerly © 2026
+
+-- 92 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+31. Vendor Earnings & Payouts
+31.1 S-VEND-EAR-01 — Earnings Dashboard
+Entry from 	Tab bar 'Earn'
+Elements
+• Period selector: Today | This week | This month | Custom
+• Hero metrics (stacked):
+• 	— Gross: ₹12,450
+• 	— Commission (-₹1,245)
+• 	— Gateway fees (-₹249)
+• 	— TCS (-₹124)
+• 	— Net earning: ₹10,832 (large)
+• Bar chart: daily earnings for period
+• Next payout card: "Pending payout: ₹8,200 — expected Monday"
+• Instant payout option (V1.1): "Get ₹8,200 now for ₹82 fee"
+• Links: "Order-wise breakdown" | "Payout history" | "Download statement (PDF)"
+31.2 S-VEND-EAR-ORD-01 — Per-Order Breakdown
+• List of orders for period
+• Each row: Order #, gross, commission rate, net
+• Tap row → line-item detail modal
+31.3 S-VEND-EAR-PAY-01 — Payout History
+• List of past payout runs
+• Each row: Week dates, net amount, status pill
+• Statuses: Completed / Processing / Held / Failed
+• Tap row → line items in that payout + downloadable statement
+• Held/Failed has prominent reason + "Contact support" CTA
+Page 93 of 106 | Confidential — Neerly © 2026
+
+-- 93 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+32. Vendor Business Settings
+32.1 S-VEND-SET-01 — Settings Hub
+Entry from 	More → Business Settings
+Sections (tappable rows)
+• Business profile (name, address, hours, etc.)
+• Service area
+• Business hours & holidays
+• Slot capacity
+• Emergency close
+• Bank details (read-only; change requires support)
+• Tax settings
+• Notification preferences
+• Language
+• Delete / Offboard business (danger zone)
+32.2 S-VEND-SET-HRS-01 — Hours & Holidays
+• Per-day open/close time pickers
+• Lunch break toggle + pickers per day
+• Sunday off toggle
+• Holiday section: '+ Add holiday' → date picker + reason
+• Each holiday: toggle "Limited capacity" with % slider
+• Primary CTA: "Save changes"
+32.3 S-VEND-SET-CLO-01 — Emergency Close
+• Warning banner: "This stops new orders immediately"
+• Duration radio: 1 hour / 4 hours / Rest of day / Until I re-open
+• Reason input
+• Impact preview: "X pending orders will continue; Y subscriptions today will be notified"
+• Primary CTA: "Close shop" (destructive red)
+• Active subscriptions get sabbatical-day credit automatically
+32.4 S-VEND-SET-OFF-01 — Offboarding
+Step 1: Understanding
+• Warning card: "Offboarding is a 30-day wind-down process"
+Page 94 of 106 | Confidential — Neerly © 2026
+
+-- 94 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• What happens:
+• 	• "Active subscriptions continue to be served"
+• 	• "No new orders accepted"
+• 	• "Pending deposits returned"
+• 	• "Final payout issued"
+• 	• "After 30 days, your vendor account is closed"
+Step 2: Reason
+• Optional radio + free text
+Step 3: OTP Confirm
+• OTP to registered phone
+• Primary CTA: "Start offboarding"
+Post-confirmation
+• Dashboard switches to offboarding mode (Section 24.3)
+Page 95 of 106 | Confidential — Neerly © 2026
+
+-- 95 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+33. Vendor Compliance
+33.1 S-VEND-COMPL-01 — Compliance Dashboard
+Entry from 	More → Compliance
+Elements
+• Alert banners at top (if any docs expiring):
+• 	— Red: expired
+• 	— Amber: expires in < 7 days
+• 	— Yellow: expires in < 30 days
+• Documents list (grouped by status):
+• 	— Mandatory (FSSAI, PAN, Shop Establishment, GSTIN if applicable)
+• 	— Optional (Trade license, Groundwater permit)
+• Per-document card:
+• 	— Document type
+• 	— Number (masked for sensitive)
+• 	— Status pill: Verified / Pending / Rejected / Expired
+• 	— Expiry date + countdown
+• 	— CTAs: View photo / Renew / Replace
+• Past batch tests (V1.1): quarterly water quality test records
+• '+ Upload document' button
+Page 96 of 106 | Confidential — Neerly © 2026
+
+-- 96 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+34. Driver Home & Shift
+34.1 S-DRIV-HOM-01 — Off-Duty State
+Entry from 	Login, tab bar 'Today'
+Elements
+• Status card: "Off-duty" + orange indicator
+• Large CTA: "Start shift"
+• Yesterday's summary: "Delivered X | COD collected ₹Y"
+• Vendor info: logo, name, phone (call button)
+• Tab bar: Today (active), History, Profile
+34.2 S-DRIV-HOM-02 — On-Duty, Idle
+• Status card: "On-duty" + green
+• Animation: "Waiting for deliveries..."
+• Today's stats: deliveries done, time on shift, COD collected
+• "End shift" button (secondary)
+• GPS tracking indicator
+34.3 S-DRIV-HOM-03 — On-Duty with Assignments
+• Status card: "On-duty — X deliveries today"
+• Today's deliveries list sorted by slot
+• Each card: customer area, products, slot, status
+• Current delivery highlighted at top with "Continue" CTA
+• Upcoming: scrollable list
+34.4 S-DRIV-SHF-START — Start Shift
+• Permissions pre-check
+• Confirmation: "Start shift?"
+• On confirm: status flips, GPS starts
+34.5 S-DRIV-SHF-END — End Shift
+• If active deliveries: "You have X active. Reassign first?" (contacts vendor)
+• Today's summary
+• COD reconciliation if cash collected
+Page 97 of 106 | Confidential — Neerly © 2026
+
+-- 97 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+• Primary CTA: "End shift"
+Page 98 of 106 | Confidential — Neerly © 2026
+
+-- 98 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+35. Delivery Execution
+35.1 S-DRIV-DEL-01 — New Assignment Alert
+• Sound + vibration
+• Bottom sheet with order details:
+• 	— Order # + customer name
+• 	— Products
+• 	— Customer address + distance
+• 	— Payment method (COD amount if COD)
+• 	— Slot
+• Actions: Accept / Start navigation
+35.2 S-DRIV-DEL-02 — Delivery in Progress
+• Order summary collapsed at top
+• Large map: driver location + destination + route
+• "Open in Google Maps" button
+• Address with "Copy" button
+• Customer phone (masked) with "Call" button
+• Distance + ETA
+• Bottom actions: "Arrived" (when close) / "Mark failed"
+35.3 S-DRIV-DEL-03 — Complete Delivery
+Elements (multi-step on single screen)
+• Title: "Complete delivery"
+• Customer info card
+• Step 1: "Take delivery photo" button (required)
+• 	— Opens native camera
+• 	— Preview with retake option
+• Step 2 (if container return): "Take pickup photo" (required)
+• Step 3 (if damage): "Report damage" link → claim flow
+• Step 4: "Enter OTP from customer"
+• 	— 4-digit input
+• Step 5 (if COD): "Confirm cash collected"
+• 	— Amount preset: ₹<total>
+• 	— "Received" toggle (mandatory)
+• Primary CTA: "Complete delivery" (disabled until all required done)
+Edge cases
+Page 99 of 106 | Confidential — Neerly © 2026
+
+-- 99 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+Scenario 	Handling
+Wrong OTP (3 attempts) 	Call customer prompt; can re-request OTP from backend
+Customer unavailable 	"Customer unreachable" button → reports to vendor,
+reschedule flow
+Customer refuses delivery 	"Failed — customer refused" reason selector
+Camera permission revoked Deep-link to settings + instructions
+Photo upload fails 	Saved locally, retry in background
+Location inaccurate at
+arrival
+Warning + manual confirm
+Page 100 of 106 | Confidential — Neerly © 2026
+
+-- 100 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+36. Return Pickup
+36.1 S-DRIV-RET-01 — Return Pickup Execution
+• Similar to delivery flow
+• Step 1: Photo of container before pickup (required)
+• Step 2: Container condition radio: OK / Damaged
+• 	— If damaged: flag claim (goes to vendor for review)
+• Step 3: Confirm pickup
+• Deposit refund triggered automatically
+• Customer notified
+Page 101 of 106 | Confidential — Neerly © 2026
+
+-- 101 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+37. COD Reconciliation
+37.1 S-DRIV-COD-01 — End-of-Shift COD
+• Title: "Cash collected today"
+• List of COD deliveries with amounts
+• Total: ₹<total>
+• Confirmation: "Hand this cash to vendor"
+• Vendor confirms receipt in their app → driver sees "Reconciled"
+• Mismatch: flagged, both parties notified, needs manual resolution
+Page 102 of 106 | Confidential — Neerly © 2026
+
+-- 102 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+40. Notifications (All Roles)
+40.1 S-COMMON-NOTIF-01 — Notifications Center
+Entry from 	Bell icon in header
+Elements
+• Header: "Notifications"
+• Tabs: All | Unread
+• Grouped by day: Today, Yesterday, Earlier
+• Each notification:
+• 	— Icon (role/context dependent)
+• 	— Title + body
+• 	— Timestamp
+• 	— Unread dot
+• 	— Deep-link on tap
+• Actions: Mark all read
+40.2 Push Notification Behaviour Table
+Scenario 	Role 	Copy 	Sound
+Order placed 	Vendor 	"New order from <area>" 	Loud alert
+Order accepted 	Customer 	"<Vendor> accepted your order" Soft
+Order dispatched 	Customer 	"Your order is on the way" 	Soft
+Driver arriving 	Customer 	"Driver arriving in <N> min" 	Medium
+Order delivered 	Customer 	"Order delivered. Rate your
+experience"
+Soft
+Subscription reminder 	Vendor 	"You have X subs today" 	Medium (6
+AM)
+Slot reminder 	Vendor 	"<Slot> begins in 1 hour" 	Medium
+Compliance expiring 	Vendor 	"<Doc> expires in <N> days" 	Normal
+Deposit overdue 	Customer 	"Return <product> container by
+<date>"
+Normal
+Payout completed 	Vendor 	"₹<amount> credited to your
+bank"
+Normal
+New delivery (driver) 	Driver 	"New delivery — <area>" 	Loud alert
+Page 103 of 106 | Confidential — Neerly © 2026
+
+-- 103 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+41. Help & Support
+41.1 S-COMMON-HLP-01 — Help Hub
+Entry from 	Profile → Help OR '?' icon on screens
+Elements
+• Search: "Search help articles"
+• Categories (role-dependent):
+• 	— Getting started
+• 	— Orders
+• 	— Subscriptions
+• 	— Deposits & returns
+• 	— Payments & wallet
+• 	— Account
+• 	— For vendors (vendor-only)
+• 	— For drivers (driver-only)
+• Popular articles
+• Contact support section:
+• 	— WhatsApp chat (preferred in India)
+• 	— Email
+• 	— Call (business hours only)
+Page 104 of 106 | Confidential — Neerly © 2026
+
+-- 104 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+42. Global Navigation Maps
+How screens connect. Useful for understanding flows end-to-end.
+42.1 Customer App Navigation
+SPLASH ─► auth check │ ▼CUSTOMER HOME (tab) │ ├─► Vendor detail ─►
+Product sheet ─► Cart ─► Checkout ─► Tracking │ ├─► Orders tab ─► Order detail
+─► Review / Complaint │ ├─► Subs tab ─► Sub wizard / Sub detail / Skip / Pause /
+End │ ├─► Wallet tab ─► Add money / Transactions / Deposits │ └─► Profile tab
+─► Edit / Addresses / Notifications / Delete[Cross-cutting: Notifications center, Help, Role
+switcher]
+42.2 Vendor App Navigation
+SPLASH ─► auth check ─► role picker (if multi) │ ▼VENDOR DASHBOARD (tab) │
+├─► Incoming Order (modal, priority interrupt) │ ├─► Orders tab ─► Order detail ─►
+Dispatch / Cancel │ ├─► Catalog tab ─► Add/Edit product wizard │ ├─► Earn tab
+─► Order breakdown / Payout history │ └─► More ─► Team / Subs today / Returns /
+Settings / Compliance / Help[Cross-cutting: Notifications, Role switcher]
+42.3 Driver App Navigation
+SPLASH ─► auth ─► (role picker if multi) │ ▼DRIVER HOME (tab) │ ├─► Shift start
+/ end │ ├─► New delivery alert (modal) │ └─► Delivery in progress ─► Complete
+(photo + OTP + COD) │ ├─► Return pickup │ ├─► COD reconciliation │ ├─►
+History tab (past deliveries) │ └─► Profile tab
+42.4 Admin-Light Navigation
+SPLASH ─► phone OTP ─► TOTP ─► ADMIN DASHBOARD │ ├─► Vendors tab ─►
+Verification queue ─► Vendor detail ─► Approve/Reject │ ├─► Disputes tab ─►
+Dispute list ─► Dispute detail ─► Decide │ └─► More ─► Surge / Compliance /
+Impersonate / Audit log / Web portal link
+42.5 Auth & Role Switching
+SPLASH │ ├─► CUSTOMER REG WELCOME (new user) │ 	│ │ 	▼ │ Phone
+→ OTP → Name → Language → Location → Address → Referral → HOME │ ├─►
+VENDOR REG WELCOME │ 	│ │ 	▼ │ Phone → OTP → Path picker │
+├─► Tier-1 flow (11 screens) ─► Waiting ─► Active │ 	└─► Tier-2 flow (9
+Page 105 of 106 | Confidential — Neerly © 2026
+
+-- 105 of 106 --
+
+Neerly — User Flows UX - Deep Edition
+screens) ─► Partner phase ─► Active │ ├─► DRIVER REG (via vendor invite) │ 	│
+│ 	▼ │ Phone → OTP → Basic info → Permissions → Training → Driver Home │
+├─► WELCOME BACK (returning user) │ 	│ │ 	▼ │ Phone → OTP → (role
+picker if multi) → destination home │ └─► ADMIN LOGIN 	│ 	▼ Phone →
+OTP → TOTP → Admin dashboard
+End of User Flows UX v2.0 — Deep Edition — Neerly V1.0
+Page 106 of 106 | Confidential — Neerly © 2026
+
+-- 106 of 106 --
+

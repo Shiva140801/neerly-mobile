@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Neerly</string>
+    <!-- Fill with your Google Maps API key locally; inject via resValue in build.gradle for CI -->
+    <string name="google_maps_api_key"></string>
+</resources>
