@@ -5,9 +5,20 @@ import com.neerly.mobile.data.dto.AcceptOrderRequest
 import com.neerly.mobile.data.dto.ComplianceDocResponse
 import com.neerly.mobile.data.dto.DispatchOrderRequest
 import com.neerly.mobile.data.dto.EarningsSummary
+import com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+import com.neerly.mobile.data.dto.AddVendorDriverRequest
+import com.neerly.mobile.data.dto.AddVendorHolidayRequest
+import com.neerly.mobile.data.dto.VendorBankAccountResponse
 import com.neerly.mobile.data.dto.RejectOrderRequest
+import com.neerly.mobile.data.dto.ReplaceVendorHoursRequest
+import com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
 import com.neerly.mobile.data.dto.TogglePauseRequest
+import com.neerly.mobile.data.dto.VendorBusinessStatus
+import com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+import com.neerly.mobile.data.dto.VendorHolidayRow
+import com.neerly.mobile.data.dto.VendorHoursRow
 import com.neerly.mobile.data.dto.VendorOrderResponse
+import com.neerly.mobile.data.dto.VendorTeamMember
 import com.neerly.mobile.data.dto.VendorProductRow
 import com.neerly.mobile.data.dto.VendorSubscriptionTodayRow
 import com.neerly.mobile.data.dto.VendorTodaySummary
@@ -16,6 +27,9 @@ import javax.inject.Singleton
 
 @Singleton
 class VendorRepository @Inject constructor(private val api: NeerlyApi) {
+
+    suspend fun submitOnboarding(req: SubmitVendorOnboardingRequest) = api.submitVendorOnboarding(req)
+    suspend fun me() = api.vendorMe()
 
     suspend fun today(): VendorTodaySummary = api.vendorTodaySummary()
 
@@ -40,6 +54,27 @@ class VendorRepository @Inject constructor(private val api: NeerlyApi) {
 
     suspend fun subscriptionsToday(): List<VendorSubscriptionTodayRow> = api.vendorSubscriptionsToday()
 
-    suspend fun emergencyClose(reason: String?) = api.vendorEmergencyClose(mapOf("reason" to reason))
-    suspend fun reopen() = api.vendorReopen()
+    suspend fun emergencyClose(hours: Int, reason: String?): VendorBusinessStatus =
+        api.vendorEmergencyClose(VendorEmergencyCloseRequest(hours = hours, reason = reason))
+    suspend fun reopen(): VendorBusinessStatus = api.vendorReopen()
+    suspend fun businessStatus(): VendorBusinessStatus = api.vendorBusinessStatus()
+
+    suspend fun hours(): List<VendorHoursRow> = api.vendorHours()
+    suspend fun replaceHours(rows: List<VendorHoursRow>): List<VendorHoursRow> =
+        api.replaceVendorHours(ReplaceVendorHoursRequest(rows))
+
+    suspend fun holidays(): List<VendorHolidayRow> = api.vendorHolidays()
+    suspend fun addHoliday(date: String, label: String?): VendorHolidayRow =
+        api.addVendorHoliday(AddVendorHolidayRequest(date, label))
+    suspend fun removeHoliday(date: String) = api.removeVendorHoliday(date)
+
+    suspend fun bank(): VendorBankAccountResponse? = api.vendorBank()
+    suspend fun addBank(req: AddVendorBankAccountRequest): VendorBankAccountResponse =
+        api.addVendorBank(req)
+    suspend fun verifyBank(): VendorBankAccountResponse = api.verifyVendorBank()
+
+    suspend fun team(): List<VendorTeamMember> = api.vendorTeam()
+    suspend fun addDriver(phone: String, notes: String?): VendorTeamMember =
+        api.addVendorDriver(AddVendorDriverRequest(phone, notes))
+    suspend fun removeDriver(driverId: String) = api.removeVendorDriver(driverId)
 }

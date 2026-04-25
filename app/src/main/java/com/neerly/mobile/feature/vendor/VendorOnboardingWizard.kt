@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
@@ -42,10 +44,14 @@ data class OnboardingState(
 )
 
 @Composable
-fun VendorOnboardingWizard(onSubmitted: () -> Unit) {
+fun VendorOnboardingWizard(
+    onSubmitted: () -> Unit,
+    vm: VendorOnboardingViewModel = hiltViewModel()
+) {
     NeerlyTheme(role = Role.VENDOR) {
         var step by remember { mutableStateOf(OnboardingStep.PATH) }
         var state by remember { mutableStateOf(OnboardingState()) }
+        val submit by vm.state.collectAsState()
 
         Scaffold(
             containerColor = NeerlyColors.Paper,
@@ -102,7 +108,12 @@ fun VendorOnboardingWizard(onSubmitted: () -> Unit) {
                         })
 
                     OnboardingStep.REVIEW ->
-                        ReviewStep(state, onSubmit = onSubmitted)
+                        ReviewStep(
+                            state = state,
+                            submitting = submit.submitting,
+                            error = submit.error,
+                            onSubmit = { vm.submit(state, onSubmitted) }
+                        )
                 }
             }
         }
@@ -237,7 +248,12 @@ private fun FssaiStep(state: OnboardingState, onNext: (OnboardingState) -> Unit)
 }
 
 @Composable
-private fun ReviewStep(state: OnboardingState, onSubmit: () -> Unit) {
+private fun ReviewStep(
+    state: OnboardingState,
+    submitting: Boolean,
+    error: String?,
+    onSubmit: () -> Unit
+) {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
         Text("Review your application", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
         Spacer(Modifier.height(NeerlySpacing.x4))
@@ -254,14 +270,26 @@ private fun ReviewStep(state: OnboardingState, onSubmit: () -> Unit) {
         Spacer(Modifier.height(NeerlySpacing.x6))
         Text("Commission: ${if (state.isTier2) "12% (first 3 months)" else "10% standard"}",
             fontSize = 13.sp, color = NeerlyColors.Ink600)
+
+        if (error != null) {
+            Spacer(Modifier.height(NeerlySpacing.x3))
+            Text(error, fontSize = 13.sp, color = NeerlyColors.Err)
+        }
+
         Spacer(Modifier.height(NeerlySpacing.x6))
 
         Button(
             onClick = onSubmit,
+            enabled = !submitting,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.VendorPrimary)
-        ) { Text("Submit for verification", fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+        ) {
+            Text(
+                if (submitting) "Submitting…" else "Submit for verification",
+                fontSize = 15.sp, fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
 

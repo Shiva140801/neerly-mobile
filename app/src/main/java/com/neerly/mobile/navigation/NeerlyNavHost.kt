@@ -1,10 +1,12 @@
 package com.neerly.mobile.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.neerly.mobile.data.cart.CartStore
+import com.neerly.mobile.feature.address.AddressFormScreen
 import com.neerly.mobile.feature.address.AddressListScreen
 import com.neerly.mobile.feature.auth.AddressScreen
 import com.neerly.mobile.feature.auth.LanguageScreen
@@ -16,16 +18,23 @@ import com.neerly.mobile.feature.auth.WelcomeScreen
 import com.neerly.mobile.feature.cart.CartScreen
 import com.neerly.mobile.feature.checkout.CheckoutScreen
 import com.neerly.mobile.feature.complaint.ComplaintFileScreen
+import com.neerly.mobile.feature.complaint.ComplaintFileViewModel
 import com.neerly.mobile.feature.complaint.ComplaintThreadScreen
 import com.neerly.mobile.feature.customer.CustomerHomeScreen
 import com.neerly.mobile.feature.customer.VendorDetailScreen
 import com.neerly.mobile.feature.deposit.DepositsScreen
+import com.neerly.mobile.feature.event.EventBookingScreen
 import com.neerly.mobile.feature.notification.NotificationFeedScreen
+import com.neerly.mobile.feature.notification.NotificationFeedViewModel
+import com.neerly.mobile.feature.notification.NotificationPrefsScreen
 import com.neerly.mobile.feature.order.OrderHistoryScreen
 import com.neerly.mobile.feature.order.OrderPlacedScreen
 import com.neerly.mobile.feature.order.OrderTrackingScreen
 import com.neerly.mobile.feature.profile.ProfileScreen
 import com.neerly.mobile.feature.review.ReviewSubmitScreen
+import com.neerly.mobile.feature.review.ReviewSubmitViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.neerly.mobile.feature.subscription.SubscriptionCreateScreen
 import com.neerly.mobile.feature.subscription.SubscriptionDetailScreen
 import com.neerly.mobile.feature.subscription.SubscriptionListScreen
 import com.neerly.mobile.feature.driver.DriverCodReconcileScreen
@@ -36,7 +45,10 @@ import com.neerly.mobile.feature.vendor.compliance.VendorComplianceScreen
 import com.neerly.mobile.feature.vendor.dashboard.VendorTodayScreen
 import com.neerly.mobile.feature.vendor.earnings.VendorEarningsScreen
 import com.neerly.mobile.feature.vendor.orders.VendorOrderDetailScreen
+import com.neerly.mobile.feature.vendor.bank.VendorBankScreen
+import com.neerly.mobile.feature.vendor.settings.VendorBusinessConfigScreen
 import com.neerly.mobile.feature.vendor.settings.VendorSettingsScreen
+import com.neerly.mobile.feature.vendor.team.VendorTeamScreen
 import com.neerly.mobile.feature.vendor.subscriptions.VendorSubscriptionsTodayScreen
 import com.neerly.mobile.feature.wallet.WalletScreen
 
@@ -56,9 +68,13 @@ object Routes {
     const val ReviewSubmit = "customer/review/{orderId}/{vendorName}"
     const val ComplaintFile = "customer/complaint?orderId={orderId}"
     const val NotificationFeed = "notifications"
+    const val NotificationPrefs = "notifications/prefs"
 
     // Week 1
     const val AddressList = "customer/addresses"
+    const val AddressNew = "customer/addresses/new"
+    const val AddressEdit = "customer/addresses/edit/{addressId}"
+    fun addressEdit(id: String) = "customer/addresses/edit/$id"
 
     // Week 2 — purchase flow
     const val Cart = "customer/cart"
@@ -70,6 +86,8 @@ object Routes {
     // Week 3 — deep flows
     const val Wallet = "customer/wallet"
     const val Subscriptions = "customer/subscriptions"
+    const val SubscriptionNew = "customer/subscription/new"
+    const val EventBookingNew = "customer/event/new"
     const val SubscriptionDetail = "customer/subscription/{subscriptionId}"
     const val Deposits = "customer/deposits"
     const val ComplaintThread = "customer/complaint/{complaintId}"
@@ -83,6 +101,9 @@ object Routes {
     const val VendorCompliance = "vendor/compliance"
     const val VendorSubscriptionsToday = "vendor/subscriptions/today"
     const val VendorSettings = "vendor/settings"
+    const val VendorBusinessConfig = "vendor/business-config"
+    const val VendorTeam = "vendor/team"
+    const val VendorBank = "vendor/bank"
 
     // Week 6 — driver app
     const val DriverHome = "driver/home"
@@ -145,34 +166,65 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
         composable(Routes.ReviewSubmit) { entry ->
             val orderId = entry.arguments?.getString("orderId").orEmpty()
             val vendorName = entry.arguments?.getString("vendorName").orEmpty()
+            val vm: ReviewSubmitViewModel = hiltViewModel()
             ReviewSubmitScreen(
                 orderId = orderId,
                 vendorName = vendorName,
-                onSubmit = { _, _, _, _ -> nav.popBackStack() },
+                onSubmit = { _, vendor, water, text ->
+                    vm.submit(orderId, vendor, water, text) { nav.popBackStack() }
+                },
                 onBack = { nav.popBackStack() }
             )
         }
         composable(Routes.ComplaintFile) { entry ->
             val orderId = entry.arguments?.getString("orderId").orEmpty().takeIf { it.isNotBlank() }
+            val vm: ComplaintFileViewModel = hiltViewModel()
             ComplaintFileScreen(
                 orderId = orderId,
-                onSubmit = { _, _, _ -> nav.popBackStack() },
+                onSubmit = { category, subject, description ->
+                    vm.submit(orderId, category, subject, description) { complaintId ->
+                        // Drop the file screen, jump to the live thread.
+                        nav.navigate(Routes.complaintThread(complaintId)) {
+                            popUpTo(Routes.ComplaintFile) { inclusive = true }
+                        }
+                    }
+                },
                 onBack = { nav.popBackStack() }
             )
         }
         composable(Routes.NotificationFeed) {
+            val vm: NotificationFeedViewModel = hiltViewModel()
+            val s = vm.state.collectAsState().value
             NotificationFeedScreen(
-                items = emptyList(),
-                loading = false,
-                onOpenItem = { },
+                items = s.items,
+                loading = s.loading,
+                onOpenItem = vm::markRead,
                 onBack = { nav.popBackStack() }
             )
+        }
+        composable(Routes.NotificationPrefs) {
+            NotificationPrefsScreen(onBack = { nav.popBackStack() })
         }
         composable(Routes.AddressList) {
             AddressListScreen(
                 onBack = { nav.popBackStack() },
-                onAddNew = { },
-                onEdit = { }
+                onAddNew = { nav.navigate(Routes.AddressNew) },
+                onEdit = { id -> nav.navigate(Routes.addressEdit(id)) }
+            )
+        }
+        composable(Routes.AddressNew) {
+            AddressFormScreen(
+                onSaved = { nav.popBackStack() },
+                onBack = { nav.popBackStack() }
+            )
+        }
+        composable(
+            Routes.AddressEdit,
+            arguments = listOf(androidx.navigation.navArgument("addressId") { })
+        ) {
+            AddressFormScreen(
+                onSaved = { nav.popBackStack() },
+                onBack = { nav.popBackStack() }
             )
         }
         composable(Routes.Cart) {
@@ -227,7 +279,27 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
         composable(Routes.Subscriptions) {
             SubscriptionListScreen(
                 onBack = { nav.popBackStack() },
-                onOpen = { id -> nav.navigate(Routes.subscriptionDetail(id)) }
+                onOpen = { id -> nav.navigate(Routes.subscriptionDetail(id)) },
+                onNew = { nav.navigate(Routes.SubscriptionNew) }
+            )
+        }
+        composable(Routes.SubscriptionNew) {
+            SubscriptionCreateScreen(
+                onCreated = { id ->
+                    nav.navigate(Routes.subscriptionDetail(id)) {
+                        popUpTo(Routes.Subscriptions)
+                    }
+                },
+                onBack = { nav.popBackStack() }
+            )
+        }
+        composable(Routes.EventBookingNew) {
+            EventBookingScreen(
+                onCreated = { _ ->
+                    // TODO Sprint 2: navigate to a dedicated EventBookingDetailScreen
+                    nav.popBackStack(Routes.CustomerHome, inclusive = false)
+                },
+                onBack = { nav.popBackStack() }
             )
         }
         composable(Routes.SubscriptionDetail) {
@@ -272,8 +344,20 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
                 onBack = { nav.popBackStack() },
                 onCompliance = { nav.navigate(Routes.VendorCompliance) },
                 onSubscriptionsToday = { nav.navigate(Routes.VendorSubscriptionsToday) },
+                onBusinessConfig = { nav.navigate(Routes.VendorBusinessConfig) },
+                onTeam = { nav.navigate(Routes.VendorTeam) },
+                onBank = { nav.navigate(Routes.VendorBank) },
                 onLogout = { nav.navigate(Routes.Welcome) { popUpTo(Routes.VendorToday) { inclusive = true } } }
             )
+        }
+        composable(Routes.VendorBusinessConfig) {
+            VendorBusinessConfigScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Routes.VendorTeam) {
+            VendorTeamScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Routes.VendorBank) {
+            VendorBankScreen(onBack = { nav.popBackStack() })
         }
         // ---- Week 6 driver app ----
         composable(Routes.DriverHome) {
