@@ -20,13 +20,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NeerlyApp()
+            NeerlyRoot()
         }
     }
 }
 
 @Composable
-fun NeerlyApp() {
+fun NeerlyRoot() {
     NeerlyTheme(role = Role.CUSTOMER) {
         Surface(modifier = Modifier.fillMaxSize()) {
             val navController = rememberNavController()

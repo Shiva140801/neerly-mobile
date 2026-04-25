@@ -2,31 +2,22 @@ package com.neerly.mobile.core.design
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.neerly.mobile.R
 
-// Drop Plus Jakarta Sans + Instrument Serif + JetBrains Mono into res/font/ using filenames below.
-val PlusJakartaSans = FontFamily(
-    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
-    Font(R.font.plus_jakarta_sans_medium,  FontWeight.Medium),
-    Font(R.font.plus_jakarta_sans_semibold, FontWeight.SemiBold),
-    Font(R.font.plus_jakarta_sans_bold,    FontWeight.Bold),
-    Font(R.font.plus_jakarta_sans_extrabold, FontWeight.ExtraBold)
-)
-
-val InstrumentSerif = FontFamily(
-    Font(R.font.instrument_serif_regular,  FontWeight.Normal, FontStyle.Normal),
-    Font(R.font.instrument_serif_italic,   FontWeight.Normal, FontStyle.Italic)
-)
-
-val JetBrainsMono = FontFamily(
-    Font(R.font.jetbrains_mono_regular, FontWeight.Normal),
-    Font(R.font.jetbrains_mono_medium,  FontWeight.Medium)
-)
+/**
+ * Typography. Real TTFs live at res/font — drop Plus Jakarta Sans,
+ * Instrument Serif, and JetBrains Mono in there and this file can be upgraded
+ * to Font(R.font.plus_jakarta_sans_regular, ...) per family. Until then we
+ * fall back to the platform families so the app compiles on a blank checkout.
+ *
+ * Keep every weight/size parity with the design tokens — swapping the family
+ * back to explicit TTFs should be a one-line change.
+ */
+val PlusJakartaSans: FontFamily = FontFamily.SansSerif
+val InstrumentSerif: FontFamily = FontFamily.Serif
+val JetBrainsMono:   FontFamily = FontFamily.Monospace
 
 val NeerlyType = Typography(
     displayLarge = TextStyle(fontFamily = InstrumentSerif,  fontWeight = FontWeight.Normal,   fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-0.4).sp),
