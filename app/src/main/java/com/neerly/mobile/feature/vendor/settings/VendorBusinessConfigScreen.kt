@@ -103,7 +103,7 @@ fun VendorBusinessConfigScreen(
             Spacer(Modifier.height(8.dp))
 
             // Local editable copy keyed off s.hours; rebuilds when refreshed.
-            val open = remember(s.hours) {
+            val openTimes = remember(s.hours) {
                 mutableStateMapOf<Int, String>().apply {
                     DAY_LABELS.indices.forEach { i ->
                         val dow = i + 1
@@ -111,7 +111,7 @@ fun VendorBusinessConfigScreen(
                     }
                 }
             }
-            val close = remember(s.hours) {
+            val closeTimes = remember(s.hours) {
                 mutableStateMapOf<Int, String>().apply {
                     DAY_LABELS.indices.forEach { i ->
                         val dow = i + 1
@@ -127,15 +127,15 @@ fun VendorBusinessConfigScreen(
                         fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                         color = NeerlyColors.Ink700)
                     OutlinedTextField(
-                        value = open[dow] ?: "",
-                        onValueChange = { open[dow] = it.take(8) },
+                        value = openTimes[dow] ?: "",
+                        onValueChange = { openTimes[dow] = it.take(8) },
                         placeholder = { Text("06:00", fontSize = 12.sp) },
                         singleLine = true,
                         modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                     )
                     OutlinedTextField(
-                        value = close[dow] ?: "",
-                        onValueChange = { close[dow] = it.take(8) },
+                        value = closeTimes[dow] ?: "",
+                        onValueChange = { closeTimes[dow] = it.take(8) },
                         placeholder = { Text("22:00", fontSize = 12.sp) },
                         singleLine = true,
                         modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
@@ -145,8 +145,8 @@ fun VendorBusinessConfigScreen(
             Button(
                 onClick = {
                     val rows = (1..7).mapNotNull { dow ->
-                        val o = open[dow]?.trim().orEmpty()
-                        val c = close[dow]?.trim().orEmpty()
+                        val o = openTimes[dow]?.trim().orEmpty()
+                        val c = closeTimes[dow]?.trim().orEmpty()
                         if (o.isBlank() || c.isBlank()) null
                         else VendorHoursRow(dow, paddedTime(o), paddedTime(c))
                     }

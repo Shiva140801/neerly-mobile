@@ -19,7 +19,7 @@ import javax.inject.Inject
  *
  * Three resource sets: hours (per-DOW open/close), holidays (single dates), and
  * the live status (whether emergency-close is in effect). All flow through
- * VendorRepository → /api/v1/vendor/business/*.
+ * VendorRepository → /api/v1/vendor/business endpoints.
  */
 @HiltViewModel
 class VendorBusinessConfigViewModel @Inject constructor(
