@@ -18,11 +18,15 @@ import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
 
-/** S-CUST-REG-02 — Phone entry. */
+/** S-CUST-REG-02 — Phone entry. Sends OTP via the dev backend (no Firebase). */
 @Composable
-fun PhoneScreen(onOtpSent: (phone: String) -> Unit) {
+fun PhoneScreen(
+    onOtpSent: (phone: String) -> Unit,
+    vm: AuthViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+) {
     var phone by remember { mutableStateOf("") }
     val valid = phone.length == 10 && phone.first() in "6789"
+    val state by vm.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -72,9 +76,14 @@ fun PhoneScreen(onOtpSent: (phone: String) -> Unit) {
 
         Spacer(Modifier.weight(1f))
 
+        if (state.error != null) {
+            Text(state.error!!, fontSize = 13.sp, color = NeerlyColors.Err,
+                modifier = Modifier.padding(vertical = 4.dp))
+        }
+
         Button(
-            onClick = { onOtpSent("+91$phone") },
-            enabled = valid,
+            onClick = { vm.sendOtp(phone) { phoneE164, _ -> onOtpSent(phoneE164) } },
+            enabled = valid && !state.sending,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(
@@ -82,13 +91,16 @@ fun PhoneScreen(onOtpSent: (phone: String) -> Unit) {
                 disabledContainerColor = NeerlyColors.CustomerPrimary.copy(alpha = 0.45f)
             )
         ) {
-            Text("Send OTP", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (state.sending) "Sending…" else "Send OTP",
+                fontSize = 15.sp, fontWeight = FontWeight.SemiBold
+            )
         }
 
         Spacer(Modifier.height(NeerlySpacing.x3))
 
         Text(
-            "Trouble signing in? Contact support",
+            "Dev mode: default OTP 123456 always works (or check backend logs).",
             fontSize = 12.sp,
             color = NeerlyColors.Ink500,
             modifier = Modifier.align(Alignment.CenterHorizontally)

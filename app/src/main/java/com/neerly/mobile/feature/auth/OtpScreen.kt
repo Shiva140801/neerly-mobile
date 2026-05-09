@@ -16,10 +16,19 @@ import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
 
-/** S-CUST-REG-03 — OTP entry. 4 boxes with Firebase auto-retrieve hook coming later. */
+/**
+ * S-CUST-REG-03 — OTP entry. Posts to /auth/dev/verify-otp via the AuthViewModel.
+ * On success the access+refresh tokens are persisted in TokenStore and we
+ * advance via [onVerified]. Default OTP `123456` always works in dev.
+ */
 @Composable
-fun OtpScreen(phone: String, onVerified: () -> Unit) {
+fun OtpScreen(
+    phone: String,
+    onVerified: () -> Unit,
+    vm: AuthViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+) {
     var code by remember { mutableStateOf("") }
+    val state by vm.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -76,22 +85,29 @@ fun OtpScreen(phone: String, onVerified: () -> Unit) {
         Spacer(Modifier.height(NeerlySpacing.x3))
 
         Text(
-            "Didn't receive OTP? Resend in 23s",
-            fontSize = 13.sp,
+            "Dev mode: 123456 always works (or check the backend log).",
+            fontSize = 12.sp,
             color = NeerlyColors.Ink500,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
+        if (state.error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(state.error!!, fontSize = 13.sp, color = NeerlyColors.Err,
+                modifier = Modifier.align(Alignment.CenterHorizontally))
+        }
+
         Spacer(Modifier.weight(1f))
 
         Button(
-            onClick = onVerified,
-            enabled = code.length == 6,
+            onClick = { vm.verifyOtp(phone, code, onVerified) },
+            enabled = code.length == 6 && !state.verifying,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
         ) {
-            Text("Verify", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(if (state.verifying) "Verifying…" else "Verify",
+                fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

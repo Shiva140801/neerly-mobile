@@ -69,6 +69,21 @@ interface NeerlyApi {
 
     // ------------------------------ Auth ------------------------------
 
+    /**
+     * Local-only dev OTP login. Gated server-side by SPRING_PROFILES_ACTIVE=local.
+     * In a release build (or non-local profile) the call 404s and the app falls
+     * back to the real Firebase Phone Auth + /auth/exchange path.
+     */
+    @POST("api/v1/auth/dev/send-otp")
+    suspend fun devSendOtp(
+        @Body body: com.neerly.mobile.data.dto.DevSendOtpRequest
+    ): com.neerly.mobile.data.dto.DevSendOtpResponse
+
+    @POST("api/v1/auth/dev/verify-otp")
+    suspend fun devVerifyOtp(
+        @Body body: com.neerly.mobile.data.dto.DevVerifyOtpRequest
+    ): ExchangeResponse
+
     @POST("api/v1/auth/exchange")
     suspend fun exchange(@Body body: ExchangeRequest): ExchangeResponse
 
