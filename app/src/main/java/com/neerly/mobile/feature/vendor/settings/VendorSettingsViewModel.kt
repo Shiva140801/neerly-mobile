@@ -13,7 +13,8 @@ class VendorSettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun emergencyClose(reason: String?) {
-        viewModelScope.launch { runCatching { repo.emergencyClose(reason) } }
+        // Default 24h close from the legacy single-arg call site.
+        viewModelScope.launch { runCatching { repo.emergencyClose(24, reason) } }
     }
 
     fun reopen() {

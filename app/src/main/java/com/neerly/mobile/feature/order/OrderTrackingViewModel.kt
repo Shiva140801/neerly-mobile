@@ -40,11 +40,22 @@ class OrderTrackingViewModel @Inject constructor(
     private fun startPolling() {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
+            var consecutiveFailures = 0
             while (true) {
                 runCatching { repo.order(orderId) }
-                    .onSuccess { updateFrom(it) }
-                    .onFailure { _state.value = _state.value.copy(error = it.message, loading = false) }
+                    .onSuccess {
+                        consecutiveFailures = 0
+                        updateFrom(it)
+                    }
+                    .onFailure {
+                        consecutiveFailures++
+                        _state.value = _state.value.copy(error = it.message, loading = false)
+                    }
+                // Stop polling once the order is terminal OR we've had repeated
+                // failures — the latter prevents a runaway tight loop in tests
+                // (and on devices with no network) where every fetch throws.
                 if (_state.value.order?.status in TERMINAL) break
+                if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) break
                 delay(POLL_INTERVAL_MS)
             }
         }
@@ -63,6 +74,9 @@ class OrderTrackingViewModel @Inject constructor(
     companion object {
         val TERMINAL = setOf("DELIVERED", "CANCELLED", "FAILED")
         const val POLL_INTERVAL_MS = 15_000L
+
+        /** After this many back-to-back failures we give up polling (test-safe). */
+        const val MAX_CONSECUTIVE_FAILURES = 3
     }
 }
 

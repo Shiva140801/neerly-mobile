@@ -25,6 +25,7 @@ import com.neerly.mobile.data.dto.SubscriptionResponse
 fun SubscriptionListScreen(
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
+    onNew: () -> Unit = {},
     vm: SubscriptionListViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -38,6 +39,15 @@ fun SubscriptionListScreen(
                     TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNew,
+                containerColor = NeerlyColors.CustomerPrimary,
+                contentColor = NeerlyColors.Paper,
+                text = { Text("New") },
+                icon = { Text("+") }
             )
         }
     ) { padding ->

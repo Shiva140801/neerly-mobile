@@ -10,7 +10,10 @@ import com.neerly.mobile.data.dto.ComplaintResponse
 import com.neerly.mobile.data.dto.CreateAddressRequest
 import com.neerly.mobile.data.dto.CreateReviewRequest
 import com.neerly.mobile.data.dto.CreateSubscriptionRequest
+import com.neerly.mobile.data.dto.CancelEventRequest
+import com.neerly.mobile.data.dto.CreateEventBookingRequest
 import com.neerly.mobile.data.dto.DepositResponse
+import com.neerly.mobile.data.dto.EventBookingResponse
 import com.neerly.mobile.data.dto.ExchangeRequest
 import com.neerly.mobile.data.dto.ExchangeResponse
 import com.neerly.mobile.data.dto.FileComplaintRequest
@@ -53,6 +56,7 @@ import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -79,6 +83,16 @@ interface NeerlyApi {
 
     @POST("api/v1/auth/logout-all")
     suspend fun logoutAll()
+
+    // ------------------------------ Notification preferences ------------------------------
+
+    @GET("api/v1/customer/profile/notification-prefs")
+    suspend fun notificationPrefs(): List<com.neerly.mobile.data.dto.NotificationPrefDto>
+
+    @PUT("api/v1/customer/profile/notification-prefs")
+    suspend fun upsertNotificationPref(
+        @Body body: com.neerly.mobile.data.dto.NotificationPrefDto
+    ): com.neerly.mobile.data.dto.NotificationPrefDto
 
     // ------------------------------ Profile ------------------------------
 
@@ -266,12 +280,34 @@ interface NeerlyApi {
     @POST("api/v1/customer/returns")
     suspend fun scheduleReturn(@Body body: ReturnRequest): ReturnResponse
 
+    // ------------------------------ Event bookings ------------------------------
+
+    @POST("api/v1/customer/events")
+    suspend fun createEventBooking(@Body body: CreateEventBookingRequest): EventBookingResponse
+
+    @GET("api/v1/customer/events/{id}")
+    suspend fun eventBooking(@Path("id") id: String): EventBookingResponse
+
+    @POST("api/v1/customer/events/{id}/cancel")
+    suspend fun cancelEventBooking(
+        @Path("id") id: String,
+        @Body body: CancelEventRequest
+    ): EventBookingResponse
+
     // ------------------------------ Referral ------------------------------
 
     @POST("api/v1/customer/referral")
     suspend fun submitReferralCode(@Body body: ReferralEntryRequest)
 
     // ============================== VENDOR APIs ==============================
+
+    @POST("api/v1/vendor/submit")
+    suspend fun submitVendorOnboarding(
+        @Body body: com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
+    ): com.neerly.mobile.data.dto.VendorResponse
+
+    @GET("api/v1/vendor/me")
+    suspend fun vendorMe(): com.neerly.mobile.data.dto.VendorResponse
 
     @GET("api/v1/vendor/dashboard")
     suspend fun vendorTodaySummary(): com.neerly.mobile.data.dto.VendorTodaySummary
@@ -326,10 +362,56 @@ interface NeerlyApi {
     suspend fun vendorSubscriptionsToday(): List<com.neerly.mobile.data.dto.VendorSubscriptionTodayRow>
 
     @POST("api/v1/vendor/business/close")
-    suspend fun vendorEmergencyClose(@Body body: Map<String, String?>)
+    suspend fun vendorEmergencyClose(
+        @Body body: com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+    ): com.neerly.mobile.data.dto.VendorBusinessStatus
 
     @POST("api/v1/vendor/business/reopen")
-    suspend fun vendorReopen()
+    suspend fun vendorReopen(): com.neerly.mobile.data.dto.VendorBusinessStatus
+
+    @GET("api/v1/vendor/business/status")
+    suspend fun vendorBusinessStatus(): com.neerly.mobile.data.dto.VendorBusinessStatus
+
+    @GET("api/v1/vendor/business/hours")
+    suspend fun vendorHours(): List<com.neerly.mobile.data.dto.VendorHoursRow>
+
+    @PUT("api/v1/vendor/business/hours")
+    suspend fun replaceVendorHours(
+        @Body body: com.neerly.mobile.data.dto.ReplaceVendorHoursRequest
+    ): List<com.neerly.mobile.data.dto.VendorHoursRow>
+
+    @GET("api/v1/vendor/business/holidays")
+    suspend fun vendorHolidays(): List<com.neerly.mobile.data.dto.VendorHolidayRow>
+
+    @POST("api/v1/vendor/business/holidays")
+    suspend fun addVendorHoliday(
+        @Body body: com.neerly.mobile.data.dto.AddVendorHolidayRequest
+    ): com.neerly.mobile.data.dto.VendorHolidayRow
+
+    @DELETE("api/v1/vendor/business/holidays/{date}")
+    suspend fun removeVendorHoliday(@Path("date") date: String)
+
+    @GET("api/v1/vendor/bank")
+    suspend fun vendorBank(): com.neerly.mobile.data.dto.VendorBankAccountResponse?
+
+    @POST("api/v1/vendor/bank")
+    suspend fun addVendorBank(
+        @Body body: com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+    ): com.neerly.mobile.data.dto.VendorBankAccountResponse
+
+    @POST("api/v1/vendor/bank/verify")
+    suspend fun verifyVendorBank(): com.neerly.mobile.data.dto.VendorBankAccountResponse
+
+    @GET("api/v1/vendor/team")
+    suspend fun vendorTeam(): List<com.neerly.mobile.data.dto.VendorTeamMember>
+
+    @POST("api/v1/vendor/team")
+    suspend fun addVendorDriver(
+        @Body body: com.neerly.mobile.data.dto.AddVendorDriverRequest
+    ): com.neerly.mobile.data.dto.VendorTeamMember
+
+    @DELETE("api/v1/vendor/team/{driverId}")
+    suspend fun removeVendorDriver(@Path("driverId") driverId: String)
 
     // ============================== DRIVER APIs ==============================
 

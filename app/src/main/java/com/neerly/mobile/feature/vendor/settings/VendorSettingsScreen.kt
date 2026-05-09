@@ -29,6 +29,9 @@ fun VendorSettingsScreen(
     onBack: () -> Unit,
     onCompliance: () -> Unit,
     onSubscriptionsToday: () -> Unit,
+    onBusinessConfig: () -> Unit = {},
+    onTeam: () -> Unit = {},
+    onBank: () -> Unit = {},
     onLogout: () -> Unit,
     vm: VendorSettingsViewModel = hiltViewModel()
 ) {
@@ -53,6 +56,9 @@ fun VendorSettingsScreen(
         ) {
             Link("Today's subscriptions", onSubscriptionsToday)
             Link("Compliance", onCompliance)
+            Link("Business hours + holidays", onBusinessConfig)
+            Link("Drivers", onTeam)
+            Link("Bank account", onBank)
 
             Spacer(Modifier.height(NeerlySpacing.x4))
 

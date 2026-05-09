@@ -3,7 +3,10 @@ package com.neerly.mobile.data.repo
 import com.neerly.mobile.data.api.NeerlyApi
 import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.AppendComplaintMessageRequest
+import com.neerly.mobile.data.dto.CancelEventRequest
 import com.neerly.mobile.data.dto.CancelSubscriptionRequest
+import com.neerly.mobile.data.dto.CreateEventBookingRequest
+import com.neerly.mobile.data.dto.EventBookingResponse
 import com.neerly.mobile.data.dto.ComplaintMessageDto
 import com.neerly.mobile.data.dto.ComplaintResponse
 import com.neerly.mobile.data.dto.CreateAddressRequest
@@ -68,7 +71,8 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     // Subscriptions
     suspend fun subscriptions(): List<SubscriptionResponse> = api.mySubscriptions()
     suspend fun subscription(id: String): SubscriptionResponse = api.subscription(id)
-    suspend fun createSubscription(req: CreateSubscriptionRequest) = api.createSubscription(req)
+    suspend fun createSubscription(req: CreateSubscriptionRequest): SubscriptionResponse =
+        api.createSubscription(req)
     suspend fun pauseSubscription(id: String, req: PauseSubscriptionRequest) = api.pauseSubscription(id, req)
     suspend fun skipSubscription(id: String, req: SkipSubscriptionRequest) = api.skipSubscription(id, req)
     suspend fun cancelSubscription(id: String, req: CancelSubscriptionRequest) = api.cancelSubscription(id, req)
@@ -82,6 +86,21 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun appendComplaintMessage(id: String, message: String): ComplaintMessageDto =
         api.appendComplaintMessage(id, AppendComplaintMessageRequest(message = message))
     suspend fun withdrawComplaint(id: String): ComplaintResponse = api.withdrawComplaint(id)
+
+    // Event bookings
+    suspend fun createEventBooking(req: CreateEventBookingRequest): EventBookingResponse =
+        api.createEventBooking(req)
+    suspend fun eventBooking(id: String): EventBookingResponse = api.eventBooking(id)
+    suspend fun cancelEventBooking(id: String, reason: String?): EventBookingResponse =
+        api.cancelEventBooking(id, CancelEventRequest(reason = reason))
+
+    // Notification preferences
+    suspend fun notificationPrefs(): List<com.neerly.mobile.data.dto.NotificationPrefDto> =
+        api.notificationPrefs()
+    suspend fun setNotificationPref(channel: String, category: String, enabled: Boolean) =
+        api.upsertNotificationPref(
+            com.neerly.mobile.data.dto.NotificationPrefDto(channel, category, enabled)
+        )
 
     // Profile
     suspend fun updateProfile(req: UpdateProfileRequest): UserSummary = api.updateProfile(req)
