@@ -1,0 +1,902 @@
+-if class com.neerly.mobile.data.dto.AcceptOrderRequest
+-keepnames class com.neerly.mobile.data.dto.AcceptOrderRequest
+-if class com.neerly.mobile.data.dto.AcceptOrderRequest
+-keep class com.neerly.mobile.data.dto.AcceptOrderRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.AcceptOrderRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.AcceptOrderRequest
+-keepclassmembers class com.neerly.mobile.data.dto.AcceptOrderRequest {
+    public synthetic <init>(java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+-keepnames class com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+-if class com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+-keep class com.neerly.mobile.data.dto.AddVendorBankAccountRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.AddVendorBankAccountRequest
+-keepclassmembers class com.neerly.mobile.data.dto.AddVendorBankAccountRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.AddVendorDriverRequest
+-keepnames class com.neerly.mobile.data.dto.AddVendorDriverRequest
+-if class com.neerly.mobile.data.dto.AddVendorDriverRequest
+-keep class com.neerly.mobile.data.dto.AddVendorDriverRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.AddVendorDriverRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.AddVendorDriverRequest
+-keepclassmembers class com.neerly.mobile.data.dto.AddVendorDriverRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.AddVendorHolidayRequest
+-keepnames class com.neerly.mobile.data.dto.AddVendorHolidayRequest
+-if class com.neerly.mobile.data.dto.AddVendorHolidayRequest
+-keep class com.neerly.mobile.data.dto.AddVendorHolidayRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.AddVendorHolidayRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.AddVendorHolidayRequest
+-keepclassmembers class com.neerly.mobile.data.dto.AddVendorHolidayRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.AddressResponse
+-keepnames class com.neerly.mobile.data.dto.AddressResponse
+-if class com.neerly.mobile.data.dto.AddressResponse
+-keep class com.neerly.mobile.data.dto.AddressResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.AddressResponse
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.AddressResponse
+-keepclassmembers class com.neerly.mobile.data.dto.AddressResponse {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,double,double,java.lang.String,java.lang.Integer,boolean,java.lang.String,java.lang.String,boolean,java.lang.Boolean,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.AppendComplaintMessageRequest
+-keepnames class com.neerly.mobile.data.dto.AppendComplaintMessageRequest
+-if class com.neerly.mobile.data.dto.AppendComplaintMessageRequest
+-keep class com.neerly.mobile.data.dto.AppendComplaintMessageRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.AppendComplaintMessageRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.AppendComplaintMessageRequest
+-keepclassmembers class com.neerly.mobile.data.dto.AppendComplaintMessageRequest {
+    public synthetic <init>(java.lang.String,java.util.List,boolean,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CancelEventRequest
+-keepnames class com.neerly.mobile.data.dto.CancelEventRequest
+-if class com.neerly.mobile.data.dto.CancelEventRequest
+-keep class com.neerly.mobile.data.dto.CancelEventRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CancelEventRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CancelEventRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CancelEventRequest {
+    public synthetic <init>(java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CancelOrderRequest
+-keepnames class com.neerly.mobile.data.dto.CancelOrderRequest
+-if class com.neerly.mobile.data.dto.CancelOrderRequest
+-keep class com.neerly.mobile.data.dto.CancelOrderRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.CancelSubscriptionRequest
+-keepnames class com.neerly.mobile.data.dto.CancelSubscriptionRequest
+-if class com.neerly.mobile.data.dto.CancelSubscriptionRequest
+-keep class com.neerly.mobile.data.dto.CancelSubscriptionRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CancelSubscriptionRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CancelSubscriptionRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CancelSubscriptionRequest {
+    public synthetic <init>(java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CapturePaymentRequest
+-keepnames class com.neerly.mobile.data.dto.CapturePaymentRequest
+-if class com.neerly.mobile.data.dto.CapturePaymentRequest
+-keep class com.neerly.mobile.data.dto.CapturePaymentRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.CodReconcileRequest
+-keepnames class com.neerly.mobile.data.dto.CodReconcileRequest
+-if class com.neerly.mobile.data.dto.CodReconcileRequest
+-keep class com.neerly.mobile.data.dto.CodReconcileRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CodReconcileRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CodReconcileRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CodReconcileRequest {
+    public synthetic <init>(java.math.BigDecimal,java.math.BigDecimal,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ComplaintMessageDto
+-keepnames class com.neerly.mobile.data.dto.ComplaintMessageDto
+-if class com.neerly.mobile.data.dto.ComplaintMessageDto
+-keep class com.neerly.mobile.data.dto.ComplaintMessageDtoJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.ComplaintMessageDto
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.ComplaintMessageDto
+-keepclassmembers class com.neerly.mobile.data.dto.ComplaintMessageDto {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.List,boolean,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ComplaintResponse
+-keepnames class com.neerly.mobile.data.dto.ComplaintResponse
+-if class com.neerly.mobile.data.dto.ComplaintResponse
+-keep class com.neerly.mobile.data.dto.ComplaintResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.ComplaintResponse
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.ComplaintResponse
+-keepclassmembers class com.neerly.mobile.data.dto.ComplaintResponse {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.List,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String,java.lang.String,java.math.BigDecimal,java.lang.String,java.lang.String,java.util.List,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CompleteDeliveryRequest
+-keepnames class com.neerly.mobile.data.dto.CompleteDeliveryRequest
+-if class com.neerly.mobile.data.dto.CompleteDeliveryRequest
+-keep class com.neerly.mobile.data.dto.CompleteDeliveryRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CompleteDeliveryRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CompleteDeliveryRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CompleteDeliveryRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.math.BigDecimal,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ComplianceDocResponse
+-keepnames class com.neerly.mobile.data.dto.ComplianceDocResponse
+-if class com.neerly.mobile.data.dto.ComplianceDocResponse
+-keep class com.neerly.mobile.data.dto.ComplianceDocResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.CreateAddressRequest
+-keepnames class com.neerly.mobile.data.dto.CreateAddressRequest
+-if class com.neerly.mobile.data.dto.CreateAddressRequest
+-keep class com.neerly.mobile.data.dto.CreateAddressRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CreateAddressRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CreateAddressRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CreateAddressRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,double,double,java.lang.String,java.lang.Integer,boolean,java.lang.String,java.lang.String,boolean,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CreateEventBookingRequest
+-keepnames class com.neerly.mobile.data.dto.CreateEventBookingRequest
+-if class com.neerly.mobile.data.dto.CreateEventBookingRequest
+-keep class com.neerly.mobile.data.dto.CreateEventBookingRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CreateEventBookingRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CreateEventBookingRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CreateEventBookingRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.Integer,java.lang.String,java.lang.String,int,java.util.List,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CreateReviewRequest
+-keepnames class com.neerly.mobile.data.dto.CreateReviewRequest
+-if class com.neerly.mobile.data.dto.CreateReviewRequest
+-keep class com.neerly.mobile.data.dto.CreateReviewRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CreateReviewRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CreateReviewRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CreateReviewRequest {
+    public synthetic <init>(java.lang.String,int,java.lang.Integer,java.lang.Integer,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.CreateSubscriptionRequest
+-keepnames class com.neerly.mobile.data.dto.CreateSubscriptionRequest
+-if class com.neerly.mobile.data.dto.CreateSubscriptionRequest
+-keep class com.neerly.mobile.data.dto.CreateSubscriptionRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.CreateSubscriptionRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.CreateSubscriptionRequest
+-keepclassmembers class com.neerly.mobile.data.dto.CreateSubscriptionRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.util.List,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.math.BigDecimal,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.DepositResponse
+-keepnames class com.neerly.mobile.data.dto.DepositResponse
+-if class com.neerly.mobile.data.dto.DepositResponse
+-keep class com.neerly.mobile.data.dto.DepositResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.DevSendOtpRequest
+-keepnames class com.neerly.mobile.data.dto.DevSendOtpRequest
+-if class com.neerly.mobile.data.dto.DevSendOtpRequest
+-keep class com.neerly.mobile.data.dto.DevSendOtpRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.DevSendOtpResponse
+-keepnames class com.neerly.mobile.data.dto.DevSendOtpResponse
+-if class com.neerly.mobile.data.dto.DevSendOtpResponse
+-keep class com.neerly.mobile.data.dto.DevSendOtpResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.DevVerifyOtpRequest
+-keepnames class com.neerly.mobile.data.dto.DevVerifyOtpRequest
+-if class com.neerly.mobile.data.dto.DevVerifyOtpRequest
+-keep class com.neerly.mobile.data.dto.DevVerifyOtpRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.DevVerifyOtpRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.DevVerifyOtpRequest
+-keepclassmembers class com.neerly.mobile.data.dto.DevVerifyOtpRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.DispatchOrderRequest
+-keepnames class com.neerly.mobile.data.dto.DispatchOrderRequest
+-if class com.neerly.mobile.data.dto.DispatchOrderRequest
+-keep class com.neerly.mobile.data.dto.DispatchOrderRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.DriverAssignment
+-keepnames class com.neerly.mobile.data.dto.DriverAssignment
+-if class com.neerly.mobile.data.dto.DriverAssignment
+-keep class com.neerly.mobile.data.dto.DriverAssignmentJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.DriverShiftResponse
+-keepnames class com.neerly.mobile.data.dto.DriverShiftResponse
+-if class com.neerly.mobile.data.dto.DriverShiftResponse
+-keep class com.neerly.mobile.data.dto.DriverShiftResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.EarningsBucket
+-keepnames class com.neerly.mobile.data.dto.EarningsBucket
+-if class com.neerly.mobile.data.dto.EarningsBucket
+-keep class com.neerly.mobile.data.dto.EarningsBucketJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.EarningsSummary
+-keepnames class com.neerly.mobile.data.dto.EarningsSummary
+-if class com.neerly.mobile.data.dto.EarningsSummary
+-keep class com.neerly.mobile.data.dto.EarningsSummaryJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.EndShiftRequest
+-keepnames class com.neerly.mobile.data.dto.EndShiftRequest
+-if class com.neerly.mobile.data.dto.EndShiftRequest
+-keep class com.neerly.mobile.data.dto.EndShiftRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.EndShiftRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.EndShiftRequest
+-keepclassmembers class com.neerly.mobile.data.dto.EndShiftRequest {
+    public synthetic <init>(java.lang.String,java.math.BigDecimal,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.EventBookingResponse
+-keepnames class com.neerly.mobile.data.dto.EventBookingResponse
+-if class com.neerly.mobile.data.dto.EventBookingResponse
+-keep class com.neerly.mobile.data.dto.EventBookingResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.EventItemInput
+-keepnames class com.neerly.mobile.data.dto.EventItemInput
+-if class com.neerly.mobile.data.dto.EventItemInput
+-keep class com.neerly.mobile.data.dto.EventItemInputJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.EventItemInput
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.EventItemInput
+-keepclassmembers class com.neerly.mobile.data.dto.EventItemInput {
+    public synthetic <init>(java.lang.String,int,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.EventItemResponse
+-keepnames class com.neerly.mobile.data.dto.EventItemResponse
+-if class com.neerly.mobile.data.dto.EventItemResponse
+-keep class com.neerly.mobile.data.dto.EventItemResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.ExchangeRequest
+-keepnames class com.neerly.mobile.data.dto.ExchangeRequest
+-if class com.neerly.mobile.data.dto.ExchangeRequest
+-keep class com.neerly.mobile.data.dto.ExchangeRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.ExchangeRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.ExchangeRequest
+-keepclassmembers class com.neerly.mobile.data.dto.ExchangeRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ExchangeResponse
+-keepnames class com.neerly.mobile.data.dto.ExchangeResponse
+-if class com.neerly.mobile.data.dto.ExchangeResponse
+-keep class com.neerly.mobile.data.dto.ExchangeResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.FileComplaintRequest
+-keepnames class com.neerly.mobile.data.dto.FileComplaintRequest
+-if class com.neerly.mobile.data.dto.FileComplaintRequest
+-keep class com.neerly.mobile.data.dto.FileComplaintRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.FileComplaintRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.FileComplaintRequest
+-keepclassmembers class com.neerly.mobile.data.dto.FileComplaintRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.List,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.GpsPingRequest
+-keepnames class com.neerly.mobile.data.dto.GpsPingRequest
+-if class com.neerly.mobile.data.dto.GpsPingRequest
+-keep class com.neerly.mobile.data.dto.GpsPingRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.GpsPingRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.GpsPingRequest
+-keepclassmembers class com.neerly.mobile.data.dto.GpsPingRequest {
+    public synthetic <init>(double,double,java.lang.Double,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.GpsPoint
+-keepnames class com.neerly.mobile.data.dto.GpsPoint
+-if class com.neerly.mobile.data.dto.GpsPoint
+-keep class com.neerly.mobile.data.dto.GpsPointJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.GpsPoint
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.GpsPoint
+-keepclassmembers class com.neerly.mobile.data.dto.GpsPoint {
+    public synthetic <init>(double,double,java.lang.Double,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.InitiatePaymentRequest
+-keepnames class com.neerly.mobile.data.dto.InitiatePaymentRequest
+-if class com.neerly.mobile.data.dto.InitiatePaymentRequest
+-keep class com.neerly.mobile.data.dto.InitiatePaymentRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.InitiatePaymentResult
+-keepnames class com.neerly.mobile.data.dto.InitiatePaymentResult
+-if class com.neerly.mobile.data.dto.InitiatePaymentResult
+-keep class com.neerly.mobile.data.dto.InitiatePaymentResultJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.InitiatePaymentResult
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.InitiatePaymentResult
+-keepclassmembers class com.neerly.mobile.data.dto.InitiatePaymentResult {
+    public synthetic <init>(java.lang.String,java.lang.String,long,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.LogoutRequest
+-keepnames class com.neerly.mobile.data.dto.LogoutRequest
+-if class com.neerly.mobile.data.dto.LogoutRequest
+-keep class com.neerly.mobile.data.dto.LogoutRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.ModifySubscriptionRequest
+-keepnames class com.neerly.mobile.data.dto.ModifySubscriptionRequest
+-if class com.neerly.mobile.data.dto.ModifySubscriptionRequest
+-keep class com.neerly.mobile.data.dto.ModifySubscriptionRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.ModifySubscriptionRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.ModifySubscriptionRequest
+-keepclassmembers class com.neerly.mobile.data.dto.ModifySubscriptionRequest {
+    public synthetic <init>(java.lang.Integer,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.NotificationPrefDto
+-keepnames class com.neerly.mobile.data.dto.NotificationPrefDto
+-if class com.neerly.mobile.data.dto.NotificationPrefDto
+-keep class com.neerly.mobile.data.dto.NotificationPrefDtoJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.NotificationResponse
+-keepnames class com.neerly.mobile.data.dto.NotificationResponse
+-if class com.neerly.mobile.data.dto.NotificationResponse
+-keep class com.neerly.mobile.data.dto.NotificationResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.NotificationResponse
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.NotificationResponse
+-keepclassmembers class com.neerly.mobile.data.dto.NotificationResponse {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.OrderItemRequest
+-keepnames class com.neerly.mobile.data.dto.OrderItemRequest
+-if class com.neerly.mobile.data.dto.OrderItemRequest
+-keep class com.neerly.mobile.data.dto.OrderItemRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.OrderItemRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.OrderItemRequest
+-keepclassmembers class com.neerly.mobile.data.dto.OrderItemRequest {
+    public synthetic <init>(java.lang.String,int,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.OrderItemResponse
+-keepnames class com.neerly.mobile.data.dto.OrderItemResponse
+-if class com.neerly.mobile.data.dto.OrderItemResponse
+-keep class com.neerly.mobile.data.dto.OrderItemResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.OrderResponse
+-keepnames class com.neerly.mobile.data.dto.OrderResponse
+-if class com.neerly.mobile.data.dto.OrderResponse
+-keep class com.neerly.mobile.data.dto.OrderResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.OrderResponse
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.OrderResponse
+-keepclassmembers class com.neerly.mobile.data.dto.OrderResponse {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,java.lang.String,java.util.List,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.PauseSubscriptionRequest
+-keepnames class com.neerly.mobile.data.dto.PauseSubscriptionRequest
+-if class com.neerly.mobile.data.dto.PauseSubscriptionRequest
+-keep class com.neerly.mobile.data.dto.PauseSubscriptionRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.PauseSubscriptionRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.PauseSubscriptionRequest
+-keepclassmembers class com.neerly.mobile.data.dto.PauseSubscriptionRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.PaymentSnapshot
+-keepnames class com.neerly.mobile.data.dto.PaymentSnapshot
+-if class com.neerly.mobile.data.dto.PaymentSnapshot
+-keep class com.neerly.mobile.data.dto.PaymentSnapshotJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.PickupScheduleResponse
+-keepnames class com.neerly.mobile.data.dto.PickupScheduleResponse
+-if class com.neerly.mobile.data.dto.PickupScheduleResponse
+-keep class com.neerly.mobile.data.dto.PickupScheduleResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.PlaceOrderRequest
+-keepnames class com.neerly.mobile.data.dto.PlaceOrderRequest
+-if class com.neerly.mobile.data.dto.PlaceOrderRequest
+-keep class com.neerly.mobile.data.dto.PlaceOrderRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.PlaceOrderRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.PlaceOrderRequest
+-keepclassmembers class com.neerly.mobile.data.dto.PlaceOrderRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.util.List,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.PresignRequest
+-keepnames class com.neerly.mobile.data.dto.PresignRequest
+-if class com.neerly.mobile.data.dto.PresignRequest
+-keep class com.neerly.mobile.data.dto.PresignRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.PresignResponse
+-keepnames class com.neerly.mobile.data.dto.PresignResponse
+-if class com.neerly.mobile.data.dto.PresignResponse
+-keep class com.neerly.mobile.data.dto.PresignResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.ProductResponse
+-keepnames class com.neerly.mobile.data.dto.ProductResponse
+-if class com.neerly.mobile.data.dto.ProductResponse
+-keep class com.neerly.mobile.data.dto.ProductResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.PromoQuoteResponse
+-keepnames class com.neerly.mobile.data.dto.PromoQuoteResponse
+-if class com.neerly.mobile.data.dto.PromoQuoteResponse
+-keep class com.neerly.mobile.data.dto.PromoQuoteResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.QuotePromoRequest
+-keepnames class com.neerly.mobile.data.dto.QuotePromoRequest
+-if class com.neerly.mobile.data.dto.QuotePromoRequest
+-keep class com.neerly.mobile.data.dto.QuotePromoRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.QuotePromoRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.QuotePromoRequest
+-keepclassmembers class com.neerly.mobile.data.dto.QuotePromoRequest {
+    public synthetic <init>(java.lang.String,java.math.BigDecimal,boolean,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ReferralEntryRequest
+-keepnames class com.neerly.mobile.data.dto.ReferralEntryRequest
+-if class com.neerly.mobile.data.dto.ReferralEntryRequest
+-keep class com.neerly.mobile.data.dto.ReferralEntryRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.RefreshRequest
+-keepnames class com.neerly.mobile.data.dto.RefreshRequest
+-if class com.neerly.mobile.data.dto.RefreshRequest
+-keep class com.neerly.mobile.data.dto.RefreshRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.RefreshRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.RefreshRequest
+-keepclassmembers class com.neerly.mobile.data.dto.RefreshRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.RegisterDeviceRequest
+-keepnames class com.neerly.mobile.data.dto.RegisterDeviceRequest
+-if class com.neerly.mobile.data.dto.RegisterDeviceRequest
+-keep class com.neerly.mobile.data.dto.RegisterDeviceRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.RegisterDeviceRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.RegisterDeviceRequest
+-keepclassmembers class com.neerly.mobile.data.dto.RegisterDeviceRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.RejectOrderRequest
+-keepnames class com.neerly.mobile.data.dto.RejectOrderRequest
+-if class com.neerly.mobile.data.dto.RejectOrderRequest
+-keep class com.neerly.mobile.data.dto.RejectOrderRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.ReplaceVendorHoursRequest
+-keepnames class com.neerly.mobile.data.dto.ReplaceVendorHoursRequest
+-if class com.neerly.mobile.data.dto.ReplaceVendorHoursRequest
+-keep class com.neerly.mobile.data.dto.ReplaceVendorHoursRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.ReturnRequest
+-keepnames class com.neerly.mobile.data.dto.ReturnRequest
+-if class com.neerly.mobile.data.dto.ReturnRequest
+-keep class com.neerly.mobile.data.dto.ReturnRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.ReturnRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.ReturnRequest
+-keepclassmembers class com.neerly.mobile.data.dto.ReturnRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.util.List,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ReturnResponse
+-keepnames class com.neerly.mobile.data.dto.ReturnResponse
+-if class com.neerly.mobile.data.dto.ReturnResponse
+-keep class com.neerly.mobile.data.dto.ReturnResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.ReviewResponse
+-keepnames class com.neerly.mobile.data.dto.ReviewResponse
+-if class com.neerly.mobile.data.dto.ReviewResponse
+-keep class com.neerly.mobile.data.dto.ReviewResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.ReviewResponse
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.ReviewResponse
+-keepclassmembers class com.neerly.mobile.data.dto.ReviewResponse {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,com.neerly.mobile.data.dto.ReviewVendorReply,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.ReviewVendorReply
+-keepnames class com.neerly.mobile.data.dto.ReviewVendorReply
+-if class com.neerly.mobile.data.dto.ReviewVendorReply
+-keep class com.neerly.mobile.data.dto.ReviewVendorReplyJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.SkipSubscriptionRequest
+-keepnames class com.neerly.mobile.data.dto.SkipSubscriptionRequest
+-if class com.neerly.mobile.data.dto.SkipSubscriptionRequest
+-keep class com.neerly.mobile.data.dto.SkipSubscriptionRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.StartShiftRequest
+-keepnames class com.neerly.mobile.data.dto.StartShiftRequest
+-if class com.neerly.mobile.data.dto.StartShiftRequest
+-keep class com.neerly.mobile.data.dto.StartShiftRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.StartShiftRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.StartShiftRequest
+-keepclassmembers class com.neerly.mobile.data.dto.StartShiftRequest {
+    public synthetic <init>(com.neerly.mobile.data.dto.GpsPoint,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
+-keepnames class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
+-if class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
+-keep class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest
+-keepclassmembers class com.neerly.mobile.data.dto.SubmitVendorOnboardingRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.util.Set,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Set,java.lang.Integer,boolean,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.SubscriptionResponse
+-keepnames class com.neerly.mobile.data.dto.SubscriptionResponse
+-if class com.neerly.mobile.data.dto.SubscriptionResponse
+-keep class com.neerly.mobile.data.dto.SubscriptionResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.SubscriptionResponse
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.SubscriptionResponse
+-keepclassmembers class com.neerly.mobile.data.dto.SubscriptionResponse {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.List,int,java.lang.String,java.lang.String,java.math.BigDecimal,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.SwitchRoleRequest
+-keepnames class com.neerly.mobile.data.dto.SwitchRoleRequest
+-if class com.neerly.mobile.data.dto.SwitchRoleRequest
+-keep class com.neerly.mobile.data.dto.SwitchRoleRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.SwitchRoleResponse
+-keepnames class com.neerly.mobile.data.dto.SwitchRoleResponse
+-if class com.neerly.mobile.data.dto.SwitchRoleResponse
+-keep class com.neerly.mobile.data.dto.SwitchRoleResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.TogglePauseRequest
+-keepnames class com.neerly.mobile.data.dto.TogglePauseRequest
+-if class com.neerly.mobile.data.dto.TogglePauseRequest
+-keep class com.neerly.mobile.data.dto.TogglePauseRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.TokenPair
+-keepnames class com.neerly.mobile.data.dto.TokenPair
+-if class com.neerly.mobile.data.dto.TokenPair
+-keep class com.neerly.mobile.data.dto.TokenPairJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.UpdateAddressRequest
+-keepnames class com.neerly.mobile.data.dto.UpdateAddressRequest
+-if class com.neerly.mobile.data.dto.UpdateAddressRequest
+-keep class com.neerly.mobile.data.dto.UpdateAddressRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.UpdateAddressRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.UpdateAddressRequest
+-keepclassmembers class com.neerly.mobile.data.dto.UpdateAddressRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.Double,java.lang.Double,java.lang.String,java.lang.Integer,java.lang.Boolean,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.UpdateProfileRequest
+-keepnames class com.neerly.mobile.data.dto.UpdateProfileRequest
+-if class com.neerly.mobile.data.dto.UpdateProfileRequest
+-keep class com.neerly.mobile.data.dto.UpdateProfileRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.UpdateProfileRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.UpdateProfileRequest
+-keepclassmembers class com.neerly.mobile.data.dto.UpdateProfileRequest {
+    public synthetic <init>(java.lang.String,java.lang.String,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.UserSummary
+-keepnames class com.neerly.mobile.data.dto.UserSummary
+-if class com.neerly.mobile.data.dto.UserSummary
+-keep class com.neerly.mobile.data.dto.UserSummaryJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorBankAccountResponse
+-keepnames class com.neerly.mobile.data.dto.VendorBankAccountResponse
+-if class com.neerly.mobile.data.dto.VendorBankAccountResponse
+-keep class com.neerly.mobile.data.dto.VendorBankAccountResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorBusinessStatus
+-keepnames class com.neerly.mobile.data.dto.VendorBusinessStatus
+-if class com.neerly.mobile.data.dto.VendorBusinessStatus
+-keep class com.neerly.mobile.data.dto.VendorBusinessStatusJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorCardResponse
+-keepnames class com.neerly.mobile.data.dto.VendorCardResponse
+-if class com.neerly.mobile.data.dto.VendorCardResponse
+-keep class com.neerly.mobile.data.dto.VendorCardResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+-keepnames class com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+-if class com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+-keep class com.neerly.mobile.data.dto.VendorEmergencyCloseRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.VendorEmergencyCloseRequest
+-keepclassmembers class com.neerly.mobile.data.dto.VendorEmergencyCloseRequest {
+    public synthetic <init>(int,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.VendorHolidayRow
+-keepnames class com.neerly.mobile.data.dto.VendorHolidayRow
+-if class com.neerly.mobile.data.dto.VendorHolidayRow
+-keep class com.neerly.mobile.data.dto.VendorHolidayRowJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorHoursRow
+-keepnames class com.neerly.mobile.data.dto.VendorHoursRow
+-if class com.neerly.mobile.data.dto.VendorHoursRow
+-keep class com.neerly.mobile.data.dto.VendorHoursRowJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorOrderItem
+-keepnames class com.neerly.mobile.data.dto.VendorOrderItem
+-if class com.neerly.mobile.data.dto.VendorOrderItem
+-keep class com.neerly.mobile.data.dto.VendorOrderItemJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorOrderResponse
+-keepnames class com.neerly.mobile.data.dto.VendorOrderResponse
+-if class com.neerly.mobile.data.dto.VendorOrderResponse
+-keep class com.neerly.mobile.data.dto.VendorOrderResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorProductRow
+-keepnames class com.neerly.mobile.data.dto.VendorProductRow
+-if class com.neerly.mobile.data.dto.VendorProductRow
+-keep class com.neerly.mobile.data.dto.VendorProductRowJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorRatingSummary
+-keepnames class com.neerly.mobile.data.dto.VendorRatingSummary
+-if class com.neerly.mobile.data.dto.VendorRatingSummary
+-keep class com.neerly.mobile.data.dto.VendorRatingSummaryJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorReplyRequest
+-keepnames class com.neerly.mobile.data.dto.VendorReplyRequest
+-if class com.neerly.mobile.data.dto.VendorReplyRequest
+-keep class com.neerly.mobile.data.dto.VendorReplyRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorResponse
+-keepnames class com.neerly.mobile.data.dto.VendorResponse
+-if class com.neerly.mobile.data.dto.VendorResponse
+-keep class com.neerly.mobile.data.dto.VendorResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorSubscriptionTodayRow
+-keepnames class com.neerly.mobile.data.dto.VendorSubscriptionTodayRow
+-if class com.neerly.mobile.data.dto.VendorSubscriptionTodayRow
+-keep class com.neerly.mobile.data.dto.VendorSubscriptionTodayRowJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorTeamMember
+-keepnames class com.neerly.mobile.data.dto.VendorTeamMember
+-if class com.neerly.mobile.data.dto.VendorTeamMember
+-keep class com.neerly.mobile.data.dto.VendorTeamMemberJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.VendorTodaySummary
+-keepnames class com.neerly.mobile.data.dto.VendorTodaySummary
+-if class com.neerly.mobile.data.dto.VendorTodaySummary
+-keep class com.neerly.mobile.data.dto.VendorTodaySummaryJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.WalletResponse
+-keepnames class com.neerly.mobile.data.dto.WalletResponse
+-if class com.neerly.mobile.data.dto.WalletResponse
+-keep class com.neerly.mobile.data.dto.WalletResponseJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+
+-if class com.neerly.mobile.data.dto.WalletTopupRequest
+-keepnames class com.neerly.mobile.data.dto.WalletTopupRequest
+-if class com.neerly.mobile.data.dto.WalletTopupRequest
+-keep class com.neerly.mobile.data.dto.WalletTopupRequestJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}
+-if class com.neerly.mobile.data.dto.WalletTopupRequest
+-keepnames class kotlin.jvm.internal.DefaultConstructorMarker
+-if class com.neerly.mobile.data.dto.WalletTopupRequest
+-keepclassmembers class com.neerly.mobile.data.dto.WalletTopupRequest {
+    public synthetic <init>(java.math.BigDecimal,java.lang.String,int,kotlin.jvm.internal.DefaultConstructorMarker);
+}
+
+-if class com.neerly.mobile.data.dto.WalletTransaction
+-keepnames class com.neerly.mobile.data.dto.WalletTransaction
+-if class com.neerly.mobile.data.dto.WalletTransaction
+-keep class com.neerly.mobile.data.dto.WalletTransactionJsonAdapter {
+    public <init>(com.squareup.moshi.Moshi);
+}

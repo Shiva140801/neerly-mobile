@@ -2,6 +2,7 @@ package com.neerly.mobile.feature.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -25,7 +26,10 @@ import com.neerly.mobile.core.design.NeerlySpacing
 
 /** S-CUST-REG-01 — Welcome. Matches design-reference/flows-customer.jsx::ScreenWelcome */
 @Composable
-fun WelcomeScreen(onGetStarted: () -> Unit) {
+fun WelcomeScreen(
+    onGetStarted: () -> Unit,
+    onVendorRegister: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -124,7 +128,9 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
             },
             fontSize = 13.sp,
             color = NeerlyColors.Ink600,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .clickable { onVendorRegister() }
         )
 
         Spacer(Modifier.height(NeerlySpacing.x4))

@@ -13,6 +13,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class ProfileUiState(
+    val loading: Boolean = true,
+    val user: UserSummary? = null,
+    val error: String? = null,
+    val grantedRoles: List<String> = emptyList()
+)
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repo: CustomerRepository,
@@ -26,11 +33,11 @@ class ProfileViewModel @Inject constructor(
     init { load() }
 
     fun load() {
-        _state.value = _state.value.copy(loading = true, error = null)
+        _state.value = _state.value.copy(loading = true, error = null, grantedRoles = auth.getGrantedRoles())
         viewModelScope.launch {
             runCatching { repo.me() }
-                .onSuccess { _state.value = ProfileUiState(loading = false, user = it) }
-                .onFailure { _state.value = ProfileUiState(loading = false, error = it.message) }
+                .onSuccess { _state.value = _state.value.copy(loading = false, user = it, grantedRoles = auth.getGrantedRoles()) }
+                .onFailure { _state.value = _state.value.copy(loading = false, error = it.message) }
         }
     }
 
@@ -57,9 +64,3 @@ class ProfileViewModel @Inject constructor(
         }
     }
 }
-
-data class ProfileUiState(
-    val loading: Boolean = true,
-    val user: UserSummary? = null,
-    val error: String? = null
-)

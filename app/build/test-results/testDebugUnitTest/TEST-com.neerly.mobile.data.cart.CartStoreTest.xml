@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.neerly.mobile.data.cart.CartStoreTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-08-23T12:46:21.087Z" hostname="shivas-MacBook-Pro.local" time="0.001">
+  <properties/>
+  <testcase name="clearPromo_removesCodeAndDiscount" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="updateQuantity_above10_clampsTo10" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.001"/>
+  <testcase name="lineDeposit_transferAndReturn_zero" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="lineDeposit_keepContainer_returnsDeposit" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="addItem_sameVendor_sameProduct_incrementsQuantity" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="total_appliesDeliveryAndSurgeAndDepositLessDiscount_clampedToZero" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="addItem_differentVendor_returnsMismatchWithoutMutating" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="total_neverNegative" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="replaceWithNewVendor_clearsPreviousAndAddsFresh" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="subtotal_sumsLines" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="updateQuantity_removingLastLine_clearsVendor" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="addItem_emptyCart_populatesVendorAndItem" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="addItem_sameVendor_differentProducts_appendsRow" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <testcase name="updateQuantity_toZero_removesLine" classname="com.neerly.mobile.data.cart.CartStoreTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

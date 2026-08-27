@@ -41,6 +41,11 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    testOptions {
+        // MockK inline instrumentation is heap-hungry; the 512m default OOMs
+        // when the whole suite runs in one JVM.
+        unitTests.all { it.maxHeapSize = "2g" }
+    }
 }
 
 dependencies {

@@ -1,0 +1,666 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.neerly.mobile"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:4:5-67
+11-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:5:5-79
+12-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:5:22-76
+13    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+13-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:6:5-79
+13-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:6:22-76
+14    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+14-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:7:5-81
+14-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:7:22-78
+15    <uses-permission android:name="android.permission.CAMERA" />
+15-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:8:5-65
+15-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:8:22-62
+16    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+16-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:9:5-77
+16-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:9:22-74
+17    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+17-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:10:5-70
+17-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:10:22-67
+18    <uses-permission android:name="android.permission.NFC" />
+18-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:9:5-62
+18-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:9:22-59
+19
+20    <uses-feature
+20-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:11:5-13:36
+21        android:name="android.hardware.nfc"
+21-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:12:9-44
+22        android:required="false" />
+22-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:13:9-33
+23
+24    <queries>
+24-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:15:5-44:15
+25        <intent>
+25-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:16:9-22:18
+26            <action android:name="android.intent.action.VIEW" />
+26-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:13-65
+26-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:21-62
+27
+28            <data
+28-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+29                android:mimeType="*/*"
+29-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:20:17-39
+30                android:scheme="*" />
+30-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:21:17-35
+31        </intent>
+32        <intent>
+32-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:23:9-32:18
+33            <action android:name="android.intent.action.VIEW" />
+33-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:13-65
+33-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:21-62
+34
+35            <category android:name="android.intent.category.BROWSABLE" />
+35-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:13-74
+35-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:23-71
+36
+37            <data
+37-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+38                android:host="pay"
+39                android:mimeType="*/*"
+39-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:20:17-39
+40                android:scheme="upi" />
+40-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:21:17-35
+41        </intent>
+42        <intent>
+42-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:33:9-35:18
+43            <action android:name="android.intent.action.MAIN" />
+43-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:29:17-69
+43-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:29:25-66
+44        </intent>
+45        <intent>
+45-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:36:9-40:18
+46            <action android:name="android.intent.action.SEND" />
+46-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:37:13-65
+46-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:37:21-62
+47
+48            <data android:mimeType="*/*" />
+48-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+48-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:20:17-39
+49        </intent>
+50        <intent>
+50-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:41:9-43:18
+51            <action android:name="rzp.device_token.share" />
+51-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:42:13-61
+51-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:42:21-58
+52        </intent>
+53        <!-- Needs to be explicitly declared on Android R+ -->
+54        <package android:name="com.google.android.apps.maps" />
+54-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:33:9-64
+54-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:33:18-61
+55
+56        <intent>
+56-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:17:9-21:18
+57            <action android:name="android.intent.action.VIEW" />
+57-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:13-65
+57-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:21-62
+58
+59            <data android:scheme="upi" />
+59-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+59-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:21:17-35
+60        </intent>
+61    </queries>
+62
+63    <uses-feature
+63-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:26:5-28:35
+64        android:glEsVersion="0x00020000"
+64-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:27:9-41
+65        android:required="true" />
+65-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:28:9-32
+66
+67    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Required by older versions of Google Play services to create IID tokens -->
+67-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:24:5-68
+67-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:24:22-65
+68    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+68-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:26:5-82
+68-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:26:22-79
+69    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+69-->[com.google.android.recaptcha:recaptcha:18.5.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/4d22606e3fc618f2518bc7e5d52d10a9/transformed/recaptcha-18.5.1/AndroidManifest.xml:9:5-98
+69-->[com.google.android.recaptcha:recaptcha:18.5.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/4d22606e3fc618f2518bc7e5d52d10a9/transformed/recaptcha-18.5.1/AndroidManifest.xml:9:22-95
+70
+71    <permission
+71-->[androidx.core:core:1.13.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/eac89327289e945c254245e3b03d2141/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+72        android:name="com.neerly.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+72-->[androidx.core:core:1.13.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/eac89327289e945c254245e3b03d2141/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+73        android:protectionLevel="signature" />
+73-->[androidx.core:core:1.13.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/eac89327289e945c254245e3b03d2141/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+74
+75    <uses-permission android:name="com.neerly.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- Normal permission, automatically granted on API 23+ -->
+75-->[androidx.core:core:1.13.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/eac89327289e945c254245e3b03d2141/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+75-->[androidx.core:core:1.13.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/eac89327289e945c254245e3b03d2141/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+76    <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
+76-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:10:5-81
+76-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:10:22-78
+77
+78    <application
+78-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:12:5-48:19
+79        android:name="com.neerly.mobile.NeerlyApp"
+79-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:13:9-34
+80        android:allowBackup="true"
+80-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:14:9-35
+81        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+81-->[androidx.core:core:1.13.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/eac89327289e945c254245e3b03d2141/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+82        android:dataExtractionRules="@xml/data_extraction_rules"
+82-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:15:9-65
+83        android:debuggable="true"
+84        android:extractNativeLibs="false"
+85        android:fullBackupContent="@xml/backup_rules"
+85-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:16:9-54
+86        android:icon="@mipmap/ic_launcher"
+86-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:17:9-43
+87        android:label="@string/app_name"
+87-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:18:9-41
+88        android:networkSecurityConfig="@xml/network_security_config"
+88-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:19:9-69
+89        android:roundIcon="@mipmap/ic_launcher_round"
+89-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:20:9-54
+90        android:supportsRtl="true"
+90-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:21:9-35
+91        android:theme="@style/Theme.Neerly" >
+91-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:22:9-44
+92        <activity
+92-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:24:9-32:20
+93            android:name="com.neerly.mobile.MainActivity"
+93-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:25:13-41
+94            android:exported="true"
+94-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:26:13-36
+95            android:theme="@style/Theme.Neerly" >
+95-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:27:13-48
+96            <intent-filter>
+96-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:28:13-31:29
+97                <action android:name="android.intent.action.MAIN" />
+97-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:29:17-69
+97-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:29:25-66
+98
+99                <category android:name="android.intent.category.LAUNCHER" />
+99-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:30:17-77
+99-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:30:27-74
+100            </intent-filter>
+101        </activity>
+102
+103        <!-- Google Maps API key — set via META-DATA in local.properties or resValue -->
+104        <meta-data
+104-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:35:9-37:59
+105            android:name="com.google.android.geo.API_KEY"
+105-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:36:13-58
+106            android:value="@string/google_maps_api_key" />
+106-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:37:13-56
+107
+108        <!-- FCM token rotation + message receiver -->
+109        <service
+109-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:40:9-46:19
+110            android:name="com.neerly.mobile.push.NeerlyMessagingService"
+110-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:41:13-56
+111            android:exported="false" >
+111-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:42:13-37
+112            <intent-filter>
+112-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:43:13-45:29
+113                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+113-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:44:17-78
+113-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:44:25-75
+114            </intent-filter>
+115        </service>
+116
+117        <activity
+117-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:47:9-55:20
+118            android:name="com.razorpay.CheckoutActivity"
+118-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:48:13-57
+119            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+119-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:49:13-83
+120            android:exported="false"
+120-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:50:13-37
+121            android:theme="@style/CheckoutTheme" >
+121-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:51:13-49
+122            <intent-filter>
+122-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:52:13-54:29
+123                <action android:name="android.intent.action.MAIN" />
+123-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:29:17-69
+123-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:29:25-66
+124            </intent-filter>
+125        </activity>
+126
+127        <provider
+127-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:57:9-68:20
+128            android:name="androidx.startup.InitializationProvider"
+128-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:58:13-67
+129            android:authorities="com.neerly.mobile.androidx-startup"
+129-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:59:13-68
+130            android:exported="false" >
+130-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:60:13-37
+131            <meta-data
+131-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:62:13-64:52
+132                android:name="com.razorpay.RazorpayInitializer"
+132-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:63:17-64
+133                android:value="androidx.startup" />
+133-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:64:17-49
+134            <meta-data
+134-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:65:13-67:52
+135                android:name="com.razorpay.CoreInitializer"
+135-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:66:17-60
+136                android:value="androidx.startup" />
+136-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:67:17-49
+137            <meta-data
+137-->[androidx.emoji2:emoji2:1.3.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/b0ddc1c505df11ac3e5eaf4f3e90074f/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+138                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+138-->[androidx.emoji2:emoji2:1.3.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/b0ddc1c505df11ac3e5eaf4f3e90074f/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+139                android:value="androidx.startup" />
+139-->[androidx.emoji2:emoji2:1.3.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/b0ddc1c505df11ac3e5eaf4f3e90074f/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+140            <meta-data
+140-->[androidx.lifecycle:lifecycle-process:2.8.6] /Users/shivasai/.gradle/caches/9.3.0/transforms/e85179a462a93321bd11a3cc3b462333/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:29:13-31:52
+141                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+141-->[androidx.lifecycle:lifecycle-process:2.8.6] /Users/shivasai/.gradle/caches/9.3.0/transforms/e85179a462a93321bd11a3cc3b462333/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:30:17-78
+142                android:value="androidx.startup" />
+142-->[androidx.lifecycle:lifecycle-process:2.8.6] /Users/shivasai/.gradle/caches/9.3.0/transforms/e85179a462a93321bd11a3cc3b462333/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:31:17-49
+143            <meta-data
+143-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+144                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+144-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+145                android:value="androidx.startup" />
+145-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+146        </provider>
+147
+148        <activity
+148-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:70:9-73:75
+149            android:name="com.razorpay.MagicXActivity"
+149-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:71:13-55
+150            android:exported="false"
+150-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:72:13-37
+151            android:theme="@android:style/Theme.Translucent.NoTitleBar" /> <!-- Needs to be explicitly declared on P+ -->
+151-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:73:13-72
+152        <uses-library
+152-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:39:9-41:40
+153            android:name="org.apache.http.legacy"
+153-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:40:13-50
+154            android:required="false" />
+154-->[com.google.android.gms:play-services-maps:19.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/017cbec097d23485ca88ab594b872b96/transformed/play-services-maps-19.0.0/AndroidManifest.xml:41:13-37
+155
+156        <receiver
+156-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:29:9-40:20
+157            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+157-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:30:13-78
+158            android:exported="true"
+158-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:31:13-36
+159            android:permission="com.google.android.c2dm.permission.SEND" >
+159-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:32:13-73
+160            <intent-filter>
+160-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:33:13-35:29
+161                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+161-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:34:17-81
+161-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:34:25-78
+162            </intent-filter>
+163
+164            <meta-data
+164-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:37:13-39:40
+165                android:name="com.google.android.gms.cloudmessaging.FINISHED_AFTER_HANDLED"
+165-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:38:17-92
+166                android:value="true" />
+166-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:39:17-37
+167        </receiver>
+168        <!--
+169             FirebaseMessagingService performs security checks at runtime,
+170             but set to not exported to explicitly avoid allowing another app to call it.
+171        -->
+172        <service
+172-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:46:9-53:19
+173            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+173-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:47:13-82
+174            android:directBootAware="true"
+174-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:48:13-43
+175            android:exported="false" >
+175-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:49:13-37
+176            <intent-filter android:priority="-500" >
+176-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:43:13-45:29
+177                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+177-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:44:17-78
+177-->/Users/shivasai/Documents/water/neerly-mobile/app/src/main/AndroidManifest.xml:44:25-75
+178            </intent-filter>
+179        </service>
+180        <service
+180-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:54:9-63:19
+181            android:name="com.google.firebase.components.ComponentDiscoveryService"
+181-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:55:13-84
+182            android:directBootAware="true"
+182-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:32:13-43
+183            android:exported="false" >
+183-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:56:13-37
+184            <meta-data
+184-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:57:13-59:85
+185                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingKtxRegistrar"
+185-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:58:17-122
+186                android:value="com.google.firebase.components.ComponentRegistrar" />
+186-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:59:17-82
+187            <meta-data
+187-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:60:13-62:85
+188                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+188-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:61:17-119
+189                android:value="com.google.firebase.components.ComponentRegistrar" />
+189-->[com.google.firebase:firebase-messaging:24.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/7f07ad915f7149b5b9100f0453be126d/transformed/firebase-messaging-24.0.3/AndroidManifest.xml:62:17-82
+190            <meta-data
+190-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:69:13-71:85
+191                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+191-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:70:17-109
+192                android:value="com.google.firebase.components.ComponentRegistrar" />
+192-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:71:17-82
+193            <meta-data
+193-->[com.google.firebase:firebase-installations:18.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f83387f1929f27b65de0cc7d8c5e0e3e/transformed/firebase-installations-18.0.0/AndroidManifest.xml:15:13-17:85
+194                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+194-->[com.google.firebase:firebase-installations:18.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f83387f1929f27b65de0cc7d8c5e0e3e/transformed/firebase-installations-18.0.0/AndroidManifest.xml:16:17-130
+195                android:value="com.google.firebase.components.ComponentRegistrar" />
+195-->[com.google.firebase:firebase-installations:18.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f83387f1929f27b65de0cc7d8c5e0e3e/transformed/firebase-installations-18.0.0/AndroidManifest.xml:17:17-82
+196            <meta-data
+196-->[com.google.firebase:firebase-installations:18.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f83387f1929f27b65de0cc7d8c5e0e3e/transformed/firebase-installations-18.0.0/AndroidManifest.xml:18:13-20:85
+197                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+197-->[com.google.firebase:firebase-installations:18.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f83387f1929f27b65de0cc7d8c5e0e3e/transformed/firebase-installations-18.0.0/AndroidManifest.xml:19:17-127
+198                android:value="com.google.firebase.components.ComponentRegistrar" />
+198-->[com.google.firebase:firebase-installations:18.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f83387f1929f27b65de0cc7d8c5e0e3e/transformed/firebase-installations-18.0.0/AndroidManifest.xml:20:17-82
+199            <meta-data
+199-->[com.google.firebase:firebase-common-ktx:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/109fb3d1472f6022a1d6cb8afee5198e/transformed/firebase-common-ktx-21.0.0/AndroidManifest.xml:12:13-14:85
+200                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+200-->[com.google.firebase:firebase-common-ktx:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/109fb3d1472f6022a1d6cb8afee5198e/transformed/firebase-common-ktx-21.0.0/AndroidManifest.xml:13:17-116
+201                android:value="com.google.firebase.components.ComponentRegistrar" />
+201-->[com.google.firebase:firebase-common-ktx:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/109fb3d1472f6022a1d6cb8afee5198e/transformed/firebase-common-ktx-21.0.0/AndroidManifest.xml:14:17-82
+202            <meta-data
+202-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:35:13-37:85
+203                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+203-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:36:17-109
+204                android:value="com.google.firebase.components.ComponentRegistrar" />
+204-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:37:17-82
+205            <meta-data
+205-->[com.google.firebase:firebase-datatransport:18.2.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/a05882e969f774e13b3b37c82a5e6402/transformed/firebase-datatransport-18.2.0/AndroidManifest.xml:25:13-27:85
+206                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+206-->[com.google.firebase:firebase-datatransport:18.2.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/a05882e969f774e13b3b37c82a5e6402/transformed/firebase-datatransport-18.2.0/AndroidManifest.xml:26:17-115
+207                android:value="com.google.firebase.components.ComponentRegistrar" />
+207-->[com.google.firebase:firebase-datatransport:18.2.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/a05882e969f774e13b3b37c82a5e6402/transformed/firebase-datatransport-18.2.0/AndroidManifest.xml:27:17-82
+208        </service>
+209
+210        <activity
+210-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:29:9-46:20
+211            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+211-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:30:13-80
+212            android:excludeFromRecents="true"
+212-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:31:13-46
+213            android:exported="true"
+213-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:32:13-36
+214            android:launchMode="singleTask"
+214-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:33:13-44
+215            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+215-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:34:13-72
+216            <intent-filter>
+216-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:35:13-45:29
+217                <action android:name="android.intent.action.VIEW" />
+217-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:13-65
+217-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:21-62
+218
+219                <category android:name="android.intent.category.DEFAULT" />
+219-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:38:17-76
+219-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:38:27-73
+220                <category android:name="android.intent.category.BROWSABLE" />
+220-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:13-74
+220-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:23-71
+221
+222                <data
+222-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+223                    android:host="firebase.auth"
+224                    android:path="/"
+225                    android:scheme="genericidp" />
+225-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:21:17-35
+226            </intent-filter>
+227        </activity>
+228        <activity
+228-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:47:9-64:20
+229            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+229-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:48:13-79
+230            android:excludeFromRecents="true"
+230-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:49:13-46
+231            android:exported="true"
+231-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:50:13-36
+232            android:launchMode="singleTask"
+232-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:51:13-44
+233            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+233-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:52:13-72
+234            <intent-filter>
+234-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:53:13-63:29
+235                <action android:name="android.intent.action.VIEW" />
+235-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:13-65
+235-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:21-62
+236
+237                <category android:name="android.intent.category.DEFAULT" />
+237-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:38:17-76
+237-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:38:27-73
+238                <category android:name="android.intent.category.BROWSABLE" />
+238-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:13-74
+238-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:23-71
+239
+240                <data
+240-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+241                    android:host="firebase.auth"
+242                    android:path="/"
+243                    android:scheme="recaptcha" />
+243-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:21:17-35
+244            </intent-filter>
+245        </activity>
+246
+247        <service
+247-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:24:9-32:19
+248            android:name="androidx.credentials.playservices.CredentialProviderMetadataHolder"
+248-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:25:13-94
+249            android:enabled="true"
+249-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:26:13-35
+250            android:exported="false" >
+250-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:27:13-37
+251            <meta-data
+251-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:29:13-31:104
+252                android:name="androidx.credentials.CREDENTIAL_PROVIDER_KEY"
+252-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:30:17-76
+253                android:value="androidx.credentials.playservices.CredentialProviderPlayServicesImpl" />
+253-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:31:17-101
+254        </service>
+255
+256        <activity
+256-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:34:9-41:20
+257            android:name="androidx.credentials.playservices.HiddenActivity"
+257-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:35:13-76
+258            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+258-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:36:13-87
+259            android:enabled="true"
+259-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:37:13-35
+260            android:exported="false"
+260-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:38:13-37
+261            android:fitsSystemWindows="true"
+261-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:39:13-45
+262            android:theme="@style/Theme.Hidden" >
+262-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /Users/shivasai/.gradle/caches/9.3.0/transforms/94ed21d26b59b2b988636fe3b54b1aed/transformed/credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:40:13-48
+263        </activity>
+264        <activity
+264-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:23:9-27:75
+265            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+265-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:24:13-93
+266            android:excludeFromRecents="true"
+266-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:25:13-46
+267            android:exported="false"
+267-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:26:13-37
+268            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+268-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:27:13-72
+269        <!--
+270            Service handling Google Sign-In user revocation. For apps that do not integrate with
+271            Google Sign-In, this service will never be started.
+272        -->
+273        <service
+273-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:33:9-37:51
+274            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+274-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:34:13-89
+275            android:exported="true"
+275-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:35:13-36
+276            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+276-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:36:13-107
+277            android:visibleToInstantApps="true" />
+277-->[com.google.android.gms:play-services-auth:21.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/e23322ccd5ef9a9762b76a46b35f7f80/transformed/play-services-auth-21.1.0/AndroidManifest.xml:37:13-48
+278
+279        <activity
+279-->[com.google.android.gms:play-services-base:18.5.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/fb07a89ad028473a85dda2a9447319b9/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+280            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+280-->[com.google.android.gms:play-services-base:18.5.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/fb07a89ad028473a85dda2a9447319b9/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+281            android:exported="false"
+281-->[com.google.android.gms:play-services-base:18.5.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/fb07a89ad028473a85dda2a9447319b9/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+282            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+282-->[com.google.android.gms:play-services-base:18.5.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/fb07a89ad028473a85dda2a9447319b9/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+283
+284        <provider
+284-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:23:9-28:39
+285            android:name="com.google.firebase.provider.FirebaseInitProvider"
+285-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:24:13-77
+286            android:authorities="com.neerly.mobile.firebaseinitprovider"
+286-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:25:13-72
+287            android:directBootAware="true"
+287-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:26:13-43
+288            android:exported="false"
+288-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:27:13-37
+289            android:initOrder="100" />
+289-->[com.google.firebase:firebase-common:21.0.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/308825d1a09e0503454a15da32ef043e/transformed/firebase-common-21.0.0/AndroidManifest.xml:28:13-36
+290
+291        <activity
+291-->[androidx.compose.ui:ui-test-manifest:1.7.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ef8e5d314a9a29127dc36efd6e8c952c/transformed/ui-test-manifest-1.7.3/AndroidManifest.xml:23:9-25:39
+292            android:name="androidx.activity.ComponentActivity"
+292-->[androidx.compose.ui:ui-test-manifest:1.7.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ef8e5d314a9a29127dc36efd6e8c952c/transformed/ui-test-manifest-1.7.3/AndroidManifest.xml:24:13-63
+293            android:exported="true" />
+293-->[androidx.compose.ui:ui-test-manifest:1.7.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ef8e5d314a9a29127dc36efd6e8c952c/transformed/ui-test-manifest-1.7.3/AndroidManifest.xml:25:13-36
+294        <activity
+294-->[androidx.compose.ui:ui-tooling-android:1.7.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/61e74387aaa16b497408ee9fede30ae4/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+295            android:name="androidx.compose.ui.tooling.PreviewActivity"
+295-->[androidx.compose.ui:ui-tooling-android:1.7.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/61e74387aaa16b497408ee9fede30ae4/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+296            android:exported="true" />
+296-->[androidx.compose.ui:ui-tooling-android:1.7.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/61e74387aaa16b497408ee9fede30ae4/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+297
+298        <meta-data
+298-->[com.google.android.gms:play-services-basement:18.4.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f4a16fab03a6c4b3190e3654c1543d5e/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+299            android:name="com.google.android.gms.version"
+299-->[com.google.android.gms:play-services-basement:18.4.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f4a16fab03a6c4b3190e3654c1543d5e/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+300            android:value="@integer/google_play_services_version" />
+300-->[com.google.android.gms:play-services-basement:18.4.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/f4a16fab03a6c4b3190e3654c1543d5e/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+301
+302        <service
+302-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/d53febc5e7dc18c3bfe5a46f20fd025f/transformed/transport-backend-cct-3.1.9/AndroidManifest.xml:28:9-34:19
+303            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+303-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/d53febc5e7dc18c3bfe5a46f20fd025f/transformed/transport-backend-cct-3.1.9/AndroidManifest.xml:29:13-103
+304            android:exported="false" >
+304-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/d53febc5e7dc18c3bfe5a46f20fd025f/transformed/transport-backend-cct-3.1.9/AndroidManifest.xml:30:13-37
+305            <meta-data
+305-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/d53febc5e7dc18c3bfe5a46f20fd025f/transformed/transport-backend-cct-3.1.9/AndroidManifest.xml:31:13-33:39
+306                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+306-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/d53febc5e7dc18c3bfe5a46f20fd025f/transformed/transport-backend-cct-3.1.9/AndroidManifest.xml:32:17-94
+307                android:value="cct" />
+307-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/d53febc5e7dc18c3bfe5a46f20fd025f/transformed/transport-backend-cct-3.1.9/AndroidManifest.xml:33:17-36
+308        </service>
+309        <service
+309-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:26:9-30:19
+310            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+310-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:27:13-117
+311            android:exported="false"
+311-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:28:13-37
+312            android:permission="android.permission.BIND_JOB_SERVICE" >
+312-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:29:13-69
+313        </service>
+314
+315        <receiver
+315-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:32:9-34:40
+316            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+316-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:33:13-132
+317            android:exported="false" />
+317-->[com.google.android.datatransport:transport-runtime:3.1.9] /Users/shivasai/.gradle/caches/9.3.0/transforms/637f01fcb1d0102bb758ba0a2cc2510c/transformed/transport-runtime-3.1.9/AndroidManifest.xml:34:13-37
+318        <receiver
+318-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+319            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+319-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+320            android:directBootAware="false"
+320-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+321            android:enabled="true"
+321-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+322            android:exported="true"
+322-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+323            android:permission="android.permission.DUMP" >
+323-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+324            <intent-filter>
+324-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+325                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+325-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+325-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+326            </intent-filter>
+327            <intent-filter>
+327-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+328                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+328-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+328-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+329            </intent-filter>
+330            <intent-filter>
+330-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+331                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+331-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+331-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+332            </intent-filter>
+333            <intent-filter>
+333-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+334                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+334-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+334-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/shivasai/.gradle/caches/9.3.0/transforms/1f040f856074fdd3c441eeebd7f97575/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+335            </intent-filter>
+336        </receiver>
+337
+338        <activity
+338-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:25:9-39:20
+339            android:name="com.razorpay.DeeplinkActivity"
+339-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:26:13-57
+340            android:exported="true"
+340-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:27:13-36
+341            android:theme="@style/CheckoutTheme" >
+341-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:28:13-49
+342            <intent-filter>
+342-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:29:13-38:29
+343                <action android:name="android.intent.action.VIEW" />
+343-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:13-65
+343-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:17:21-62
+344
+345                <category android:name="android.intent.category.DEFAULT" />
+345-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:38:17-76
+345-->[com.google.firebase:firebase-auth:23.1.0] /Users/shivasai/.gradle/caches/9.3.0/transforms/012b27231640e38cf129e214a8d36c14/transformed/firebase-auth-23.1.0/AndroidManifest.xml:38:27-73
+346                <category android:name="android.intent.category.BROWSABLE" />
+346-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:13-74
+346-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:26:23-71
+347
+348                <data
+348-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:19:13-21:38
+349                    android:host="com.neerly.mobile"
+350                    android:scheme="razorpay" />
+350-->[com.razorpay:standard-core:1.7.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/f7a16ceb81d60bfc2993520add47567a/transformed/standard-core-1.7.18/AndroidManifest.xml:21:17-35
+351            </intent-filter>
+352        </activity>
+353
+354        <receiver
+354-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:41:9-43:40
+355            android:name="com.razorpay.UpiChooserSelectionReceiver"
+355-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:42:13-68
+356            android:exported="false" /> <!-- The activities will be merged into the manifest of the hosting app. -->
+356-->[com.razorpay:core:1.0.18] /Users/shivasai/.gradle/caches/9.3.0/transforms/881ff4bee933f85e08e7a4626a3de841/transformed/core-1.0.18/AndroidManifest.xml:43:13-37
+357        <activity
+357-->[com.google.android.play:core-common:2.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ec317dcad15ba76542479b1ca3a4cc65/transformed/core-common-2.0.3/AndroidManifest.xml:14:9-18:65
+358            android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"
+358-->[com.google.android.play:core-common:2.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ec317dcad15ba76542479b1ca3a4cc65/transformed/core-common-2.0.3/AndroidManifest.xml:15:13-93
+359            android:exported="false"
+359-->[com.google.android.play:core-common:2.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ec317dcad15ba76542479b1ca3a4cc65/transformed/core-common-2.0.3/AndroidManifest.xml:16:13-37
+360            android:stateNotNeeded="true"
+360-->[com.google.android.play:core-common:2.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ec317dcad15ba76542479b1ca3a4cc65/transformed/core-common-2.0.3/AndroidManifest.xml:17:13-42
+361            android:theme="@style/Theme.PlayCore.Transparent" />
+361-->[com.google.android.play:core-common:2.0.3] /Users/shivasai/.gradle/caches/9.3.0/transforms/ec317dcad15ba76542479b1ca3a4cc65/transformed/core-common-2.0.3/AndroidManifest.xml:18:13-62
+362    </application>
+363
+364</manifest>

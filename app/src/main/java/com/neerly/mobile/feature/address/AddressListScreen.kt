@@ -137,7 +137,7 @@ private fun AddressRow(
             }
             Spacer(Modifier.height(4.dp))
             Text(
-                "${addr.flatNo}, ${addr.streetArea}",
+                "${addr.flatNumber}, ${addr.street}",
                 fontSize = 14.sp, color = NeerlyColors.Ink800
             )
             Text(

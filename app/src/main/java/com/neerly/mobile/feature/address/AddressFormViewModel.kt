@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.dto.CreateAddressRequest
+import com.neerly.mobile.data.dto.UpdateAddressRequest
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,15 +52,15 @@ class AddressFormViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         loading = false,
                         label = row.label,
-                        flatNo = row.flatNo,
-                        buildingName = row.buildingName.orEmpty(),
-                        streetArea = row.streetArea,
+                        flatNumber = row.flatNumber,
+                        buildingName = row.buildingName,
+                        street = row.street,
                         landmark = row.landmark.orEmpty(),
                         city = row.city,
                         pincode = row.pincode,
-                        lat = row.lat, lng = row.lng,
+                        latitude = row.latitude, longitude = row.longitude,
                         deliveryInstructions = row.deliveryInstructions.orEmpty(),
-                        liftAvailable = row.liftAvailable,
+                        hasLift = row.hasLift,
                         floorNumber = row.floorNumber?.toString().orEmpty(),
                         securityContactName = row.securityContactName.orEmpty(),
                         securityContactPhone = row.securityContactPhone.orEmpty(),
@@ -82,8 +83,8 @@ class AddressFormViewModel @Inject constructor(
      */
     fun useCurrentLocation() {
         _state.value = _state.value.copy(
-            lat = HYDERABAD_LAT,
-            lng = HYDERABAD_LNG,
+            latitude = HYDERABAD_LAT,
+            longitude = HYDERABAD_LNG,
             locationCaptured = true
         )
     }
@@ -91,31 +92,55 @@ class AddressFormViewModel @Inject constructor(
     fun save(onDone: () -> Unit) {
         val s = _state.value
         if (!s.isValid()) {
-            _state.value = s.copy(error = "Fill flat, street, pincode, label")
+            _state.value = s.copy(error = "Fill label, flat, building, street, pincode")
             return
         }
         _state.value = s.copy(saving = true, error = null)
-        val req = CreateAddressRequest(
-            label = s.label.trim(),
-            flatNo = s.flatNo.trim(),
-            buildingName = s.buildingName.trim().ifBlank { null },
-            streetArea = s.streetArea.trim(),
-            landmark = s.landmark.trim().ifBlank { null },
-            city = s.city.trim().ifBlank { "Hyderabad" },
-            pincode = s.pincode.trim(),
-            lat = s.lat,
-            lng = s.lng,
-            deliveryInstructions = s.deliveryInstructions.trim().ifBlank { null },
-            liftAvailable = s.liftAvailable,
-            floorNumber = s.floorNumber.trim().toIntOrNull(),
-            securityContactName = s.securityContactName.trim().ifBlank { null },
-            securityContactPhone = s.securityContactPhone.trim().ifBlank { null },
-            setAsPrimary = s.setAsPrimary
-        )
         viewModelScope.launch {
             runCatching {
-                if (editingId != null) repo.updateAddress(editingId, req)
-                else repo.createAddress(req)
+                if (editingId != null) {
+                    repo.updateAddress(
+                        editingId,
+                        UpdateAddressRequest(
+                            label = s.label.trim(),
+                            flatNumber = s.flatNumber.trim(),
+                            buildingName = s.buildingName.trim(),
+                            street = s.street.trim(),
+                            landmark = s.landmark.trim().ifBlank { null },
+                            city = s.city.trim().ifBlank { "Hyderabad" },
+                            pincode = s.pincode.trim(),
+                            latitude = s.latitude,
+                            longitude = s.longitude,
+                            deliveryInstructions = s.deliveryInstructions.trim().ifBlank { null },
+                            floorNumber = s.floorNumber.trim().toIntOrNull(),
+                            hasLift = s.hasLift,
+                            securityContactName = s.securityContactName.trim().ifBlank { null },
+                            securityContactPhone = s.securityContactPhone.trim().ifBlank { null }
+                        )
+                    )
+                    // PATCH has no setAsPrimary field — primary flag flips via its own endpoint.
+                    if (s.setAsPrimary) repo.setPrimary(editingId)
+                } else {
+                    repo.createAddress(
+                        CreateAddressRequest(
+                            label = s.label.trim(),
+                            flatNumber = s.flatNumber.trim(),
+                            buildingName = s.buildingName.trim(),
+                            street = s.street.trim(),
+                            landmark = s.landmark.trim().ifBlank { null },
+                            city = s.city.trim().ifBlank { "Hyderabad" },
+                            pincode = s.pincode.trim(),
+                            latitude = s.latitude,
+                            longitude = s.longitude,
+                            deliveryInstructions = s.deliveryInstructions.trim().ifBlank { null },
+                            floorNumber = s.floorNumber.trim().toIntOrNull(),
+                            hasLift = s.hasLift,
+                            securityContactName = s.securityContactName.trim().ifBlank { null },
+                            securityContactPhone = s.securityContactPhone.trim().ifBlank { null },
+                            setAsPrimary = s.setAsPrimary
+                        )
+                    )
+                }
             }
                 .onSuccess {
                     _state.value = _state.value.copy(saving = false)
@@ -127,12 +152,12 @@ class AddressFormViewModel @Inject constructor(
         }
     }
 
-    private companion object {
-        // Hussain Sagar / Hyderabad city centre — sane fallback pin.
-        const val HYDERABAD_LAT = 17.4239
-        const val HYDERABAD_LNG = 78.4738
-    }
 }
+
+// Hussain Sagar / Hyderabad city centre — sane fallback pin that passes the
+// backend's India-bounds lat/lng validation until the Maps picker is wired.
+private const val HYDERABAD_LAT = 17.4239
+private const val HYDERABAD_LNG = 78.4738
 
 data class AddressFormUiState(
     val editing: Boolean = false,
@@ -142,16 +167,16 @@ data class AddressFormUiState(
     val locationCaptured: Boolean = false,
 
     val label: String = "Home",
-    val flatNo: String = "",
+    val flatNumber: String = "",
     val buildingName: String = "",
-    val streetArea: String = "",
+    val street: String = "",
     val landmark: String = "",
     val city: String = "Hyderabad",
     val pincode: String = "",
-    val lat: Double = 0.0,
-    val lng: Double = 0.0,
+    val latitude: Double = HYDERABAD_LAT,
+    val longitude: Double = HYDERABAD_LNG,
     val deliveryInstructions: String = "",
-    val liftAvailable: Boolean = true,
+    val hasLift: Boolean = false,
     val floorNumber: String = "",
     val securityContactName: String = "",
     val securityContactPhone: String = "",
@@ -159,7 +184,8 @@ data class AddressFormUiState(
 ) {
     fun isValid(): Boolean =
         label.isNotBlank() &&
-            flatNo.isNotBlank() &&
-            streetArea.isNotBlank() &&
+            flatNumber.isNotBlank() &&
+            buildingName.isNotBlank() &&
+            street.isNotBlank() &&
             pincode.matches(Regex("^[1-9]\\d{5}$"))
 }

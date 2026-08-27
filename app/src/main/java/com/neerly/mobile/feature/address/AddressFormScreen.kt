@@ -79,7 +79,7 @@ fun AddressFormScreen(
                     Text("📍", fontSize = 28.sp)
                     Text(
                         if (s.locationCaptured)
-                            "Pinned: %.4f, %.4f".format(s.lat, s.lng)
+                            "Pinned: %.4f, %.4f".format(s.latitude, s.longitude)
                         else "Tap to drop a pin (Maps SDK wires here)",
                         fontSize = 12.sp, color = NeerlyColors.Ink500
                     )
@@ -95,12 +95,12 @@ fun AddressFormScreen(
             Spacer(Modifier.height(NeerlySpacing.x4))
 
             LabeledField("Label (Home, Work, …)", s.label) { v -> vm.update { copy(label = v.take(40)) } }
-            LabeledField("Flat / House No.", s.flatNo) { v -> vm.update { copy(flatNo = v.take(50)) } }
+            LabeledField("Flat / House No.", s.flatNumber) { v -> vm.update { copy(flatNumber = v.take(50)) } }
             LabeledField("Building / Apartment name", s.buildingName) { v ->
                 vm.update { copy(buildingName = v.take(200)) }
             }
-            LabeledField("Street / Area", s.streetArea) { v ->
-                vm.update { copy(streetArea = v.take(200)) }
+            LabeledField("Street / Area", s.street) { v ->
+                vm.update { copy(street = v.take(200)) }
             }
             LabeledField("Landmark (optional)", s.landmark) { v ->
                 vm.update { copy(landmark = v.take(200)) }
@@ -125,8 +125,8 @@ fun AddressFormScreen(
             ) {
                 Text("Lift available", Modifier.weight(1f),
                     fontSize = 14.sp, color = NeerlyColors.Ink800)
-                Switch(checked = s.liftAvailable, onCheckedChange = { v ->
-                    vm.update { copy(liftAvailable = v) }
+                Switch(checked = s.hasLift, onCheckedChange = { v ->
+                    vm.update { copy(hasLift = v) }
                 })
             }
 

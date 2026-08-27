@@ -151,7 +151,7 @@ private fun AddressChip(addr: AddressResponse, selected: Boolean, onClick: () ->
             Column(Modifier.weight(1f)) {
                 Text(addr.label, fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                Text("${addr.flatNo}, ${addr.streetArea} · ${addr.pincode}",
+                Text("${addr.flatNumber}, ${addr.street} · ${addr.pincode}",
                     fontSize = 12.sp, color = NeerlyColors.Ink500)
             }
             if (selected) {

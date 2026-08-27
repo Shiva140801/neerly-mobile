@@ -46,9 +46,21 @@ class AuthRepository @Inject constructor(
             refreshToken = resp.refreshToken,
             accessExpiresAt = resp.accessExpiresAt,
             refreshExpiresAt = resp.refreshExpiresAt,
-            activeRole = resp.activeRole
+            activeRole = resp.activeRole,
+            grantedRoles = resp.grantedRoles
         )
         return resp
+    }
+
+    suspend fun switchRole(newRole: String) {
+        val resp = api.switchRole(com.neerly.mobile.data.dto.SwitchRoleRequest(newRole = newRole))
+        tokens.updateAfterSwitch(
+            accessToken = resp.accessToken,
+            accessExpiresAt = resp.accessExpiresAt,
+            activeRole = resp.activeRole,
+            grantedRoles = resp.grantedRoles
+        )
+        tokens.lastRolePreference = resp.activeRole
     }
 
     suspend fun logout() {
@@ -74,6 +86,8 @@ class AuthRepository @Inject constructor(
     }
 
     fun isLoggedIn(): Boolean = tokens.accessToken?.isNotBlank() == true
+    fun getGrantedRoles(): List<String> = tokens.grantedRoles
+    fun activeRole(): String? = tokens.activeRole
 
     // ---------- Dev OTP login (local-only backend; no Firebase) ----------
 
@@ -116,7 +130,8 @@ class AuthRepository @Inject constructor(
                 refreshToken = resp.refreshToken,
                 accessExpiresAt = resp.accessExpiresAt,
                 refreshExpiresAt = resp.refreshExpiresAt,
-                activeRole = resp.activeRole
+                activeRole = resp.activeRole,
+                grantedRoles = resp.grantedRoles
             )
         }.getOrNull()
     }
