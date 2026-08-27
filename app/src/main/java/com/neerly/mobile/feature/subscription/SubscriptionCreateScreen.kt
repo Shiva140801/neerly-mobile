@@ -163,8 +163,7 @@ private fun StepProduct(items: List<ProductResponse>, loading: Boolean, onPick: 
 
 @Composable
 private fun StepFrequency(s: SubscriptionCreateUiState, vm: SubscriptionCreateViewModel) {
-    // Values must be valid backend SubscriptionFrequency enum names.
-    val freqs = listOf("DAILY", "ALT_DAY", "WEEKLY", "BIWEEKLY", "CUSTOM")
+    val freqs = listOf("DAILY", "ALT_DAY", "TWICE_WEEK", "WEEKLY", "CUSTOM")
     val slots = listOf("6-8AM", "7-9AM", "8-10AM", "5-7PM", "7-9PM")
     val days = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 
@@ -224,7 +223,7 @@ private fun StepAddress(addresses: List<AddressResponse>, onPick: (AddressRespon
                                 color = NeerlyColors.CustomerDark)
                         }
                     }
-                    Text("${a.flatNumber}, ${a.street}", fontSize = 13.sp, color = NeerlyColors.Ink800)
+                    Text("${a.flatNo}, ${a.streetArea}", fontSize = 13.sp, color = NeerlyColors.Ink800)
                     Text("${a.city} · ${a.pincode}", fontSize = 12.sp, color = NeerlyColors.Ink500)
                 }
             }
@@ -259,7 +258,7 @@ private fun StepConfirm(
                 Text("• Per delivery: ₹${product?.price?.times(java.math.BigDecimal(s.quantity)) ?: "—"}",
                     fontSize = 13.sp, color = NeerlyColors.Ink800)
                 Spacer(Modifier.height(6.dp))
-                Text(addr?.let { "to ${it.label} · ${it.flatNumber}, ${it.street}" } ?: "—",
+                Text(addr?.let { "to ${it.label} · ${it.flatNo}, ${it.streetArea}" } ?: "—",
                     fontSize = 12.sp, color = NeerlyColors.Ink500)
             }
         }

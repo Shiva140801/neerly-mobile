@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,15 +27,11 @@ class VendorTodayViewModel @Inject constructor(
         _state.value = _state.value.copy(loading = true, error = null)
         viewModelScope.launch {
             runCatching {
-                // supervisorScope: a failed async child (e.g. summary) must surface
-                // via await() into runCatching, not cancel the whole scope.
-                supervisorScope {
-                    val summary = async { repo.today() }
-                    val pending = async { runCatching { repo.pendingOrders() }.getOrDefault(emptyList()) }
-                    val active = async { runCatching { repo.activeOrders() }.getOrDefault(emptyList()) }
-                    val completed = async { runCatching { repo.completedToday() }.getOrDefault(emptyList()) }
-                    Quartet(summary.await(), pending.await(), active.await(), completed.await())
-                }
+                val summary = async { repo.today() }
+                val pending = async { runCatching { repo.pendingOrders() }.getOrDefault(emptyList()) }
+                val active = async { runCatching { repo.activeOrders() }.getOrDefault(emptyList()) }
+                val completed = async { runCatching { repo.completedToday() }.getOrDefault(emptyList()) }
+                Quartet(summary.await(), pending.await(), active.await(), completed.await())
             }
                 .onSuccess {
                     _state.value = VendorTodayUiState(

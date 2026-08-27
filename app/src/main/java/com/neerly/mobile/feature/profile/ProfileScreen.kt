@@ -3,10 +3,8 @@ package com.neerly.mobile.feature.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,12 +37,6 @@ fun ProfileScreen(
     onSubscriptions: () -> Unit,
     onDeposits: () -> Unit,
     onNotifications: () -> Unit,
-    onNotificationPrefs: () -> Unit = {},
-    onVendorDashboard: () -> Unit = {},
-    onBecomeVendor: () -> Unit = {},
-    onDriverMode: () -> Unit = {},
-    onEventBooking: () -> Unit = {},
-    onSwitchRole: () -> Unit = {},
     onLogout: () -> Unit,
     vm: ProfileViewModel = hiltViewModel()
 ) {
@@ -64,10 +56,7 @@ fun ProfileScreen(
         }
     ) { padding ->
         Column(
-            Modifier.fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(NeerlySpacing.x4),
+            Modifier.fillMaxSize().padding(padding).padding(NeerlySpacing.x4),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Header
@@ -102,28 +91,13 @@ fun ProfileScreen(
                 }
             }
 
-            ProfileLink("My orders", onOrders)
-            ProfileLink("Wallet", onWallet)
-            ProfileLink("Subscriptions", onSubscriptions)
-            ProfileLink("Deposits & returns", onDeposits)
             ProfileLink("Addresses", onAddresses)
+            ProfileLink("Wallet", onWallet)
+            ProfileLink("Orders", onOrders)
+            ProfileLink("Subscriptions", onSubscriptions)
+            ProfileLink("Returns & Deposits", onDeposits)
             ProfileLink("Notifications", onNotifications)
-            ProfileLink("Notification preferences", onNotificationPrefs)
             LanguageRow(state.user?.preferredLanguage ?: "en", vm::updateLanguage)
-
-            SectionLabel("Business")
-            if (state.grantedRoles.size > 1) {
-                ProfileLink("Switch role", onSwitchRole)
-            }
-            if (state.grantedRoles.contains("VENDOR")) {
-                ProfileLink("Vendor dashboard", onVendorDashboard)
-            } else {
-                ProfileLink("Become a vendor", onBecomeVendor)
-            }
-            if (state.grantedRoles.contains("DRIVER")) {
-                ProfileLink("Driver mode", onDriverMode)
-            }
-            ProfileLink("Book for an event", onEventBooking)
 
             Spacer(Modifier.height(NeerlySpacing.x4))
 
@@ -157,17 +131,6 @@ fun ProfileScreen(
             dismissButton = { TextButton(onClick = { deleteOpen = false }) { Text("Cancel") } }
         )
     }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = NeerlyColors.Ink500,
-        modifier = Modifier.padding(top = NeerlySpacing.x2)
-    )
 }
 
 @Composable

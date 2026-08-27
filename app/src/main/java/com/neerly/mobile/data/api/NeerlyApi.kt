@@ -42,7 +42,6 @@ import com.neerly.mobile.data.dto.SubscriptionResponse
 import com.neerly.mobile.data.dto.SwitchRoleRequest
 import com.neerly.mobile.data.dto.SwitchRoleResponse
 import com.neerly.mobile.data.dto.TokenPair
-import com.neerly.mobile.data.dto.UpdateAddressRequest
 import com.neerly.mobile.data.dto.UpdateProfileRequest
 import com.neerly.mobile.data.dto.UserSummary
 import com.neerly.mobile.data.dto.VendorCardResponse
@@ -133,7 +132,7 @@ interface NeerlyApi {
     suspend fun createAddress(@Body body: CreateAddressRequest): AddressResponse
 
     @PATCH("api/v1/customer/addresses/{id}")
-    suspend fun updateAddress(@Path("id") id: String, @Body body: UpdateAddressRequest): AddressResponse
+    suspend fun updateAddress(@Path("id") id: String, @Body body: CreateAddressRequest): AddressResponse
 
     @POST("api/v1/customer/addresses/{id}/primary")
     suspend fun setPrimaryAddress(@Path("id") id: String): AddressResponse

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.neerly.mobile.feature.driver.DriverHomeViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-08-23T12:46:21.294Z" hostname="shivas-MacBook-Pro.local" time="0.025">
-  <properties/>
-  <testcase name="activeAssignment_onlyNonTerminalStates" classname="com.neerly.mobile.feature.driver.DriverHomeViewModelTest" time="0.022"/>
-  <testcase name="load_offDuty_emptyAssignments" classname="com.neerly.mobile.feature.driver.DriverHomeViewModelTest" time="0.001"/>
-  <testcase name="load_onDuty_pullsAssignments" classname="com.neerly.mobile.feature.driver.DriverHomeViewModelTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

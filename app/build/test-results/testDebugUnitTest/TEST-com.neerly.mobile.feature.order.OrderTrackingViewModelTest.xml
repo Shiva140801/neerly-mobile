@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.neerly.mobile.feature.order.OrderTrackingViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-08-23T12:46:21.324Z" hostname="shivas-MacBook-Pro.local" time="19.702">
-  <properties/>
-  <testcase name="terminal_DELIVERED_stopsPolling" classname="com.neerly.mobile.feature.order.OrderTrackingViewModelTest" time="0.002"/>
-  <testcase name="init_fetchFailure_setsError" classname="com.neerly.mobile.feature.order.OrderTrackingViewModelTest" time="0.001"/>
-  <testcase name="init_firstFetch_populatesOrder" classname="com.neerly.mobile.feature.order.OrderTrackingViewModelTest" time="19.699"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

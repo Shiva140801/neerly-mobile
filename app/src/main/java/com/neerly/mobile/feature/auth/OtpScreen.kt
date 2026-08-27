@@ -24,7 +24,7 @@ import com.neerly.mobile.core.design.NeerlySpacing
 @Composable
 fun OtpScreen(
     phone: String,
-    onVerified: (isNew: Boolean, roles: List<String>) -> Unit,
+    onVerified: () -> Unit,
     vm: AuthViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     var code by remember { mutableStateOf("") }

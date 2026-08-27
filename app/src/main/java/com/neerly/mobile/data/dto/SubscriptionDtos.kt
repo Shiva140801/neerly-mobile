@@ -29,25 +29,17 @@ data class SubscriptionResponse(
     val createdAt: String
 )
 
-/**
- * Mirrors backend `CreateSubscriptionRequest` exactly. Slots are HH:mm local
- * times, dates are yyyy-MM-dd, frequency ∈ DAILY|ALT_DAY|WEEKLY|BIWEEKLY|MONTHLY|CUSTOM.
- */
 @JsonClass(generateAdapter = true)
 data class CreateSubscriptionRequest(
     val vendorId: String,
-    val addressId: String,
     val productId: String,
-    val quantityPerDelivery: Int,
-    val containerMode: String = "KEEP",    // KEEP | TRANSFER_AND_RETURN
     val frequency: String,
     val daysOfWeek: List<String> = emptyList(),
-    val slotStart: String,                 // e.g. "07:00"
-    val slotEnd: String,                   // e.g. "09:00"
-    val startDate: String,                 // yyyy-MM-dd
-    val endDate: String? = null,
+    val quantity: Int,
+    val deliverySlot: String,
+    val addressId: String,
     val paymentMethod: String,             // UPI_AUTOPAY / WALLET
-    val mandateMaxAmount: BigDecimal       // customer-approved per-charge cap
+    val mandateMaxAmount: BigDecimal? = null
 )
 
 @JsonClass(generateAdapter = true)

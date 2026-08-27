@@ -22,7 +22,6 @@ import com.neerly.mobile.core.design.NeerlySpacing
 @Composable
 fun PhoneScreen(
     onOtpSent: (phone: String) -> Unit,
-    role: String = "CUSTOMER",
     vm: AuthViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     var phone by remember { mutableStateOf("") }
@@ -83,7 +82,7 @@ fun PhoneScreen(
         }
 
         Button(
-            onClick = { vm.sendOtp(phone, role) { phoneE164, _ -> onOtpSent(phoneE164) } },
+            onClick = { vm.sendOtp(phone) { phoneE164, _ -> onOtpSent(phoneE164) } },
             enabled = valid && !state.sending,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),

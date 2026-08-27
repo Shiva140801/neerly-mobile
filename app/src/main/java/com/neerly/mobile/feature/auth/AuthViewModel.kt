@@ -26,15 +26,15 @@ class AuthViewModel @Inject constructor(
     private val _state = MutableStateFlow(AuthUiState())
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
 
-    fun sendOtp(phone10digits: String, role: String = "CUSTOMER", onSent: (phoneE164: String, hint: String) -> Unit) {
+    fun sendOtp(phone10digits: String, onSent: (phoneE164: String, hint: String) -> Unit) {
         if (!phone10digits.matches(Regex("^[6-9]\\d{9}$"))) {
             _state.value = _state.value.copy(error = "Enter a valid 10-digit number starting 6-9")
             return
         }
         val phone = "+91$phone10digits"
-        _state.value = _state.value.copy(sending = true, error = null, roleIntent = role)
+        _state.value = _state.value.copy(sending = true, error = null)
         viewModelScope.launch {
-            val resp = repo.sendDevOtp(phone, role = role)
+            val resp = repo.sendDevOtp(phone, role = "CUSTOMER")
             if (resp != null) {
                 _state.value = _state.value.copy(sending = false, hint = resp.hint)
                 onSent(phone, resp.hint)
@@ -48,19 +48,17 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun verifyOtp(phoneE164: String, otp: String, onSuccess: (isNewUser: Boolean, roles: List<String>) -> Unit) {
+    fun verifyOtp(phoneE164: String, otp: String, onSuccess: () -> Unit) {
         if (otp.length != 6 || !otp.all(Char::isDigit)) {
             _state.value = _state.value.copy(error = "OTP must be 6 digits")
             return
         }
-        val role = _state.value.roleIntent ?: "CUSTOMER"
         _state.value = _state.value.copy(verifying = true, error = null)
         viewModelScope.launch {
-            val resp = repo.verifyDevOtp(phoneE164, otp, role = role)
+            val resp = repo.verifyDevOtp(phoneE164, otp, role = "CUSTOMER")
             if (resp != null) {
-                val roles = resp.grantedRoles
                 _state.value = AuthUiState()
-                onSuccess(resp.isNewUser, roles)
+                onSuccess()
             } else {
                 _state.value = _state.value.copy(
                     verifying = false,
@@ -71,18 +69,6 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun switchRole(newRole: String, onDone: () -> Unit) {
-        _state.value = _state.value.copy(verifying = true)
-        viewModelScope.launch {
-            runCatching { repo.switchRole(newRole) }
-                .onSuccess {
-                    _state.value = _state.value.copy(verifying = false)
-                    onDone()
-                }
-                .onFailure { _state.value = _state.value.copy(verifying = false, error = it.message) }
-        }
-    }
-
     fun clearError() { _state.value = _state.value.copy(error = null) }
 }
 
@@ -90,6 +76,5 @@ data class AuthUiState(
     val sending: Boolean = false,
     val verifying: Boolean = false,
     val hint: String? = null,
-    val error: String? = null,
-    val roleIntent: String? = null
+    val error: String? = null
 )
