@@ -1,0 +1,4 @@
+#Sun Aug 23 18:18:28 IST 2026
+base.0=/Users/shivasai/Documents/water/neerly-mobile/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

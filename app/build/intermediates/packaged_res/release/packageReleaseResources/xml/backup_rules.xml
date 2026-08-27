@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep backups minimal. Tokens are NOT included — they're in EncryptedSharedPreferences. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="neerly_secure_prefs.xml"/>
+    <exclude domain="sharedpref" path="neerly_secure_prefs"/>
+</full-backup-content>

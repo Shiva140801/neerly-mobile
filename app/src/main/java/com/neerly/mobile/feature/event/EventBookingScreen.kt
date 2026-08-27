@@ -279,7 +279,7 @@ private fun StepAddress(addresses: List<AddressResponse>, onPick: (AddressRespon
                 Column(Modifier.padding(NeerlySpacing.x4)) {
                     Text(a.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                         color = NeerlyColors.Ink900)
-                    Text("${a.flatNo}, ${a.streetArea}", fontSize = 12.sp, color = NeerlyColors.Ink800)
+                    Text("${a.flatNumber}, ${a.street}", fontSize = 12.sp, color = NeerlyColors.Ink800)
                     Text("${a.city} · ${a.pincode}", fontSize = 11.sp, color = NeerlyColors.Ink500)
                 }
             }
@@ -324,7 +324,7 @@ private fun StepReview(
                         fontSize = 12.sp, color = NeerlyColors.Ink700)
                 }
                 Spacer(Modifier.height(6.dp))
-                Text("To: ${s.selectedAddress?.label} · ${s.selectedAddress?.flatNo}, ${s.selectedAddress?.streetArea}",
+                Text("To: ${s.selectedAddress?.label} · ${s.selectedAddress?.flatNumber}, ${s.selectedAddress?.street}",
                     fontSize = 12.sp, color = NeerlyColors.Ink500)
                 if (s.customerNotes.isNotBlank()) {
                     Text("Notes: ${s.customerNotes}", fontSize = 12.sp, color = NeerlyColors.Ink500)

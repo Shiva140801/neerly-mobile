@@ -40,7 +40,8 @@ class TokenStore @Inject constructor(
         refreshToken: String,
         accessExpiresAt: String,
         refreshExpiresAt: String,
-        activeRole: String
+        activeRole: String,
+        grantedRoles: List<String> = emptyList()
     ) {
         prefs.edit().apply {
             putString(KEY_ACCESS, accessToken)
@@ -48,6 +49,7 @@ class TokenStore @Inject constructor(
             putString(KEY_ACCESS_EXP, accessExpiresAt)
             putString(KEY_REFRESH_EXP, refreshExpiresAt)
             putString(KEY_ACTIVE_ROLE, activeRole)
+            putStringSet(KEY_GRANTED_ROLES, grantedRoles.toSet())
             apply()
         }
     }
@@ -63,9 +65,29 @@ class TokenStore @Inject constructor(
         }
     }
 
+    fun updateAfterSwitch(
+        accessToken: String,
+        accessExpiresAt: String,
+        activeRole: String,
+        grantedRoles: List<String>
+    ) {
+        prefs.edit().apply {
+            putString(KEY_ACCESS, accessToken)
+            putString(KEY_ACCESS_EXP, accessExpiresAt)
+            putString(KEY_ACTIVE_ROLE, activeRole)
+            putStringSet(KEY_GRANTED_ROLES, grantedRoles.toSet())
+            apply()
+        }
+    }
+
     val accessToken: String? get() = prefs.getString(KEY_ACCESS, null)
     val refreshToken: String? get() = prefs.getString(KEY_REFRESH, null)
     val activeRole: String? get() = prefs.getString(KEY_ACTIVE_ROLE, null)
+    val grantedRoles: List<String> get() = prefs.getStringSet(KEY_GRANTED_ROLES, null)?.toList() ?: emptyList()
+
+    var lastRolePreference: String?
+        get() = prefs.getString(KEY_ROLE_PREF, null)
+        set(value) = prefs.edit().putString(KEY_ROLE_PREF, value).apply()
 
     fun accessExpiresAt(): Instant? = prefs.getString(KEY_ACCESS_EXP, null)
         ?.let { runCatching { Instant.parse(it) }.getOrNull() }
@@ -81,8 +103,23 @@ class TokenStore @Inject constructor(
         return nowSupplier().isBefore(exp.minusSeconds(30))
     }
 
+    /**
+     * True when a refresh token is stored — enough to attempt a silent session
+     * restore on cold start (the Authenticator rotates the pair on first 401).
+     */
+    fun hasSession(): Boolean = !refreshToken.isNullOrBlank()
+
     fun clear() {
-        prefs.edit().clear().apply()
+        prefs.edit().apply {
+            remove(KEY_ACCESS)
+            remove(KEY_REFRESH)
+            remove(KEY_ACCESS_EXP)
+            remove(KEY_REFRESH_EXP)
+            remove(KEY_ACTIVE_ROLE)
+            remove(KEY_GRANTED_ROLES)
+            // Note: we keep KEY_ROLE_PREF and KEY_DEVICE_ID
+            apply()
+        }
     }
 
     /**
@@ -104,6 +141,8 @@ class TokenStore @Inject constructor(
         const val KEY_ACCESS_EXP = "accessExpiresAt"
         const val KEY_REFRESH_EXP = "refreshExpiresAt"
         const val KEY_ACTIVE_ROLE = "activeRole"
+        const val KEY_GRANTED_ROLES = "grantedRoles"
+        const val KEY_ROLE_PREF = "rolePreference"
         const val KEY_DEVICE_ID = "deviceId"
     }
 }

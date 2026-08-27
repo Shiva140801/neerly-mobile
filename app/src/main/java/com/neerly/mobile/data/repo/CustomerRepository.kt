@@ -19,6 +19,7 @@ import com.neerly.mobile.data.dto.ReturnRequest
 import com.neerly.mobile.data.dto.ReturnResponse
 import com.neerly.mobile.data.dto.SkipSubscriptionRequest
 import com.neerly.mobile.data.dto.SubscriptionResponse
+import com.neerly.mobile.data.dto.UpdateAddressRequest
 import com.neerly.mobile.data.dto.UpdateProfileRequest
 import com.neerly.mobile.data.dto.UserSummary
 import com.neerly.mobile.data.dto.VendorCardResponse
@@ -40,7 +41,7 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     // Addresses
     suspend fun addresses(): List<AddressResponse> = api.addresses()
     suspend fun createAddress(req: CreateAddressRequest): AddressResponse = api.createAddress(req)
-    suspend fun updateAddress(id: String, req: CreateAddressRequest): AddressResponse = api.updateAddress(id, req)
+    suspend fun updateAddress(id: String, req: UpdateAddressRequest): AddressResponse = api.updateAddress(id, req)
     suspend fun setPrimary(id: String): AddressResponse = api.setPrimaryAddress(id)
     suspend fun deleteAddress(id: String) = api.deleteAddress(id)
 

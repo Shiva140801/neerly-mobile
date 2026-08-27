@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.neerly.mobile.core.design.NeerlyTheme
 import com.neerly.mobile.core.design.Role
+import com.neerly.mobile.data.auth.TokenStore
 import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.navigation.NeerlyNavHost
 import com.razorpay.PaymentResultListener
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity(), PaymentResultListener {
 
     @Inject lateinit var cartStore: CartStore
+    @Inject lateinit var tokenStore: TokenStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +31,7 @@ class MainActivity : ComponentActivity(), PaymentResultListener {
             NeerlyTheme(role = Role.CUSTOMER) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    NeerlyNavHost(navController, cartStore)
+                    NeerlyNavHost(navController, cartStore, tokenStore)
                 }
             }
         }

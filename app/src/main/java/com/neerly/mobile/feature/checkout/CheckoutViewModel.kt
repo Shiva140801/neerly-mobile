@@ -98,11 +98,14 @@ class CheckoutViewModel @Inject constructor(
                             OrderItemRequest(
                                 productId = it.productId,
                                 quantity = it.quantity,
-                                keepContainer = it.keepContainer
+                                containerMode = if (it.keepContainer) "KEEP" else "TRANSFER_AND_RETURN"
                             )
                         },
+                        orderType = "ON_DEMAND",
+                        paymentMethod = s.paymentMethod,
                         promoCode = snap.promoCode,
-                        slotRequested = s.slot
+                        // "NOW" means on-demand — no requested slot; anything else is an ISO instant.
+                        requestedSlotStart = s.slot.takeUnless { it == "NOW" }
                     )
                 )
             }

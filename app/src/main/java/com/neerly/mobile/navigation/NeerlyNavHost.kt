@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.neerly.mobile.data.auth.TokenStore
 import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.feature.address.AddressFormScreen
 import com.neerly.mobile.feature.address.AddressListScreen
@@ -56,10 +57,12 @@ object Routes {
     const val Splash = "splash"
     const val Welcome = "welcome"
     const val Phone = "phone"
-    const val Otp = "otp/{phone}"
+    const val Otp = "otp/{phone}/{role}"
     const val Name = "name"
     const val Language = "language"
     const val Address = "address"
+    const val RolePicker = "auth/role-picker"
+    const val AdminTotp = "auth/admin-totp"
     const val CustomerHome = "customer/home"
     const val VendorDetail = "customer/vendor/{vendorId}"
     const val VendorOnboarding = "vendor/onboarding"
@@ -111,7 +114,7 @@ object Routes {
 
     fun vendorOrderDetail(id: String) = "vendor/order/$id"
 
-    fun otp(phone: String): String = "otp/$phone"
+    fun otp(phone: String, role: String): String = "otp/$phone/$role"
     fun vendorDetail(vendorId: String): String = "customer/vendor/$vendorId"
     fun reviewSubmit(orderId: String, vendorName: String): String =
         "customer/review/$orderId/${vendorName.replace("/", "-")}"
@@ -124,20 +127,84 @@ object Routes {
 }
 
 @Composable
-fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
+fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: TokenStore) {
     NavHost(navController = nav, startDestination = Routes.Splash) {
         composable(Routes.Splash) {
-            SplashScreen(onDone = { nav.navigate(Routes.Welcome) { popUpTo(Routes.Splash) { inclusive = true } } })
+            SplashScreen(onDone = {
+                if (tokenStore.hasSession()) {
+                    val roles = tokenStore.grantedRoles
+                    val pref = tokenStore.lastRolePreference
+                    val target = when {
+                        pref != null -> when (pref) {
+                            "VENDOR" -> Routes.VendorToday
+                            "DRIVER" -> Routes.DriverHome
+                            else -> Routes.CustomerHome
+                        }
+                        roles.size > 1 -> Routes.RolePicker
+                        roles.contains("VENDOR") -> Routes.VendorToday
+                        roles.contains("DRIVER") -> Routes.DriverHome
+                        else -> Routes.CustomerHome
+                    }
+                    nav.navigate(target) { popUpTo(Routes.Splash) { inclusive = true } }
+                } else {
+                    nav.navigate(Routes.Welcome) { popUpTo(Routes.Splash) { inclusive = true } }
+                }
+            })
         }
         composable(Routes.Welcome) {
-            WelcomeScreen(onGetStarted = { nav.navigate(Routes.Phone) })
+            WelcomeScreen(
+                onGetStarted = { nav.navigate(Routes.Phone + "?role=CUSTOMER") },
+                onVendorRegister = { nav.navigate(Routes.Phone + "?role=VENDOR") }
+            )
         }
-        composable(Routes.Phone) {
-            PhoneScreen(onOtpSent = { phone -> nav.navigate(Routes.otp(phone)) })
+        composable(
+            Routes.Phone + "?role={role}",
+            arguments = listOf(androidx.navigation.navArgument("role") { defaultValue = "CUSTOMER" })
+        ) { entry ->
+            val role = entry.arguments?.getString("role") ?: "CUSTOMER"
+            PhoneScreen(onOtpSent = { phone -> nav.navigate(Routes.otp(phone, role)) })
         }
         composable(Routes.Otp) { entry ->
             val phone = entry.arguments?.getString("phone").orEmpty()
-            OtpScreen(phone = phone, onVerified = { nav.navigate(Routes.Name) })
+            val role = entry.arguments?.getString("role") ?: "CUSTOMER"
+            OtpScreen(phone = phone, onVerified = { isNew: Boolean, roles: List<String> ->
+                if (isNew) {
+                    nav.navigate(Routes.Name)
+                } else {
+                    val target = when {
+                        roles.size > 1 -> Routes.RolePicker
+                        roles.contains("VENDOR") -> Routes.VendorToday
+                        roles.contains("DRIVER") -> Routes.DriverHome
+                        else -> Routes.CustomerHome
+                    }
+                    nav.navigate(target) { popUpTo(Routes.Welcome) { inclusive = true } }
+                }
+            })
+        }
+        composable(Routes.RolePicker) {
+            com.neerly.mobile.feature.auth.RolePickerScreen(
+                grantedRoles = tokenStore.grantedRoles,
+                onRoleSelected = { role: String, remember: Boolean ->
+                    if (remember) tokenStore.lastRolePreference = role
+                    val target = when (role) {
+                        "VENDOR" -> Routes.VendorToday
+                        "DRIVER" -> Routes.DriverHome
+                        "ADMIN" -> Routes.AdminTotp
+                        else -> Routes.CustomerHome
+                    }
+                    nav.navigate(target) { popUpTo(Routes.RolePicker) { inclusive = true } }
+                }
+            )
+        }
+        composable(Routes.AdminTotp) {
+            com.neerly.mobile.feature.auth.AdminTotpScreen(
+                onVerified = {
+                    nav.navigate(Routes.CustomerHome) { // Placeholder for Admin Dashboard
+                        popUpTo(Routes.RolePicker) { inclusive = true }
+                    }
+                },
+                onBack = { nav.popBackStack() }
+            )
         }
         composable(Routes.Name) { NameScreen(onContinue = { nav.navigate(Routes.Language) }) }
         composable(Routes.Language) { LanguageScreen(onPicked = { nav.navigate(Routes.Address) }) }
@@ -149,7 +216,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
         composable(Routes.CustomerHome) {
             CustomerHomeScreen(
                 onVendorClick = { id -> nav.navigate(Routes.vendorDetail(id)) },
-                onOrderClick = { id -> nav.navigate(Routes.orderTracking(id)) }
+                onOrderClick = { id -> nav.navigate(Routes.orderTracking(id)) },
+                onOpenProfile = { nav.navigate(Routes.Profile) }
             )
         }
         composable(Routes.VendorDetail) { entry ->
@@ -320,6 +388,12 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore) {
                 onSubscriptions = { nav.navigate(Routes.Subscriptions) },
                 onDeposits = { nav.navigate(Routes.Deposits) },
                 onNotifications = { nav.navigate(Routes.NotificationFeed) },
+                onNotificationPrefs = { nav.navigate(Routes.NotificationPrefs) },
+                onVendorDashboard = { nav.navigate(Routes.VendorToday) },
+                onBecomeVendor = { nav.navigate(Routes.VendorOnboarding) },
+                onDriverMode = { nav.navigate(Routes.DriverHome) },
+                onEventBooking = { nav.navigate(Routes.EventBookingNew) },
+                onSwitchRole = { nav.navigate(Routes.RolePicker) },
                 onLogout = { nav.navigate(Routes.Welcome) { popUpTo(Routes.CustomerHome) { inclusive = true } } }
             )
         }
