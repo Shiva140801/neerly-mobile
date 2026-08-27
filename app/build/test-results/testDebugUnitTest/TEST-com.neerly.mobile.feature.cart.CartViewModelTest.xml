@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.neerly.mobile.feature.cart.CartViewModelTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-08-23T12:46:21.089Z" hostname="shivas-MacBook-Pro.local" time="0.082">
+  <properties/>
+  <testcase name="removeLine_clearsPromo" classname="com.neerly.mobile.feature.cart.CartViewModelTest" time="0.043"/>
+  <testcase name="removePromo_clearsDiscount" classname="com.neerly.mobile.feature.cart.CartViewModelTest" time="0.001"/>
+  <testcase name="updateQuantity_delegatesToStore" classname="com.neerly.mobile.feature.cart.CartViewModelTest" time="0.0"/>
+  <testcase name="quotePromo_ineligible_surfacesReasonAndClearsPromo" classname="com.neerly.mobile.feature.cart.CartViewModelTest" time="0.036"/>
+  <testcase name="quotePromo_emptyCart_rejectsImmediately" classname="com.neerly.mobile.feature.cart.CartViewModelTest" time="0.001"/>
+  <testcase name="quotePromo_eligible_applies" classname="com.neerly.mobile.feature.cart.CartViewModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

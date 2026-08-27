@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-08-23T12:46:21.172Z" hostname="shivas-MacBook-Pro.local" time="0.055">
+  <properties/>
+  <testcase name="initiatePayment_cod_clearsCart" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.03"/>
+  <testcase name="placeOrder_noAddress_surfacesError" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.002"/>
+  <testcase name="placeOrder_emptyCart_surfacesError" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.001"/>
+  <testcase name="placeOrder_apiFailure_surfacesMessage" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.015"/>
+  <testcase name="placeOrder_happyPath_invokesCallbackWithOrder" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.002"/>
+  <testcase name="onPaymentCaptured_clearsCartAndMarksCaptured" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.001"/>
+  <testcase name="initiatePayment_upi_keepsCartUntilSuccessCallback" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.003"/>
+  <testcase name="init_loadsAddresses_selectsPrimary" classname="com.neerly.mobile.feature.checkout.CheckoutViewModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

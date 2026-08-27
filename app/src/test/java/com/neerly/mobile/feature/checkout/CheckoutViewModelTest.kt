@@ -35,12 +35,12 @@ class CheckoutViewModelTest {
     private lateinit var cart: CartStore
 
     private val primary = AddressResponse(
-        id = "a1", label = "Home", flatNo = "301", buildingName = "Tulip",
-        streetArea = "Madhapur", landmark = null, city = "Hyderabad",
-        pincode = "500081", lat = 17.44, lng = 78.39,
-        deliveryInstructions = null, liftAvailable = true, floorNumber = 3,
+        id = "a1", label = "Home", flatNumber = "301", buildingName = "Tulip",
+        street = "Madhapur", landmark = null, city = "Hyderabad",
+        pincode = "500081", latitude = 17.44, longitude = 78.39,
+        deliveryInstructions = null, hasLift = true, floorNumber = 3,
         securityContactName = null, securityContactPhone = null,
-        isPrimary = true, createdAt = "2026-04-25T10:00:00Z"
+        isPrimary = true, isServiceable = true
     )
 
     private val sampleOrder = OrderResponse(

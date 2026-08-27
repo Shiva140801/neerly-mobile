@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -108,18 +109,24 @@ class SubscriptionCreateViewModel @Inject constructor(
             return
         }
         _state.value = s.copy(submitting = true, error = null)
-        val mandateMax: BigDecimal? = if (s.paymentMode == "UPI_AUTOPAY") {
-            // Cap mandate at 30× monthly bill heuristic — covers daily + price hike headroom.
+        // Cap mandate at 30× monthly bill heuristic — covers daily + price hike headroom.
+        // Backend requires the cap for every payment method, so we always send it.
+        val mandateMax: BigDecimal =
             (product.price * BigDecimal(s.quantity) * BigDecimal(45)).setScale(2, RoundingMode.HALF_UP)
-        } else null
+        val (slotStart, slotEnd) = slotWindow(s.slot)
         val req = CreateSubscriptionRequest(
             vendorId = vendor.id,
+            addressId = address.id,
             productId = product.id,
+            quantityPerDelivery = s.quantity,
+            // No container toggle in the wizard yet: keep the container when the
+            // product allows it, otherwise swap-and-return.
+            containerMode = if (product.allowKeepContainer) "KEEP" else "TRANSFER_AND_RETURN",
             frequency = s.frequency,
             daysOfWeek = s.daysOfWeek,
-            quantity = s.quantity,
-            deliverySlot = s.slot,
-            addressId = address.id,
+            slotStart = slotStart,
+            slotEnd = slotEnd,
+            startDate = LocalDate.now().plusDays(1).toString(),  // first delivery tomorrow
             paymentMethod = s.paymentMode,
             mandateMaxAmount = mandateMax
         )
@@ -138,6 +145,19 @@ class SubscriptionCreateViewModel @Inject constructor(
     fun back() {
         val s = _state.value
         if (s.step > 0) _state.value = s.copy(step = s.step - 1)
+    }
+
+    /**
+     * Maps the UI slot chip label to the backend's `slotStart`/`slotEnd`
+     * HH:mm pair (backend expects LocalTime strings).
+     */
+    private fun slotWindow(slot: String): Pair<String, String> = when (slot) {
+        "6-8AM" -> "06:00" to "08:00"
+        "7-9AM" -> "07:00" to "09:00"
+        "8-10AM" -> "08:00" to "10:00"
+        "5-7PM" -> "17:00" to "19:00"
+        "7-9PM" -> "19:00" to "21:00"
+        else -> "07:00" to "09:00"
     }
 }
 
