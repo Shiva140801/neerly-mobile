@@ -16,3 +16,6 @@ app/debug/
 app/release/
 app/.cxx/
 *.hprof
+.artifacts/
+.kotlin/
+gradle/gradle-daemon-jvm.properties

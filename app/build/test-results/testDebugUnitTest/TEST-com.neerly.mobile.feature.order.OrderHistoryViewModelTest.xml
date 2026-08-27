@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.neerly.mobile.feature.order.OrderHistoryViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-08-23T12:46:21.319Z" hostname="shivas-MacBook-Pro.local" time="0.005">
-  <properties/>
-  <testcase name="load_failure_setsErrorMessage" classname="com.neerly.mobile.feature.order.OrderHistoryViewModelTest" time="0.002"/>
-  <testcase name="load_success_populatesOrders" classname="com.neerly.mobile.feature.order.OrderHistoryViewModelTest" time="0.001"/>
-  <testcase name="load_manualRefresh_fetchesAgain" classname="com.neerly.mobile.feature.order.OrderHistoryViewModelTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
