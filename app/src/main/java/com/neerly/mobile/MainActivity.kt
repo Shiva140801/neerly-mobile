@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,10 +27,16 @@ class MainActivity : ComponentActivity(), PaymentResultListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The app draws edge-to-edge, so *something* has to inset the content or
+        // it renders under the clock and the gesture bar. Doing it once here —
+        // rather than per screen — fixes every destination at the root, and
+        // Material3 `Scaffold`/`TopAppBar` below subtract what we consume here,
+        // so nothing double-pads. IME insets are deliberately left unconsumed
+        // for `Modifier.imePadding()` on the screens that take text input.
         enableEdgeToEdge()
         setContent {
             NeerlyTheme(role = Role.CUSTOMER) {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
                     val navController = rememberNavController()
                     NeerlyNavHost(navController, cartStore, tokenStore)
                 }

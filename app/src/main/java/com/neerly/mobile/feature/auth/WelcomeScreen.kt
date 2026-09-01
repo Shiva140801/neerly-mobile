@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.neerly.mobile.core.design.AuthPageScaffold
 import com.neerly.mobile.core.design.InstrumentSerif
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
@@ -30,12 +31,7 @@ fun WelcomeScreen(
     onGetStarted: () -> Unit,
     onVendorRegister: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NeerlyColors.Paper)
-            .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x6)
-    ) {
+    AuthPageScaffold(verticalPadding = NeerlySpacing.x6) {
         // Language chip
         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
             Surface(

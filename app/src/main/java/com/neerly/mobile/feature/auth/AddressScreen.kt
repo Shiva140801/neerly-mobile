@@ -16,23 +16,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.feature.address.AddressFormViewModel
 
 /**
  * S-CUST-REG-07A First address.
  * Real Google Maps Compose panel is added once maps key is wired;
  * placeholder shows the map region.
+ *
+ * Shares [AddressFormViewModel] with the Profile → Addresses → Add form, so
+ * onboarding POSTs `/customer/addresses` through exactly the same path that is
+ * already proven to return 201. [onSaved] only fires once the POST succeeds —
+ * navigating optimistically used to drop the address on the floor and leave the
+ * customer unable to order.
  */
 @Composable
-fun AddressScreen(onSaved: () -> Unit) {
-    var flat by remember { mutableStateOf("") }
-    var building by remember { mutableStateOf("") }
-    var street by remember { mutableStateOf("") }
-    var landmark by remember { mutableStateOf("") }
-    var pincode by remember { mutableStateOf("") }
-    val valid = flat.isNotBlank() && building.isNotBlank() && pincode.matches(Regex("^[1-9]\\d{5}\$"))
+fun AddressScreen(
+    onSaved: () -> Unit,
+    vm: AddressFormViewModel = hiltViewModel()
+) {
+    val s by vm.state.collectAsState()
+    val valid = s.isValid()
 
     Column(
         modifier = Modifier
@@ -60,23 +67,43 @@ fun AddressScreen(onSaved: () -> Unit) {
 
         Spacer(Modifier.height(NeerlySpacing.x4))
 
-        FormField("Flat / House No.", flat, onChange = { flat = it.take(50) })
-        FormField("Building / Apartment name", building, onChange = { building = it.take(200) })
-        FormField("Street / Area", street, onChange = { street = it.take(200) })
-        FormField("Landmark (optional)", landmark, onChange = { landmark = it.take(200) })
-        FormField("Pincode", pincode, onChange = { pincode = it.take(6).filter(Char::isDigit) },
+        FormField("Flat / House No.", s.flatNumber,
+            onChange = { v -> vm.update { copy(flatNumber = v.take(50)) } })
+        FormField("Building / Apartment name", s.buildingName,
+            onChange = { v -> vm.update { copy(buildingName = v.take(200)) } })
+        FormField("Street / Area", s.street,
+            onChange = { v -> vm.update { copy(street = v.take(200)) } })
+        FormField("Landmark (optional)", s.landmark,
+            onChange = { v -> vm.update { copy(landmark = v.take(200)) } })
+        FormField("Pincode", s.pincode,
+            onChange = { v -> vm.update { copy(pincode = v.take(6).filter(Char::isDigit)) } },
             keyboardType = KeyboardType.Number)
+
+        if (s.error != null) {
+            Text(
+                s.error!!,
+                fontSize = 13.sp,
+                color = NeerlyColors.Err,
+                modifier = Modifier.padding(bottom = NeerlySpacing.x2)
+            )
+        }
 
         Spacer(Modifier.height(NeerlySpacing.x5))
 
         Button(
-            onClick = onSaved,
-            enabled = valid,
+            onClick = { vm.save(onSaved) },
+            enabled = valid && !s.saving,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
-            colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = NeerlyColors.CustomerPrimary,
+                disabledContainerColor = NeerlyColors.CustomerPrimary.copy(alpha = 0.45f)
+            )
         ) {
-            Text("Save address", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (s.saving) "Saving…" else "Save address",
+                fontSize = 15.sp, fontWeight = FontWeight.SemiBold
+            )
         }
 
         Spacer(Modifier.height(NeerlySpacing.x5))

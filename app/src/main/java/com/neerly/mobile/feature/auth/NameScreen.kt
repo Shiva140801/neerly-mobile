@@ -1,6 +1,5 @@
 package com.neerly.mobile.feature.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -9,22 +8,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.neerly.mobile.core.design.AuthPageScaffold
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
 
-/** S-CUST-REG-04 Name entry */
+/**
+ * S-CUST-REG-04 Name entry.
+ *
+ * The typed name is PATCHed to `/customer/profile` before we move on, so the
+ * account stops being called "User" — sign-up creates it with that placeholder
+ * because the name is only asked for after OTP verification.
+ */
 @Composable
-fun NameScreen(onContinue: (String) -> Unit) {
+fun NameScreen(
+    onContinue: (String) -> Unit,
+    vm: AuthViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+) {
     var name by remember { mutableStateOf("") }
     val valid = name.trim().length in 2..50
+    val state by vm.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NeerlyColors.Paper)
-            .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x5)
-    ) {
+    AuthPageScaffold {
         Text("What should we call you?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
         Spacer(Modifier.height(NeerlySpacing.x2))
         Text("This helps vendors recognise you.", fontSize = 14.sp, color = NeerlyColors.Ink600)
@@ -39,14 +44,30 @@ fun NameScreen(onContinue: (String) -> Unit) {
             shape = RoundedCornerShape(NeerlyRadius.md)
         )
         Spacer(Modifier.weight(1f))
+
+        if (state.error != null) {
+            Text(
+                state.error!!,
+                fontSize = 13.sp,
+                color = NeerlyColors.Err,
+                modifier = Modifier.padding(bottom = NeerlySpacing.x2)
+            )
+        }
+
         Button(
-            onClick = { onContinue(name.trim()) },
-            enabled = valid,
+            onClick = { vm.saveDisplayName(name) { onContinue(name.trim()) } },
+            enabled = valid && !state.savingName,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
-            colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = NeerlyColors.CustomerPrimary,
+                disabledContainerColor = NeerlyColors.CustomerPrimary.copy(alpha = 0.45f)
+            )
         ) {
-            Text("Continue", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (state.savingName) "Saving…" else "Continue",
+                fontSize = 15.sp, fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

@@ -12,6 +12,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.neerly.mobile.BuildConfig
+import com.neerly.mobile.core.design.AuthPageScaffold
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
@@ -30,12 +32,7 @@ fun OtpScreen(
     var code by remember { mutableStateOf("") }
     val state by vm.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NeerlyColors.Paper)
-            .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x5)
-    ) {
+    AuthPageScaffold {
         Text(
             "Enter OTP",
             fontSize = 28.sp,
@@ -82,14 +79,16 @@ fun OtpScreen(
             singleLine = true
         )
 
-        Spacer(Modifier.height(NeerlySpacing.x3))
-
-        Text(
-            "Dev mode: 123456 always works (or check the backend log).",
-            fontSize = 12.sp,
-            color = NeerlyColors.Ink500,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        // Debug-only crutch for the dev-OTP backend; never ships to a customer.
+        if (BuildConfig.DEBUG) {
+            Spacer(Modifier.height(NeerlySpacing.x3))
+            Text(
+                "Dev mode: 123456 always works (or check the backend log).",
+                fontSize = 12.sp,
+                color = NeerlyColors.Ink500,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
 
         if (state.error != null) {
             Spacer(Modifier.height(8.dp))
