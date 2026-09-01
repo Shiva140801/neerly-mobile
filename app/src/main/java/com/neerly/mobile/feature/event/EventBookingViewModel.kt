@@ -7,6 +7,7 @@ import com.neerly.mobile.data.dto.CreateEventBookingRequest
 import com.neerly.mobile.data.dto.EventItemInput
 import com.neerly.mobile.data.dto.ProductResponse
 import com.neerly.mobile.data.dto.VendorCardResponse
+import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,7 +62,13 @@ class EventBookingViewModel @Inject constructor(
                     )
                 }
                 .onFailure {
-                    _state.value = _state.value.copy(loading = false, error = it.message)
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.userMessage(
+                            context = "event booking vendor list",
+                            fallback = "Couldn't load vendors near you. Check your connection and try again."
+                        )
+                    )
                 }
         }
     }
@@ -74,7 +81,15 @@ class EventBookingViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.vendorProducts(v.id).filter { it.status == "AVAILABLE" } }
                 .onSuccess { _state.value = _state.value.copy(products = it, loadingProducts = false) }
-                .onFailure { _state.value = _state.value.copy(loadingProducts = false, error = it.message) }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loadingProducts = false,
+                        error = it.userMessage(
+                            context = "vendor products",
+                            fallback = "Couldn't load this vendor's products. Please try again."
+                        )
+                    )
+                }
         }
     }
 
@@ -144,7 +159,10 @@ class EventBookingViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         submitting = false,
-                        error = it.message ?: "Could not create booking"
+                        error = it.userMessage(
+                            context = "create event booking",
+                            fallback = "Couldn't create your booking. Please try again."
+                        )
                     )
                 }
         }

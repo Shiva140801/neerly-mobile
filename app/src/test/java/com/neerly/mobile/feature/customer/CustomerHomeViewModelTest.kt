@@ -118,7 +118,23 @@ class CustomerHomeViewModelTest {
 
         val s = vm.state.value
         assertEquals(false, s.loading)
-        assertEquals("offline", s.error)
+        // Customers get actionable copy, never the raw Throwable message.
+        assertEquals(
+            "Couldn't load vendors near you. Check your connection and try again.",
+            s.error
+        )
+    }
+
+    @Test
+    fun load_networkFailure_doesNotLeakThrowableMessage() = runTest(dispatcher) {
+        coEvery { repo.addresses() } throws
+            java.io.IOException("Unable to create converter for java.util.List<VendorCardResponse>")
+
+        val vm = CustomerHomeViewModel(repo)
+        advanceUntilIdle()
+
+        val s = vm.state.value
+        assertEquals("Can't reach Neerly right now. Check your connection and try again.", s.error)
     }
 
     @Test

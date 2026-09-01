@@ -6,6 +6,7 @@ import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.OrderResponse
 import com.neerly.mobile.data.dto.VendorCardResponse
 import com.neerly.mobile.data.dto.WalletResponse
+import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,7 +54,15 @@ class CustomerHomeViewModel @Inject constructor(
                     wallet = wallet
                 )
             }.onSuccess { _state.value = it }
-             .onFailure { _state.value = HomeUiState(loading = false, error = it.message ?: "Load failed") }
+             .onFailure {
+                 _state.value = HomeUiState(
+                     loading = false,
+                     error = it.userMessage(
+                         context = "customer home",
+                         fallback = "Couldn't load vendors near you. Check your connection and try again."
+                     )
+                 )
+             }
         }
     }
 }

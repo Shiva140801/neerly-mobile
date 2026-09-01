@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.data.dto.WalletResponse
 import com.neerly.mobile.data.dto.WalletTransaction
 import java.math.BigDecimal
 
@@ -43,41 +44,55 @@ fun WalletScreen(
             )
         }
     ) { padding ->
-        if (state.loading && state.balance == null) {
-            Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Text("Loading…", color = NeerlyColors.Ink500)
+        when {
+            state.loading && state.balance == null -> {
+                Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
+                    Text("Loading…", color = NeerlyColors.Ink500)
+                }
             }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(NeerlySpacing.x4),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize().padding(padding)
-            ) {
-                item { BalanceCard(state) }
-                item {
-                    Text("Add money", fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
+            // Balance never loaded. Showing "₹0" and "No transactions yet" here
+            // would tell a customer with money that they have none, so we render
+            // nothing but the failure and a retry.
+            state.balance == null -> {
+                Box(Modifier.fillMaxSize().padding(padding).padding(NeerlySpacing.x4)) {
+                    BalanceUnavailable(
+                        message = state.error ?: "Couldn't load your balance. Please try again.",
+                        onRetry = vm::refresh
+                    )
                 }
-                item { TopupChips(disabled = state.toppingUp, onPick = { amount ->
-                    vm.topup(amount) { result ->
-                        onTopupReady(result.paymentId, result.razorpayOrderId)
-                    }
-                }) }
-                if (state.error != null) {
-                    item { Text(state.error!!, color = NeerlyColors.Err, fontSize = 13.sp) }
-                }
-                item { Spacer(Modifier.height(NeerlySpacing.x3)) }
-                item {
-                    Text("Recent transactions", fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
-                }
-                if (state.transactions.isEmpty()) {
+            }
+            else -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(NeerlySpacing.x4),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize().padding(padding)
+                ) {
+                    item { BalanceCard(state.balance!!) }
                     item {
-                        Text("No transactions yet.",
-                            fontSize = 13.sp, color = NeerlyColors.Ink500)
+                        Text("Add money", fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
                     }
-                } else {
-                    items(state.transactions, key = { it.id }) { TxnRow(it) }
+                    item { TopupChips(disabled = state.toppingUp, onPick = { amount ->
+                        vm.topup(amount) { result ->
+                            onTopupReady(result.paymentId, result.razorpayOrderId)
+                        }
+                    }) }
+                    if (state.error != null) {
+                        item { Text(state.error!!, color = NeerlyColors.Err, fontSize = 13.sp) }
+                    }
+                    item { Spacer(Modifier.height(NeerlySpacing.x3)) }
+                    item {
+                        Text("Recent transactions", fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
+                    }
+                    if (state.transactions.isEmpty()) {
+                        item {
+                            Text("No transactions yet.",
+                                fontSize = 13.sp, color = NeerlyColors.Ink500)
+                        }
+                    } else {
+                        items(state.transactions, key = { it.id }) { TxnRow(it) }
+                    }
                 }
             }
         }
@@ -85,7 +100,30 @@ fun WalletScreen(
 }
 
 @Composable
-private fun BalanceCard(state: WalletUiState) {
+private fun BalanceUnavailable(message: String, onRetry: () -> Unit) {
+    Surface(
+        color = NeerlyColors.ErrSoft,
+        shape = RoundedCornerShape(NeerlyRadius.lg),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(NeerlySpacing.x6)) {
+            Text("Couldn't load your balance",
+                fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Err)
+            Spacer(Modifier.height(NeerlySpacing.x2))
+            Text(message, fontSize = 13.sp, color = NeerlyColors.Ink700)
+            Spacer(Modifier.height(NeerlySpacing.x4))
+            Button(
+                onClick = onRetry,
+                shape = RoundedCornerShape(NeerlyRadius.pill),
+                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
+            ) { Text("Retry", fontSize = 13.sp, fontWeight = FontWeight.SemiBold) }
+        }
+    }
+}
+
+/** Only ever called with a balance the backend actually returned. */
+@Composable
+private fun BalanceCard(balance: WalletResponse) {
     Surface(
         color = NeerlyColors.CustomerPrimary,
         shape = RoundedCornerShape(NeerlyRadius.lg),
@@ -97,10 +135,10 @@ private fun BalanceCard(state: WalletUiState) {
                 fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(6.dp))
             Text(
-                "₹${state.balance?.availableAmount ?: BigDecimal.ZERO}",
+                "₹${balance.availableAmount}",
                 fontSize = 32.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper
             )
-            state.balance?.heldAmount?.takeIf { it.signum() > 0 }?.let {
+            balance.heldAmount.takeIf { it.signum() > 0 }?.let {
                 Spacer(Modifier.height(6.dp))
                 Text("₹$it held for active orders",
                     fontSize = 12.sp, color = NeerlyColors.Paper.copy(alpha = 0.8f))

@@ -2,6 +2,7 @@ package com.neerly.mobile.feature.wallet
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.dto.InitiatePaymentResult
 import com.neerly.mobile.data.dto.WalletResponse
 import com.neerly.mobile.data.dto.WalletTopupRequest
@@ -46,7 +47,13 @@ class WalletViewModel @Inject constructor(
                     _state.value = WalletUiState(loading = false, balance = b, transactions = t)
                 }
                 .onFailure {
-                    _state.value = WalletUiState(loading = false, error = it.message)
+                    _state.value = WalletUiState(
+                        loading = false,
+                        error = it.userMessage(
+                            context = "wallet balance",
+                            fallback = "Couldn't load your balance. Please try again."
+                        )
+                    )
                 }
         }
     }
@@ -64,7 +71,13 @@ class WalletViewModel @Inject constructor(
                     onReady(it)
                 }
                 .onFailure {
-                    _state.value = _state.value.copy(toppingUp = false, error = it.message ?: "Top-up failed")
+                    _state.value = _state.value.copy(
+                        toppingUp = false,
+                        error = it.userMessage(
+                            context = "wallet top-up",
+                            fallback = "Couldn't start the top-up. Please try again."
+                        )
+                    )
                 }
         }
     }

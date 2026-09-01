@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
@@ -74,6 +75,20 @@ class WalletViewModelTest {
         advanceUntilIdle()
 
         assertEquals("rzp_order_1", captured?.razorpayOrderId)
+    }
+
+    @Test
+    fun load_failure_leavesBalanceNullAndUsesPlainCopy() = runTest(dispatcher) {
+        coEvery { repo.wallet() } throws
+            RuntimeException("Unable to create converter for WalletResponse")
+
+        val vm = WalletViewModel(repo)
+        advanceUntilIdle()
+
+        // The screen keys "did the load succeed?" off `balance`, so a failed load
+        // must never leave a zero balance behind for the UI to render as fact.
+        assertNull(vm.state.value.balance)
+        assertEquals("Couldn't load your balance. Please try again.", vm.state.value.error)
     }
 
     private fun fail(msg: String): Nothing = throw AssertionError(msg)

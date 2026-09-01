@@ -6,6 +6,7 @@ import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.CreateSubscriptionRequest
 import com.neerly.mobile.data.dto.ProductResponse
 import com.neerly.mobile.data.dto.VendorCardResponse
+import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,7 +58,13 @@ class SubscriptionCreateViewModel @Inject constructor(
                     )
                 }
                 .onFailure {
-                    _state.value = _state.value.copy(loading = false, error = it.message)
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.userMessage(
+                            context = "subscription vendor list",
+                            fallback = "Couldn't load vendors near you. Check your connection and try again."
+                        )
+                    )
                 }
         }
     }
@@ -67,7 +74,15 @@ class SubscriptionCreateViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.vendorProducts(v.id).filter { it.status == "AVAILABLE" } }
                 .onSuccess { _state.value = _state.value.copy(products = it, loadingProducts = false, step = 1) }
-                .onFailure { _state.value = _state.value.copy(loadingProducts = false, error = it.message) }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loadingProducts = false,
+                        error = it.userMessage(
+                            context = "vendor products",
+                            fallback = "Couldn't load this vendor's products. Please try again."
+                        )
+                    )
+                }
         }
     }
 
@@ -137,7 +152,13 @@ class SubscriptionCreateViewModel @Inject constructor(
                     onCreated(resp.id)
                 }
                 .onFailure {
-                    _state.value = _state.value.copy(submitting = false, error = it.message ?: "Could not create")
+                    _state.value = _state.value.copy(
+                        submitting = false,
+                        error = it.userMessage(
+                            context = "create subscription",
+                            fallback = "Couldn't create your subscription. Please try again."
+                        )
+                    )
                 }
         }
     }
