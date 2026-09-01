@@ -12,6 +12,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -27,6 +28,10 @@ object NetworkModule {
 
     @Provides @Singleton
     fun provideMoshi(): Moshi = Moshi.Builder()
+        // Money fields are BigDecimal across the whole contract and Moshi ships
+        // no adapter for it — without this every amount-carrying DTO fails to
+        // build a converter. Must be registered before the reflective factory.
+        .add(BigDecimal::class.java, BigDecimalAdapter.nullSafe())
         .add(KotlinJsonAdapterFactory())
         .build()
 

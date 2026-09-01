@@ -8,6 +8,8 @@ import com.neerly.mobile.data.dto.ExchangeRequest
 import com.neerly.mobile.data.dto.ExchangeResponse
 import com.neerly.mobile.data.dto.LogoutRequest
 import com.neerly.mobile.data.dto.RegisterDeviceRequest
+import com.neerly.mobile.data.dto.UpdateProfileRequest
+import com.neerly.mobile.data.dto.UserSummary
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,6 +86,16 @@ class AuthRepository @Inject constructor(
             )
         }  // best-effort; a failed device register shouldn't block login
     }
+
+    /**
+     * Persists the name collected on the "What should we call you?" step.
+     *
+     * Sign-up creates the user with `display_name = "User"` because the name is
+     * asked for *after* OTP verification, so without this PATCH the typed name
+     * was only ever held in composable state and thrown away on navigation.
+     */
+    suspend fun updateDisplayName(displayName: String): UserSummary =
+        api.updateProfile(UpdateProfileRequest(displayName = displayName))
 
     fun isLoggedIn(): Boolean = tokens.accessToken?.isNotBlank() == true
     fun getGrantedRoles(): List<String> = tokens.grantedRoles

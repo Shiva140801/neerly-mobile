@@ -46,7 +46,7 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun deleteAddress(id: String) = api.deleteAddress(id)
 
     // Home / browse
-    suspend fun vendors(pincode: String): List<VendorCardResponse> = api.vendors(pincode)
+    suspend fun vendors(pincode: String): List<VendorCardResponse> = api.vendors(pincode).content
     suspend fun vendor(id: String): VendorCardResponse = api.vendor(id)
     suspend fun vendorProducts(vendorId: String): List<ProductResponse> = api.vendorProducts(vendorId)
     suspend fun search(q: String): List<ProductResponse> = api.search(q)
@@ -66,7 +66,7 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     // Wallet
     suspend fun wallet(): WalletResponse = api.wallet()
     suspend fun walletTransactions(page: Int = 0, size: Int = 20): List<WalletTransaction> =
-        api.walletTransactions(page, size)
+        api.walletTransactions(page, size).content
     suspend fun walletTopup(req: WalletTopupRequest) = api.walletTopup(req)
 
     // Subscriptions
@@ -79,7 +79,7 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun cancelSubscription(id: String, req: CancelSubscriptionRequest) = api.cancelSubscription(id, req)
 
     // Deposits / Returns
-    suspend fun deposits(status: String? = null): List<DepositResponse> = api.myDeposits(status)
+    suspend fun deposits(status: String? = null): List<DepositResponse> = api.myDeposits(status).content
     suspend fun scheduleReturn(req: ReturnRequest): ReturnResponse = api.scheduleReturn(req)
 
     // Complaints

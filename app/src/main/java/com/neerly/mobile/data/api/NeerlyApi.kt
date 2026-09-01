@@ -1,6 +1,7 @@
 package com.neerly.mobile.data.api
 
 import com.neerly.mobile.data.dto.AddressResponse
+import com.neerly.mobile.data.dto.PageResponse
 import com.neerly.mobile.data.dto.AppendComplaintMessageRequest
 import com.neerly.mobile.data.dto.CancelOrderRequest
 import com.neerly.mobile.data.dto.CancelSubscriptionRequest
@@ -143,12 +144,13 @@ interface NeerlyApi {
 
     // ------------------------------ Vendors + Catalog ------------------------------
 
+    // Paged envelope: {"content":[…],"page":…,"totalElements":…}. Not a bare array.
     @GET("api/v1/customer/vendors")
     suspend fun vendors(
         @Query("pincode") pincode: String,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
-    ): List<VendorCardResponse>
+    ): PageResponse<VendorCardResponse>
 
     @GET("api/v1/customer/vendors/{id}")
     suspend fun vendor(@Path("id") id: String): VendorCardResponse
@@ -208,7 +210,7 @@ interface NeerlyApi {
     suspend fun walletTransactions(
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
-    ): List<WalletTransaction>
+    ): PageResponse<WalletTransaction>
 
     @POST("api/v1/customer/wallet/topup")
     suspend fun walletTopup(@Body body: WalletTopupRequest): InitiatePaymentResult
@@ -291,7 +293,7 @@ interface NeerlyApi {
     @GET("api/v1/customer/deposits")
     suspend fun myDeposits(
         @Query("status") status: String? = null
-    ): List<DepositResponse>
+    ): PageResponse<DepositResponse>
 
     @POST("api/v1/customer/returns")
     suspend fun scheduleReturn(@Body body: ReturnRequest): ReturnResponse
