@@ -1,6 +1,7 @@
 package com.neerly.mobile.data.repo
 
 import com.neerly.mobile.data.api.NeerlyApi
+import com.neerly.mobile.data.dto.GroupedSearchResponse
 import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.AppendComplaintMessageRequest
 import com.neerly.mobile.data.dto.CancelEventRequest
@@ -13,6 +14,7 @@ import com.neerly.mobile.data.dto.CreateAddressRequest
 import com.neerly.mobile.data.dto.CreateSubscriptionRequest
 import com.neerly.mobile.data.dto.DepositResponse
 import com.neerly.mobile.data.dto.OrderResponse
+import com.neerly.mobile.data.dto.OrderTrackingResponse
 import com.neerly.mobile.data.dto.PauseSubscriptionRequest
 import com.neerly.mobile.data.dto.ProductResponse
 import com.neerly.mobile.data.dto.ReturnRequest
@@ -51,6 +53,10 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun vendorProducts(vendorId: String): List<ProductResponse> = api.vendorProducts(vendorId)
     suspend fun search(q: String): List<ProductResponse> = api.search(q)
 
+    /** Grouped hits for the search screen: product templates and vendors, separately. */
+    suspend fun searchGrouped(q: String, pincode: String? = null): GroupedSearchResponse =
+        api.searchGrouped(q, pincode)
+
     // Favourites
     suspend fun favouriteIds(): List<String> = api.favouriteIds()
     suspend fun favourite(vendorId: String) = api.favourite(vendorId)
@@ -62,6 +68,7 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
 
     suspend fun myOrders(page: Int = 0, size: Int = 20): List<OrderResponse> = api.myOrders(page, size)
     suspend fun order(id: String): OrderResponse = api.order(id)
+    suspend fun orderTracking(id: String): OrderTrackingResponse = api.orderTracking(id)
 
     // Wallet
     suspend fun wallet(): WalletResponse = api.wallet()

@@ -6,6 +6,7 @@ import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.OrderResponse
 import com.neerly.mobile.data.dto.VendorCardResponse
 import com.neerly.mobile.data.dto.WalletResponse
+import com.neerly.mobile.core.util.ConnectivityObserver
 import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,17 +27,22 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class CustomerHomeViewModel @Inject constructor(
-    private val repo: CustomerRepository
+    private val repo: CustomerRepository,
+    private val connectivity: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
+
+    /** Drives the offline banner and the cold-start offline screen. */
+    val isOnline: StateFlow<Boolean> = connectivity.isOnline
 
     init {
         refresh()
     }
 
     fun refresh() {
+        connectivity.refresh()
         _state.value = _state.value.copy(loading = true, error = null)
         viewModelScope.launch {
             runCatching {

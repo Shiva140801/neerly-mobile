@@ -3,6 +3,7 @@ package com.neerly.mobile.feature.subscription
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.dto.SubscriptionResponse
+import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,12 +22,20 @@ class SubscriptionListViewModel @Inject constructor(
 
     init { load() }
 
+    fun refresh() = load()
+
     fun load() {
         _state.value = _state.value.copy(loading = true, error = null)
         viewModelScope.launch {
             runCatching { repo.subscriptions() }
                 .onSuccess { _state.value = SubscriptionListUiState(subscriptions = it, loading = false) }
-                .onFailure { _state.value = SubscriptionListUiState(loading = false, error = it.message) }
+                .onFailure {
+                    // `it.message` here was Retrofit/Moshi internals; never the customer's problem.
+                    _state.value = SubscriptionListUiState(
+                        loading = false,
+                        error = it.userMessage(context = "subscription list", fallback = "Couldn't load your subscriptions. Please try again.")
+                    )
+                }
         }
     }
 }

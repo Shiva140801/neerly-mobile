@@ -19,6 +19,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.OfflineBanner
+import com.neerly.mobile.core.design.OfflineCapabilityCard
+import com.neerly.mobile.core.design.OrderTrackingSkeleton
+import com.neerly.mobile.core.design.StaleDataStamp
+import com.neerly.mobile.core.util.asRupees
 
 /**
  * Live tracking — vertical timeline of status events.
@@ -32,6 +37,7 @@ fun OrderTrackingScreen(
     vm: OrderTrackingViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    val online by vm.isOnline.collectAsState()
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
@@ -48,25 +54,62 @@ fun OrderTrackingScreen(
             )
         }
     ) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding)) {
+        // Non-blocking: whatever already loaded stays on screen and readable.
+        if (!online) OfflineBanner(onRetry = vm::refresh)
         when {
-            state.loading && state.order == null ->
-                Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                    Text("Loading…", color = NeerlyColors.Ink500)
-                }
+            state.loading && state.order == null -> OrderTrackingSkeleton()
             state.order == null ->
-                Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                    Text(state.error ?: "Order not found", color = NeerlyColors.Err)
+                Column(
+                    Modifier.fillMaxSize().padding(NeerlySpacing.x6),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "We can't show this order",
+                        fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900
+                    )
+                    Spacer(Modifier.height(NeerlySpacing.x2))
+                    Text(
+                        state.error ?: "This order isn't available right now.",
+                        fontSize = 13.sp, color = NeerlyColors.Ink500
+                    )
+                    Spacer(Modifier.height(NeerlySpacing.x5))
+                    Button(
+                        onClick = vm::refresh,
+                        colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
+                    ) { Text("Try again") }
                 }
             else -> {
                 val order = state.order!!
                 Column(
-                    Modifier.fillMaxSize().padding(padding).padding(NeerlySpacing.x5),
+                    Modifier.fillMaxSize().padding(NeerlySpacing.x5),
                     verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x4)
                 ) {
                     Text("Order #${order.orderNumber}",
                         fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                    Text("Total ₹${order.totalAmount}",
+                    Text("Total ${order.totalAmount.asRupees()}",
                         fontSize = 14.sp, color = NeerlyColors.Ink500)
+                    // Only stamped when we actually have a fetch time to quote.
+                    if (!online) {
+                        state.lastUpdatedLabel?.let { StaleDataStamp(it) }
+                    }
+
+                    // Live map while the driver is on the road. Gated on the order
+                    // status so a finished/early order shows the plain timeline.
+                    if (order.status in OrderTrackingViewModel.IN_FLIGHT) {
+                        state.tracking?.let { t ->
+                            OrderLiveMap(t)
+                            if (t.driverName != null || t.vehicle != null) {
+                                Text(
+                                    listOfNotNull(t.driverName, t.vehicle, t.driverPhoneMask)
+                                        .joinToString("  ·  "),
+                                    fontSize = 13.sp, color = NeerlyColors.Ink700,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
 
                     Surface(
                         color = NeerlyColors.Paper,
@@ -93,6 +136,8 @@ fun OrderTrackingScreen(
                         }
                     }
 
+                    if (!online) OfflineCapabilityCard(Modifier.fillMaxWidth())
+
                     TextButton(
                         onClick = { onFileComplaint(order.id) },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -102,20 +147,28 @@ fun OrderTrackingScreen(
                 }
             }
         }
+        }
     }
 }
 
 @Composable
 private fun StatusTimeline(current: String) {
+    // Step keys are the backend's OrderStatus names — the old "OUT_FOR_DELIVERY"
+    // label was never a real status, so DISPATCHED orders under-highlighted.
     val steps = listOf(
         "PLACED"            to "Order placed",
-        "VENDOR_ASSIGNED"   to "Vendor confirmed",
+        "VENDOR_ACCEPTED"   to "Vendor confirmed",
         "PREPARING"         to "Preparing",
-        "OUT_FOR_DELIVERY"  to "Out for delivery",
+        "DISPATCHED"        to "Out for delivery",
         "ARRIVING"          to "Arriving",
         "DELIVERED"         to "Delivered"
     )
-    val currentIdx = steps.indexOfFirst { it.first == current }.coerceAtLeast(0)
+    // Waiting-on-a-vendor states sit between "placed" and "confirmed".
+    val effective = when (current) {
+        "VENDOR_ASSIGNED", "VENDOR_REJECTED" -> "PLACED"
+        else -> current
+    }
+    val currentIdx = steps.indexOfFirst { it.first == effective }.coerceAtLeast(0)
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         steps.forEachIndexed { idx, (_, label) ->
             val done = idx <= currentIdx

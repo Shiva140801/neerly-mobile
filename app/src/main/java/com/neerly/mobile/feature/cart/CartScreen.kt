@@ -23,6 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.SkeletonBlock
+import com.neerly.mobile.core.util.asRupees
 import com.neerly.mobile.data.cart.Cart
 import com.neerly.mobile.data.cart.CartItem
 import com.neerly.mobile.feature.promo.PromoCodeField
@@ -70,8 +72,15 @@ fun CartScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text("Total", fontSize = 12.sp, color = NeerlyColors.Ink500)
-                                Text("₹${cart.total}", fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                                // The total is genuinely unknown while a promo
+                                // is being quoted — shimmer rather than show a
+                                // figure that's about to change.
+                                if (promo.quoting) {
+                                    SkeletonBlock(height = 22.dp, width = 110.dp)
+                                } else {
+                                    Text(cart.total.asRupees(), fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                                }
                             }
                             Button(
                                 onClick = onCheckout,
@@ -156,12 +165,12 @@ private fun CartLine(
             Column(Modifier.weight(1f)) {
                 Text(item.productName, fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                Text("₹${item.unitPrice} × ${item.quantity} = ₹${item.lineTotal}",
+                Text("${item.unitPrice.asRupees()} × ${item.quantity} = ${item.lineTotal.asRupees()}",
                     fontSize = 12.sp, color = NeerlyColors.Ink500)
                 if (!item.keepContainer) {
                     Text("Transfer & return", fontSize = 11.sp, color = NeerlyColors.VendorDark)
                 } else if (item.depositPerContainer != null) {
-                    Text("+ ₹${item.lineDeposit} deposit",
+                    Text("+ ${item.lineDeposit.asRupees()} deposit",
                         fontSize = 11.sp, color = NeerlyColors.Ink500)
                 }
             }
@@ -207,7 +216,7 @@ private fun PricingBreakdown(cart: Cart) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Total", Modifier.weight(1f),
                     fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                Text("₹${cart.total}",
+                Text(cart.total.asRupees(),
                     fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
             }
         }
@@ -226,7 +235,7 @@ private fun PricingRow(label: String, amount: BigDecimal, surge: Boolean = false
             sub?.let { Text(it, fontSize = 11.sp, color = NeerlyColors.Ink500) }
         }
         Text(
-            (if (amount.signum() < 0) "-₹" else "₹") + amount.abs(),
+            (if (amount.signum() < 0) "-" else "") + amount.abs().asRupees(),
             fontSize = 14.sp,
             color = if (amount.signum() < 0) NeerlyColors.Ok else NeerlyColors.Ink900
         )

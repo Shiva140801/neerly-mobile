@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,9 +21,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.neerly.mobile.core.design.CustomerBottomBar
+import com.neerly.mobile.core.design.CustomerTab
+import com.neerly.mobile.core.design.HomeSkeleton
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.OfflineBanner
+import com.neerly.mobile.core.design.OfflineScreen
+import com.neerly.mobile.core.util.asRupees
 import com.neerly.mobile.data.dto.OrderResponse
 import com.neerly.mobile.data.dto.VendorCardResponse
 
@@ -40,14 +47,41 @@ fun CustomerHomeScreen(
     onVendorClick: (String) -> Unit,
     onOrderClick: (String) -> Unit = {},
     onOpenProfile: () -> Unit = {},
+    onOpenSearch: () -> Unit = {},
+    onSelectTab: (CustomerTab) -> Unit = {},
     vm: CustomerHomeViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    val online by vm.isOnline.collectAsState()
+
+    // Cold start with nothing to show and no connection: the full-screen
+    // offline state, not a spinner that will never resolve.
+    if (!online && state.vendors.isEmpty() && !state.loading) {
+        Scaffold(
+            containerColor = NeerlyColors.Canvas,
+            bottomBar = { CustomerBottomBar(current = CustomerTab.Home, onSelect = onSelectTab) }
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                OfflineScreen(onRetry = vm::refresh)
+            }
+        }
+        return
+    }
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
-        topBar = { HomeHeader(state, onOpenProfile) }
+        topBar = {
+            Column {
+                if (!online) OfflineBanner(onRetry = vm::refresh)
+                HomeHeader(state, onOpenProfile, onOpenSearch)
+            }
+        },
+        bottomBar = { CustomerBottomBar(current = CustomerTab.Home, onSelect = onSelectTab) }
     ) { padding ->
+        if (state.loading) {
+            Box(Modifier.fillMaxSize().padding(padding)) { HomeSkeleton() }
+            return@Scaffold
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -55,11 +89,6 @@ fun CustomerHomeScreen(
                 .padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x4)
         ) {
             when {
-                state.loading -> {
-                    Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        Text("Loading…", color = NeerlyColors.Ink500)
-                    }
-                }
                 state.error != null -> {
                     Surface(
                         color = NeerlyColors.ErrSoft,
@@ -129,7 +158,11 @@ fun CustomerHomeScreen(
 }
 
 @Composable
-private fun HomeHeader(state: HomeUiState, onOpenProfile: () -> Unit) {
+private fun HomeHeader(
+    state: HomeUiState,
+    onOpenProfile: () -> Unit,
+    onOpenSearch: () -> Unit = {}
+) {
     Surface(color = NeerlyColors.Paper, shadowElevation = 1.dp) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -153,7 +186,7 @@ private fun HomeHeader(state: HomeUiState, onOpenProfile: () -> Unit) {
                         shape = RoundedCornerShape(NeerlyRadius.pill)
                     ) {
                         Text(
-                            "₹${it.availableAmount}",
+                            it.availableAmount.asRupees(),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             color = NeerlyColors.CustomerDark,
                             fontSize = 12.sp,
@@ -167,6 +200,31 @@ private fun HomeHeader(state: HomeUiState, onOpenProfile: () -> Unit) {
                         contentDescription = "Profile",
                         tint = NeerlyColors.CustomerPrimary
                     )
+                }
+            }
+            Spacer(Modifier.height(NeerlySpacing.x3))
+            // Entry point into S-CUST-SEA-01. A read-only pill rather than a
+            // live field: search owns its own screen, with its own recents.
+            Surface(
+                color = NeerlyColors.Ink50,
+                shape = RoundedCornerShape(NeerlyRadius.pill),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(NeerlyRadius.pill))
+                    .clickable(onClick = onOpenSearch)
+            ) {
+                Row(
+                    Modifier.padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = NeerlyColors.Ink400,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(NeerlySpacing.x2))
+                    Text("Search water", fontSize = 14.sp, color = NeerlyColors.Ink400)
                 }
             }
         }
@@ -193,7 +251,7 @@ private fun ActiveOrderCard(order: OrderResponse, onClick: () -> Unit) {
                 color = NeerlyColors.Ink900
             )
             Spacer(Modifier.height(2.dp))
-            Text("₹${order.totalAmount}", fontSize = 12.sp, color = NeerlyColors.Ink700)
+            Text(order.totalAmount.asRupees(), fontSize = 12.sp, color = NeerlyColors.Ink700)
         }
     }
 }

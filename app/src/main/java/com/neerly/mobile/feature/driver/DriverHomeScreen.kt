@@ -1,11 +1,16 @@
 package com.neerly.mobile.feature.driver
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,9 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
@@ -31,6 +38,21 @@ fun DriverHomeScreen(
     val state by vm.state.collectAsState()
     var deliverFor by remember { mutableStateOf<DriverAssignment?>(null) }
     var otpDraft by remember { mutableStateOf("") }
+
+    // Live tracking needs a fix stream the moment the shift starts, so ask
+    // when the driver goes on duty rather than burying it in onboarding.
+    val context = LocalContext.current
+    val locationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> vm.onLocationPermission(granted) }
+    LaunchedEffect(state.isOnDuty) {
+        if (!state.isOnDuty) return@LaunchedEffect
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) vm.onLocationPermission(true)
+        else locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,

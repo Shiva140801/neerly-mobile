@@ -3,6 +3,7 @@ package com.neerly.mobile.feature.order
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.dto.OrderResponse
+import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,12 +22,20 @@ class OrderHistoryViewModel @Inject constructor(
 
     init { load() }
 
+    fun refresh() = load()
+
     fun load() {
         _state.value = _state.value.copy(loading = true, error = null)
         viewModelScope.launch {
             runCatching { repo.myOrders(page = 0, size = 50) }
                 .onSuccess { _state.value = OrderHistoryUiState(orders = it, loading = false) }
-                .onFailure { _state.value = OrderHistoryUiState(loading = false, error = it.message) }
+                .onFailure {
+                    // `it.message` here was Retrofit/Moshi internals; never the customer's problem.
+                    _state.value = OrderHistoryUiState(
+                        loading = false,
+                        error = it.userMessage(context = "order history", fallback = "Couldn't load your orders. Please try again.")
+                    )
+                }
         }
     }
 }

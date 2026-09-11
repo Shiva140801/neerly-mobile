@@ -9,7 +9,6 @@ import com.neerly.mobile.data.dto.EndShiftRequest
 import com.neerly.mobile.data.dto.GpsPingRequest
 import com.neerly.mobile.data.dto.StartShiftRequest
 import java.math.BigDecimal
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,8 +24,18 @@ class DriverRepository @Inject constructor(private val api: NeerlyApi) {
 
     suspend fun assignments(): List<DriverAssignment> = api.driverAssignments()
 
-    suspend fun ping(lat: Double, lng: Double, accuracy: Double?, orderId: String? = null) =
-        api.driverGpsPing(GpsPingRequest(lat, lng, accuracy, orderId, Instant.now().toString()))
+    suspend fun ping(
+        latitude: Double,
+        longitude: Double,
+        headingDeg: Double? = null,
+        speedMps: Double? = null,
+        accuracyM: Double? = null,
+        batteryPct: Int? = null,
+        orderId: String? = null
+    ) = api.driverGpsPing(GpsPingRequest(
+        latitude = latitude, longitude = longitude, headingDeg = headingDeg,
+        speedMps = speedMps, accuracyM = accuracyM, batteryPct = batteryPct, orderId = orderId
+    ))
 
     suspend fun startDelivery(orderId: String): DriverAssignment = api.driverStartDelivery(orderId)
     suspend fun markArrived(orderId: String): DriverAssignment = api.driverMarkArrived(orderId)

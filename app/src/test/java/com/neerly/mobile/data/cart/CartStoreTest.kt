@@ -134,4 +134,42 @@ class CartStoreTest {
         val it = item("p1", "95", qty = 2, keep = false, deposit = "500")
         assertEquals(BigDecimal.ZERO, it.lineDeposit)
     }
+
+    // ---- setLine: the product sheet's commit path ----
+
+    @Test
+    fun setLine_newProduct_appendsRow() {
+        val outcome = store.setLine("v1", "Sri Ganesh", item("p1", qty = 2))
+        assertTrue(outcome is AddOutcome.Added)
+        assertEquals(2, store.snapshot.items.single().quantity)
+    }
+
+    @Test
+    fun setLine_existingProduct_replacesRatherThanIncrements() {
+        store.setLine("v1", "Sri Ganesh", item("p1", qty = 2))
+        store.setLine("v1", "Sri Ganesh", item("p1", qty = 3))
+        // Re-opening the sheet and confirming must not silently double the order.
+        assertEquals(3, store.snapshot.items.single().quantity)
+    }
+
+    @Test
+    fun setLine_changingContainerMode_takesEffect() {
+        store.setLine("v1", "Sri Ganesh", item("p1", qty = 1, keep = true, deposit = "300"))
+        assertEquals(BigDecimal("300.00"), store.snapshot.items.single().lineDeposit)
+
+        store.setLine("v1", "Sri Ganesh", item("p1", qty = 1, keep = false, deposit = "300"))
+        // Switching to transfer-and-return has to drop the deposit, not keep a
+        // stale one from the earlier choice.
+        assertFalse(store.snapshot.items.single().keepContainer)
+        assertEquals(BigDecimal.ZERO, store.snapshot.items.single().lineDeposit)
+    }
+
+    @Test
+    fun setLine_differentVendor_returnsMismatchWithoutMutating() {
+        store.setLine("v1", "Sri Ganesh", item("p1"))
+        val outcome = store.setLine("v2", "Pure Drops", item("p2", "20"))
+        assertTrue(outcome is AddOutcome.VendorMismatch)
+        assertEquals("v1", store.snapshot.vendorId)
+        assertEquals(1, store.snapshot.items.size)
+    }
 }

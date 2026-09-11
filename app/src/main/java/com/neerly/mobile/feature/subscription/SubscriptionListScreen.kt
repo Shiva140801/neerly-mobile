@@ -18,6 +18,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.CustomerBottomBar
+import com.neerly.mobile.core.design.CustomerTab
+import com.neerly.mobile.core.design.SkeletonBlock
 import com.neerly.mobile.data.dto.SubscriptionResponse
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +29,7 @@ fun SubscriptionListScreen(
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
     onNew: () -> Unit = {},
+    onSelectTab: (CustomerTab) -> Unit = {},
     vm: SubscriptionListViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -49,11 +53,38 @@ fun SubscriptionListScreen(
                 text = { Text("New") },
                 icon = { Text("+") }
             )
-        }
+        },
+        bottomBar = { CustomerBottomBar(current = CustomerTab.Subs, onSelect = onSelectTab) }
     ) { padding ->
         when {
-            state.loading -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Text("Loading…", color = NeerlyColors.Ink500)
+            state.loading -> Column(
+                Modifier.fillMaxSize().padding(padding).padding(NeerlySpacing.x4),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                SkeletonBlock(height = 14.dp, width = 80.dp)
+                repeat(4) {
+                    SkeletonBlock(
+                        height = 96.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                        radius = NeerlyRadius.md
+                    )
+                }
+            }
+            state.error != null -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
+                Column(
+                    Modifier.padding(NeerlySpacing.x6),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Couldn't load your subscriptions",
+                        fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                    Spacer(Modifier.height(6.dp))
+                    Text(state.error!!, fontSize = 13.sp, color = NeerlyColors.Ink500)
+                    Spacer(Modifier.height(NeerlySpacing.x4))
+                    Button(
+                        onClick = vm::refresh,
+                        colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
+                    ) { Text("Try again") }
+                }
             }
             state.subscriptions.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

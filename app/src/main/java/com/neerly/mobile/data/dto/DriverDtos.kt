@@ -23,10 +23,19 @@ data class EndShiftRequest(val reason: String = "EOD", val codHandedOver: BigDec
 @JsonClass(generateAdapter = true)
 data class GpsPoint(val lat: Double, val lng: Double, val accuracy: Double? = null)
 
+/**
+ * Mirrors backend `GpsPingRequest` exactly — the backend requires `latitude`/`longitude`
+ * (it 400s on the old `lat`/`lng` names) and stamps `recordedAt` server-side.
+ */
 @JsonClass(generateAdapter = true)
 data class GpsPingRequest(
-    val lat: Double, val lng: Double, val accuracy: Double? = null,
-    val orderId: String? = null, val recordedAt: String
+    val latitude: Double,
+    val longitude: Double,
+    val headingDeg: Double? = null,
+    val speedMps: Double? = null,
+    val accuracyM: Double? = null,
+    val batteryPct: Int? = null,
+    val orderId: String? = null
 )
 
 @JsonClass(generateAdapter = true)

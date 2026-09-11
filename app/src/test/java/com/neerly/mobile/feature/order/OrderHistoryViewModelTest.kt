@@ -53,7 +53,10 @@ class OrderHistoryViewModelTest {
         val vm = OrderHistoryViewModel(repo)
         advanceUntilIdle()
 
-        assertEquals("offline", vm.state.value.error)
+        // The raw `Throwable.message` must never reach the UI — the state
+        // carries customer-facing copy, and the technical text stays in Timber.
+        assertEquals("Couldn't load your orders. Please try again.", vm.state.value.error)
+        assertFalse(vm.state.value.error!!.contains("offline"))
         assertTrue(vm.state.value.orders.isEmpty())
     }
 

@@ -24,6 +24,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.CustomerBottomBar
+import com.neerly.mobile.core.design.CustomerTab
 
 /**
  * Profile hub — entry point linking out to addresses, wallet, orders, subscriptions,
@@ -45,6 +47,7 @@ fun ProfileScreen(
     onDriverMode: () -> Unit = {},
     onEventBooking: () -> Unit = {},
     onSwitchRole: () -> Unit = {},
+    onSelectTab: (CustomerTab) -> Unit = {},
     onLogout: () -> Unit,
     vm: ProfileViewModel = hiltViewModel()
 ) {
@@ -61,7 +64,8 @@ fun ProfileScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
             )
-        }
+        },
+        bottomBar = { CustomerBottomBar(current = CustomerTab.Profile, onSelect = onSelectTab) }
     ) { padding ->
         Column(
             Modifier.fillMaxSize()

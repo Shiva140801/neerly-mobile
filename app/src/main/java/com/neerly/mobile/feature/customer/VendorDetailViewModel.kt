@@ -3,6 +3,7 @@ package com.neerly.mobile.feature.customer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neerly.mobile.core.util.ConnectivityObserver
 import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.cart.AddOutcome
 import com.neerly.mobile.data.cart.CartItem
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class VendorDetailViewModel @Inject constructor(
     private val repo: CustomerRepository,
     private val cart: CartStore,
+    connectivity: ConnectivityObserver,
     savedState: SavedStateHandle
 ) : ViewModel() {
 
@@ -32,7 +34,11 @@ class VendorDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(VendorDetailUiState())
     val state: StateFlow<VendorDetailUiState> = _state.asStateFlow()
 
+    val isOnline: StateFlow<Boolean> = connectivity.isOnline
+
     init { load() }
+
+    fun refresh() = load()
 
     private fun load() {
         _state.value = _state.value.copy(loading = true, error = null)
@@ -60,38 +66,42 @@ class VendorDetailViewModel @Inject constructor(
         }
     }
 
+    /** Quantity of [productId] already in the cart, so the sheet opens pre-filled. */
+    fun quantityInCart(productId: String): Int =
+        cart.snapshot.items.firstOrNull { it.productId == productId }?.quantity ?: 0
+
     /**
-     * Adds the product to cart. If the cart already has a different vendor,
-     * returns AddOutcome.VendorMismatch so the UI can prompt "Switch vendor?".
+     * Commits the customer's sheet choice — quantity *and* container mode.
+     * Returns [AddOutcome.VendorMismatch] when the cart belongs to another
+     * vendor so the screen can prompt before clearing it.
      */
-    fun addToCart(product: ProductResponse): AddOutcome {
+    fun setCartLine(selection: ProductSheetSelection): AddOutcome {
         val v = _state.value.vendor ?: return AddOutcome.VendorMismatch("", "")
-        val line = CartItem(
-            productId = product.id,
-            productName = product.name,
-            unitPrice = product.price,
-            quantity = 1,
-            keepContainer = product.allowKeepContainer,
-            depositPerContainer = product.depositAmount
-        )
-        return cart.addItem(v.id, v.businessName, line)
+        return cart.setLine(v.id, v.businessName, selection.toCartItem())
     }
 
-    fun confirmReplaceWithNewVendor(product: ProductResponse) {
+    fun confirmReplaceWithNewVendor(selection: ProductSheetSelection) {
         val v = _state.value.vendor ?: return
         cart.replaceWithNewVendor(
             vendorId = v.id,
             vendorName = v.businessName,
-            item = CartItem(
-                productId = product.id,
-                productName = product.name,
-                unitPrice = product.price,
-                quantity = 1,
-                keepContainer = product.allowKeepContainer,
-                depositPerContainer = product.depositAmount
-            )
+            item = selection.toCartItem()
         )
     }
+
+    /**
+     * The container mode is now the customer's explicit choice from the sheet,
+     * not `allowKeepContainer` applied on their behalf — which is what silently
+     * attached a deposit to orders nobody agreed to.
+     */
+    private fun ProductSheetSelection.toCartItem() = CartItem(
+        productId = product.id,
+        productName = product.name,
+        unitPrice = product.price,
+        quantity = quantity,
+        keepContainer = keepContainer,
+        depositPerContainer = product.depositAmount
+    )
 }
 
 data class VendorDetailUiState(

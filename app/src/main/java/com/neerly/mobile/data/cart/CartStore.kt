@@ -51,6 +51,38 @@ class CartStore @Inject constructor() {
         return AddOutcome.Added
     }
 
+    /**
+     * Replace-or-insert a line, exactly as the customer set it in the product
+     * sheet.
+     *
+     * [addItem] increments, which is right for a one-tap "Add" button but wrong
+     * for a sheet where the customer has just dialled in both a quantity *and* a
+     * container mode: re-opening the sheet and confirming would otherwise double
+     * the quantity, and a mode change on an existing line would be silently
+     * dropped by the merge. Here the sheet's choice wins outright.
+     */
+    fun setLine(
+        vendorId: String,
+        vendorName: String,
+        item: CartItem
+    ): AddOutcome {
+        val current = _state.value
+        if (current.vendorId != null && current.vendorId != vendorId) {
+            return AddOutcome.VendorMismatch(
+                existingVendor = current.vendorName ?: current.vendorId,
+                newVendor = vendorName
+            )
+        }
+        val existing = current.items.any { it.productId == item.productId }
+        val items = if (existing) {
+            current.items.map { if (it.productId == item.productId) item else it }
+        } else {
+            current.items + item
+        }
+        _state.value = current.copy(vendorId = vendorId, vendorName = vendorName, items = items)
+        return AddOutcome.Added
+    }
+
     /** Force a vendor switch — clears and adds fresh. */
     fun replaceWithNewVendor(
         vendorId: String,

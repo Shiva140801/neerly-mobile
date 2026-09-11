@@ -62,3 +62,30 @@ data class ProductResponse(
     val name: String get() = template.displayName
     val categoryCode: String get() = template.categoryCode
 }
+
+/**
+ * Grouped search (`GET /customer/search/grouped`) — the results screen splits hits
+ * into "Products · 4" and "Vendors · 2", and a product row is one template across
+ * however many vendors stock it, priced "from ₹90".
+ */
+@JsonClass(generateAdapter = true)
+data class GroupedSearchResponse(
+    val products: List<SearchProductGroup> = emptyList(),
+    val vendors: List<SearchVendorHit> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class SearchProductGroup(
+    val categoryCode: String,
+    val displayName: String,
+    val sizeLabel: String?,
+    val vendorCount: Int,
+    val fromPrice: BigDecimal
+)
+
+@JsonClass(generateAdapter = true)
+data class SearchVendorHit(
+    val id: String,
+    val businessName: String,
+    val status: String
+)

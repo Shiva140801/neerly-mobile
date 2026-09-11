@@ -1,5 +1,6 @@
 package com.neerly.mobile.data.api
 
+import com.neerly.mobile.data.dto.GroupedSearchResponse
 import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.PageResponse
 import com.neerly.mobile.data.dto.AppendComplaintMessageRequest
@@ -24,6 +25,7 @@ import com.neerly.mobile.data.dto.LogoutRequest
 import com.neerly.mobile.data.dto.ModifySubscriptionRequest
 import com.neerly.mobile.data.dto.NotificationResponse
 import com.neerly.mobile.data.dto.OrderResponse
+import com.neerly.mobile.data.dto.OrderTrackingResponse
 import com.neerly.mobile.data.dto.PauseSubscriptionRequest
 import com.neerly.mobile.data.dto.PaymentSnapshot
 import com.neerly.mobile.data.dto.PlaceOrderRequest
@@ -165,6 +167,14 @@ interface NeerlyApi {
         @Query("size") size: Int = 20
     ): List<ProductResponse>
 
+    /** Results split into product groups and vendor hits, as the search screen shows them. */
+    @GET("api/v1/customer/search/grouped")
+    suspend fun searchGrouped(
+        @Query("q") q: String,
+        @Query("pincode") pincode: String? = null,
+        @Query("size") size: Int = 20
+    ): GroupedSearchResponse
+
     // ------------------------------ Preferences / Favourites ------------------------------
 
     @POST("api/v1/customer/favourites/{vendorId}")
@@ -189,6 +199,9 @@ interface NeerlyApi {
 
     @GET("api/v1/customer/orders/{id}")
     suspend fun order(@Path("id") id: String): OrderResponse
+
+    @GET("api/v1/customer/orders/{id}/tracking")
+    suspend fun orderTracking(@Path("id") id: String): OrderTrackingResponse
 
     @POST("api/v1/customer/orders/{id}/cancel")
     suspend fun cancelOrder(@Path("id") id: String, @Body body: CancelOrderRequest): OrderResponse

@@ -59,3 +59,28 @@ data class OrderItemResponse(
 
 @JsonClass(generateAdapter = true)
 data class CancelOrderRequest(val reason: String)
+
+/**
+ * Mirrors backend `OrderTrackingResponse`. The driver fix and map pins are only
+ * present while the order is DISPATCHED/ARRIVING and the backend judged the fix
+ * fresh — a null driverLat means "no live location", not "at 0,0".
+ */
+@JsonClass(generateAdapter = true)
+data class OrderTrackingResponse(
+    val orderId: String,
+    val orderNumber: String,
+    val status: String,
+    val deliverBy: String,
+    val driverName: String? = null,
+    val driverPhoneMask: String? = null,
+    val vehicle: String? = null,
+    val deliveredAt: String? = null,
+    val driverLat: Double? = null,
+    val driverLng: Double? = null,
+    val driverHeadingDeg: Double? = null,
+    val driverLocationAt: String? = null,
+    val pickupLat: Double? = null,
+    val pickupLng: Double? = null,
+    val dropLat: Double? = null,
+    val dropLng: Double? = null
+)

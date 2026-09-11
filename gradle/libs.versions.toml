@@ -19,6 +19,7 @@ securityCrypto = "1.1.0-alpha06"
 firebaseBom = "33.5.1"
 mapsCompose = "6.1.2"
 playServicesMaps = "19.0.0"
+playServicesLocation = "21.3.0"
 ksp = "2.0.21-1.0.25"
 googleServices = "4.4.2"
 razorpay = "1.6.40"
@@ -70,6 +71,7 @@ firebase-messaging      = { group = "com.google.firebase", name = "firebase-mess
 
 maps-compose            = { group = "com.google.maps.android", name = "maps-compose",            version.ref = "mapsCompose" }
 play-services-maps      = { group = "com.google.android.gms", name = "play-services-maps",      version.ref = "playServicesMaps" }
+play-services-location  = { group = "com.google.android.gms", name = "play-services-location",  version.ref = "playServicesLocation" }
 
 razorpay-checkout       = { group = "com.razorpay",         name = "checkout",                    version.ref = "razorpay" }
 

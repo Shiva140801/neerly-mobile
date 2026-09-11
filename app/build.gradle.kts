@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -21,6 +23,14 @@ android {
         vectorDrawables { useSupportLibrary = true }
 
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")  // emulator localhost
+
+        // Google Maps key stays out of VCS: add MAPS_API_KEY=... to local.properties.
+        // An absent key still builds — the map just renders blank tiles.
+        val props = Properties()
+        rootProject.file("local.properties").takeIf { it.exists() }
+            ?.inputStream()?.use { props.load(it) }
+        val mapsKey: String = props.getProperty("MAPS_API_KEY") ?: ""
+        manifestPlaceholders["MAPS_API_KEY"] = mapsKey
     }
 
     buildFeatures {
@@ -44,7 +54,17 @@ android {
     testOptions {
         // MockK inline instrumentation is heap-hungry; the 512m default OOMs
         // when the whole suite runs in one JVM.
-        unitTests.all { it.maxHeapSize = "2g" }
+        unitTests.all {
+            it.maxHeapSize = "2g"
+            // MockK's Byte Buddy cannot instrument JDK 25 classes (the JDK
+            // Gradle's auto-provisioned daemon runs on); every inline transform
+            // fails and the retry churn OOMs the worker. Pin test workers to a
+            // supported LTS.
+            it.javaLauncher.set(
+                project.extensions.getByType(org.gradle.jvm.toolchain.JavaToolchainService::class.java)
+                    .launcherFor { languageVersion.set(org.gradle.jvm.toolchain.JavaLanguageVersion.of(21)) }
+            )
+        }
     }
 }
 
@@ -87,6 +107,7 @@ dependencies {
 
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
 
     // Razorpay Checkout for in-app UPI / card payments
     implementation(libs.razorpay.checkout)

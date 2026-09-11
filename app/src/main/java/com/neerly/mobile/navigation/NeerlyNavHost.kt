@@ -21,6 +21,7 @@ import com.neerly.mobile.feature.checkout.CheckoutScreen
 import com.neerly.mobile.feature.complaint.ComplaintFileScreen
 import com.neerly.mobile.feature.complaint.ComplaintFileViewModel
 import com.neerly.mobile.feature.complaint.ComplaintThreadScreen
+import com.neerly.mobile.core.design.CustomerTab
 import com.neerly.mobile.feature.customer.CustomerHomeScreen
 import com.neerly.mobile.feature.customer.VendorDetailScreen
 import com.neerly.mobile.feature.deposit.DepositsScreen
@@ -51,6 +52,7 @@ import com.neerly.mobile.feature.vendor.settings.VendorBusinessConfigScreen
 import com.neerly.mobile.feature.vendor.settings.VendorSettingsScreen
 import com.neerly.mobile.feature.vendor.team.VendorTeamScreen
 import com.neerly.mobile.feature.vendor.subscriptions.VendorSubscriptionsTodayScreen
+import com.neerly.mobile.feature.search.CustomerSearchScreen
 import com.neerly.mobile.feature.wallet.WalletScreen
 
 object Routes {
@@ -64,6 +66,7 @@ object Routes {
     const val RolePicker = "auth/role-picker"
     const val AdminTotp = "auth/admin-totp"
     const val CustomerHome = "customer/home"
+    const val CustomerSearch = "customer/search"
     const val VendorDetail = "customer/vendor/{vendorId}"
     const val VendorOnboarding = "vendor/onboarding"
 
@@ -124,6 +127,26 @@ object Routes {
     fun orderTracking(orderId: String) = "customer/order/$orderId"
     fun subscriptionDetail(id: String) = "customer/subscription/$id"
     fun complaintThread(id: String) = "customer/complaint/$id"
+}
+
+/**
+ * Bottom-tab navigation. Every tab pops back to Home rather than stacking, so
+ * five taps around the bar leave one entry on the back stack, and `saveState` /
+ * `restoreState` keep each tab's scroll position where the customer left it.
+ */
+private fun NavHostController.switchTab(tab: CustomerTab) {
+    val route = when (tab) {
+        CustomerTab.Home -> Routes.CustomerHome
+        CustomerTab.Orders -> Routes.OrderHistory
+        CustomerTab.Subs -> Routes.Subscriptions
+        CustomerTab.Wallet -> Routes.Wallet
+        CustomerTab.Profile -> Routes.Profile
+    }
+    navigate(route) {
+        popUpTo(Routes.CustomerHome) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
 }
 
 @Composable
@@ -217,7 +240,16 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             CustomerHomeScreen(
                 onVendorClick = { id -> nav.navigate(Routes.vendorDetail(id)) },
                 onOrderClick = { id -> nav.navigate(Routes.orderTracking(id)) },
-                onOpenProfile = { nav.navigate(Routes.Profile) }
+                onOpenProfile = { nav.navigate(Routes.Profile) },
+                onOpenSearch = { nav.navigate(Routes.CustomerSearch) },
+                onSelectTab = nav::switchTab
+            )
+        }
+        composable(Routes.CustomerSearch) {
+            CustomerSearchScreen(
+                onBack = { nav.popBackStack() },
+                onOpenVendor = { vendorId -> nav.navigate(Routes.vendorDetail(vendorId)) },
+                onBrowseVendors = { nav.popBackStack(Routes.CustomerHome, inclusive = false) }
             )
         }
         composable(Routes.VendorDetail) { entry ->
@@ -334,21 +366,24 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.OrderHistory) {
             OrderHistoryScreen(
                 onBack = { nav.popBackStack() },
-                onOpen = { id -> nav.navigate(Routes.orderTracking(id)) }
+                onOpen = { id -> nav.navigate(Routes.orderTracking(id)) },
+                onSelectTab = nav::switchTab
             )
         }
         // ---- Week 3 ----
         composable(Routes.Wallet) {
             WalletScreen(
                 onBack = { nav.popBackStack() },
-                onTopupReady = { _, _ -> }
+                onTopupReady = { _, _ -> },
+                onSelectTab = nav::switchTab
             )
         }
         composable(Routes.Subscriptions) {
             SubscriptionListScreen(
                 onBack = { nav.popBackStack() },
                 onOpen = { id -> nav.navigate(Routes.subscriptionDetail(id)) },
-                onNew = { nav.navigate(Routes.SubscriptionNew) }
+                onNew = { nav.navigate(Routes.SubscriptionNew) },
+                onSelectTab = nav::switchTab
             )
         }
         composable(Routes.SubscriptionNew) {
@@ -394,6 +429,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onDriverMode = { nav.navigate(Routes.DriverHome) },
                 onEventBooking = { nav.navigate(Routes.EventBookingNew) },
                 onSwitchRole = { nav.navigate(Routes.RolePicker) },
+                onSelectTab = nav::switchTab,
                 onLogout = { nav.navigate(Routes.Welcome) { popUpTo(Routes.CustomerHome) { inclusive = true } } }
             )
         }

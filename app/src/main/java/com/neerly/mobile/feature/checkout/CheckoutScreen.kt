@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.CartSkeleton
 import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.OrderResponse
@@ -93,6 +94,13 @@ fun CheckoutScreen(
             }
         }
     ) { padding ->
+        // `SKEL-CART` — the artboard's note is "CTA bar stays anchored", which
+        // is exactly this screen: addresses load over the network while the
+        // Place-order bar holds its position.
+        if (state.loading && state.addresses.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(padding)) { CartSkeleton() }
+            return@Scaffold
+        }
         LazyColumn(
             contentPadding = PaddingValues(NeerlySpacing.x4),
             verticalArrangement = Arrangement.spacedBy(12.dp),

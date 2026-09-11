@@ -19,6 +19,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.CustomerBottomBar
+import com.neerly.mobile.core.design.CustomerTab
+import com.neerly.mobile.core.design.WalletSkeleton
 import com.neerly.mobile.data.dto.WalletResponse
 import com.neerly.mobile.data.dto.WalletTransaction
 import java.math.BigDecimal
@@ -28,6 +31,7 @@ import java.math.BigDecimal
 fun WalletScreen(
     onBack: () -> Unit,
     onTopupReady: (paymentId: String, razorpayOrderId: String?) -> Unit,
+    onSelectTab: (CustomerTab) -> Unit = {},
     vm: WalletViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -42,13 +46,12 @@ fun WalletScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
             )
-        }
+        },
+        bottomBar = { CustomerBottomBar(current = CustomerTab.Wallet, onSelect = onSelectTab) }
     ) { padding ->
         when {
             state.loading && state.balance == null -> {
-                Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                    Text("Loading…", color = NeerlyColors.Ink500)
-                }
+                Box(Modifier.fillMaxSize().padding(padding)) { WalletSkeleton() }
             }
             // Balance never loaded. Showing "₹0" and "No transactions yet" here
             // would tell a customer with money that they have none, so we render

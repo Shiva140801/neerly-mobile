@@ -4,9 +4,12 @@ import com.neerly.mobile.data.dto.AddressResponse
 import com.neerly.mobile.data.dto.OrderResponse
 import com.neerly.mobile.data.dto.VendorCardResponse
 import com.neerly.mobile.data.dto.WalletResponse
+import com.neerly.mobile.core.util.ConnectivityObserver
 import com.neerly.mobile.data.repo.CustomerRepository
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -28,6 +31,9 @@ class CustomerHomeViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repo: CustomerRepository = mockk()
+    private val connectivity: ConnectivityObserver = mockk<ConnectivityObserver>(relaxed = true).also {
+        every { it.isOnline } returns MutableStateFlow(true)
+    }
 
     private val primary = AddressResponse(
         id = "a1", label = "Home", flatNumber = "301", buildingName = "Tulip",
@@ -66,7 +72,7 @@ class CustomerHomeViewModelTest {
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal("340.00")
         )
 
-        val vm = CustomerHomeViewModel(repo)
+        val vm = CustomerHomeViewModel(repo, connectivity)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -87,7 +93,7 @@ class CustomerHomeViewModelTest {
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal.ZERO
         )
 
-        val vm = CustomerHomeViewModel(repo)
+        val vm = CustomerHomeViewModel(repo, connectivity)
         advanceUntilIdle()
 
         assertNull(vm.state.value.primaryAddress)
@@ -101,7 +107,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.activeOrders() } throws RuntimeException("orders service down")
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo)
+        val vm = CustomerHomeViewModel(repo, connectivity)
         advanceUntilIdle()
 
         assertEquals(false, vm.state.value.loading)
@@ -113,7 +119,7 @@ class CustomerHomeViewModelTest {
     fun load_addressesFailure_surfacesError() = runTest(dispatcher) {
         coEvery { repo.addresses() } throws RuntimeException("offline")
 
-        val vm = CustomerHomeViewModel(repo)
+        val vm = CustomerHomeViewModel(repo, connectivity)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -130,7 +136,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.addresses() } throws
             java.io.IOException("Unable to create converter for java.util.List<VendorCardResponse>")
 
-        val vm = CustomerHomeViewModel(repo)
+        val vm = CustomerHomeViewModel(repo, connectivity)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -144,7 +150,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.activeOrders() } returns listOf(activeOrder)
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo)
+        val vm = CustomerHomeViewModel(repo, connectivity)
         advanceUntilIdle()
 
         assertEquals("OUT_FOR_DELIVERY", vm.state.value.activeOrders.single().status)

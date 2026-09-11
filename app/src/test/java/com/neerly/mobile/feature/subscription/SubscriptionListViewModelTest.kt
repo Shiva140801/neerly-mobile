@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
@@ -55,6 +56,8 @@ class SubscriptionListViewModelTest {
         coEvery { repo.subscriptions() } throws RuntimeException("offline")
         val vm = SubscriptionListViewModel(repo)
         advanceUntilIdle()
-        assertEquals("offline", vm.state.value.error)
+        // Customer-facing copy, not `Throwable.message`.
+        assertEquals("Couldn't load your subscriptions. Please try again.", vm.state.value.error)
+        assertFalse(vm.state.value.error!!.contains("offline"))
     }
 }

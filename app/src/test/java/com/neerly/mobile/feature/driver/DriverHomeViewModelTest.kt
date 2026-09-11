@@ -4,10 +4,14 @@ import com.neerly.mobile.data.dto.DriverAssignment
 import com.neerly.mobile.data.dto.DriverShiftResponse
 import com.neerly.mobile.data.repo.DriverRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -27,6 +31,7 @@ class DriverHomeViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repo: DriverRepository = mockk()
+    private val ticker: DriverLocationTicker = mockk(relaxed = true)
 
     @Before fun setUp() { Dispatchers.setMain(dispatcher) }
     @After  fun tearDown() { Dispatchers.resetMain() }
@@ -49,7 +54,7 @@ class DriverHomeViewModelTest {
     fun load_offDuty_emptyAssignments() = runTest(dispatcher) {
         coEvery { repo.currentShift() } returns null
 
-        val vm = DriverHomeViewModel(repo)
+        val vm = DriverHomeViewModel(repo, ticker)
         advanceUntilIdle()
 
         assertFalse(vm.state.value.isOnDuty)
@@ -62,7 +67,7 @@ class DriverHomeViewModelTest {
         coEvery { repo.currentShift() } returns activeShift()
         coEvery { repo.assignments() } returns listOf(assignment("DISPATCHED"))
 
-        val vm = DriverHomeViewModel(repo)
+        val vm = DriverHomeViewModel(repo, ticker)
         advanceUntilIdle()
 
         assertTrue(vm.state.value.isOnDuty)
@@ -77,9 +82,40 @@ class DriverHomeViewModelTest {
             assignment("DELIVERED"), assignment("ARRIVED")
         )
 
-        val vm = DriverHomeViewModel(repo)
+        val vm = DriverHomeViewModel(repo, ticker)
         advanceUntilIdle()
 
         assertEquals("ARRIVED", vm.state.value.activeAssignment?.status)
+    }
+
+    @Test
+    fun locationLoop_pingsWithActiveOrderWhilePermitted_thenStopsOnRevoke() = runTest(dispatcher) {
+        coEvery { repo.currentShift() } returns activeShift()
+        coEvery { repo.assignments() } returns listOf(assignment("DISPATCHED"))
+        val fix = mockk<android.location.Location>(relaxed = true)
+        every { fix.latitude } returns 17.44
+        every { fix.longitude } returns 78.39
+        every { fix.hasBearing() } returns false
+        every { fix.hasSpeed() } returns false
+        every { fix.hasAccuracy() } returns false
+        every { ticker.freshFix() } returns fix
+        every { ticker.isParked() } returns false
+        every { ticker.batteryPct() } returns 80
+        coEvery { repo.ping(any(), any(), any(), any(), any(), any(), any()) } returns Unit
+
+        val vm = DriverHomeViewModel(repo, ticker)
+        advanceUntilIdle()
+        vm.onLocationPermission(true)
+        // Run the first loop iteration only — advanceUntilIdle would never return
+        // against an endless ping loop.
+        advanceTimeBy(100)
+
+        coVerify(atLeast = 1) {
+            repo.ping(17.44, 78.39, null, null, null, 80, "o1")
+        }
+
+        vm.onLocationPermission(false)
+        advanceUntilIdle()
+        verify { ticker.stop() }
     }
 }
