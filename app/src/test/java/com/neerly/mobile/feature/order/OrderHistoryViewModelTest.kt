@@ -32,8 +32,8 @@ class OrderHistoryViewModelTest {
         id = id, orderNumber = "NEE-26115-0001", customerId = "c1",
         vendorId = "v1", driverId = null, status = status,
         subtotal = BigDecimal("100"), deliveryFee = BigDecimal("30"),
-        surgeAmount = null, taxAmount = BigDecimal.ZERO,
-        discount = null, depositAmount = null, totalAmount = BigDecimal("130"),
+        surgeSurcharge = null, taxes = BigDecimal.ZERO,
+        discount = null, depositTotal = null, totalAmount = BigDecimal("130"),
         placedAt = "2026-04-25T09:00:00Z"
     )
 

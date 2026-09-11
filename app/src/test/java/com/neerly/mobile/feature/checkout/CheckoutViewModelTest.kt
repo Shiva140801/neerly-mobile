@@ -47,8 +47,8 @@ class CheckoutViewModelTest {
         id = "o1", orderNumber = "NEE-26115-0001", customerId = "c1",
         vendorId = "v1", driverId = null, status = "PLACED",
         subtotal = BigDecimal("190.00"), deliveryFee = BigDecimal("30.00"),
-        surgeAmount = null, taxAmount = BigDecimal("0.00"),
-        discount = null, depositAmount = null,
+        surgeSurcharge = null, taxes = BigDecimal("0.00"),
+        discount = null, depositTotal = null,
         totalAmount = BigDecimal("220.00"), placedAt = "2026-04-25T09:00:00Z"
     )
 

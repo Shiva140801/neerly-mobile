@@ -37,24 +37,29 @@ data class OrderResponse(
     val status: String,
     val subtotal: BigDecimal,
     val deliveryFee: BigDecimal,
-    val surgeAmount: BigDecimal?,
-    val taxAmount: BigDecimal,
+    // Field names mirror the backend exactly: it serializes `surgeSurcharge`,
+    // `taxes` and `depositTotal`. The old aliases (`surgeAmount`/`taxAmount`/
+    // `depositAmount`) never matched — taxAmount being non-null made Moshi
+    // reject every order payload and blank the whole Orders screen.
+    val surgeSurcharge: BigDecimal?,
+    val taxes: BigDecimal?,
     val discount: BigDecimal?,
-    val depositAmount: BigDecimal?,
+    val depositTotal: BigDecimal?,
     val totalAmount: BigDecimal,
     val placedAt: String,
     val items: List<OrderItemResponse> = emptyList()
 )
 
+/** Field names mirror the backend `OrderItemResponse` exactly — see note on [OrderResponse]. */
 @JsonClass(generateAdapter = true)
 data class OrderItemResponse(
     val productId: String,
     val productName: String,
     val quantity: Int,
     val unitPrice: BigDecimal,
-    val lineTotal: BigDecimal,
-    val keepContainer: Boolean,
-    val depositPerContainer: BigDecimal?
+    val subtotal: BigDecimal,
+    val containerMode: String? = null,
+    val depositAmount: BigDecimal? = null
 )
 
 @JsonClass(generateAdapter = true)
