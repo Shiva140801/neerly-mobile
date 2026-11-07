@@ -22,7 +22,9 @@ import com.neerly.mobile.core.design.NeerlySpacing
 import com.neerly.mobile.core.design.CartSkeleton
 import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.data.dto.AddressResponse
+import com.neerly.mobile.data.dto.OrderQuoteResponse
 import com.neerly.mobile.data.dto.OrderResponse
+import com.neerly.mobile.core.util.asRupees
 
 /**
  * Checkout review — address selector, payment method, slot, total.
@@ -37,10 +39,10 @@ fun CheckoutScreen(
     cart: CartStore,
     onBack: () -> Unit,
     onOrderPlaced: (OrderResponse) -> Unit,
-    onLaunchPayment: (OrderResponse, String /*razorpayOrderId*/) -> Unit,
     vm: CheckoutViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val snapshot by cart.state.collectAsState()
 
     Scaffold(
@@ -61,31 +63,35 @@ fun CheckoutScreen(
                         Text(state.error!!, color = NeerlyColors.Err, fontSize = 12.sp)
                         Spacer(Modifier.height(6.dp))
                     }
+                    state.paymentProblem?.let {
+                        Text(it, color = NeerlyColors.Err, fontSize = 12.sp)
+                        Spacer(Modifier.height(6.dp))
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Pay", fontSize = 12.sp, color = NeerlyColors.Ink500)
-                            Text("₹${snapshot.total}", fontSize = 20.sp,
+                            // Only ever the server's figure — the cart subtotal left out
+                            // delivery and the refundable deposit.
+                            Text(state.quote?.totalAmount?.asRupees() ?: "—", fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
                         }
                         Button(
                             onClick = {
-                                vm.placeOrder { order ->
-                                    if (state.paymentMethod == "COD") {
-                                        onOrderPlaced(order)
-                                    } else {
-                                        vm.initiatePayment(order) { _, razorpayOrderId ->
-                                            if (razorpayOrderId != null) onLaunchPayment(order, razorpayOrderId)
-                                            else onOrderPlaced(order)
-                                        }
-                                    }
-                                }
+                                val activity = context.findActivity() ?: return@Button
+                                vm.placeAndPay(activity) { order -> onOrderPlaced(order) }
                             },
-                            enabled = !state.placing && state.selectedAddress != null && !snapshot.isEmpty,
+                            enabled = !state.placing && !state.paying && state.quote != null &&
+                                state.selectedAddress != null && !snapshot.isEmpty,
                             modifier = Modifier.height(50.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
                         ) {
                             Text(
-                                if (state.placing) "Placing…" else "Place order",
+                                when {
+                                    state.placing -> "Placing…"
+                                    state.paying -> "Paying…"
+                                    state.awaitingPaymentFor != null -> "Try payment again"
+                                    else -> "Place order"
+                                },
                                 fontSize = 15.sp, fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -132,6 +138,10 @@ fun CheckoutScreen(
             item {
                 PaymentMethodRow(state.paymentMethod) { vm.selectPaymentMethod(it) }
             }
+
+            item { Spacer(Modifier.height(4.dp)) }
+            item { SectionHeader("Bill") }
+            item { BillCard(state.quote, state.quoting, onRetry = vm::refreshQuote) }
         }
     }
 }
@@ -196,5 +206,62 @@ private fun PaymentMethodRow(selected: String, onPick: (String) -> Unit) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun BillCard(quote: OrderQuoteResponse?, loading: Boolean, onRetry: () -> Unit) {
+    Surface(
+        color = NeerlyColors.Paper,
+        shape = RoundedCornerShape(NeerlyRadius.md),
+        shadowElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(NeerlySpacing.x4), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            when {
+                quote == null && loading ->
+                    Text("Working out your total…", fontSize = 13.sp, color = NeerlyColors.Ink500)
+                quote == null -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Couldn't price this order.", fontSize = 13.sp, color = NeerlyColors.Err,
+                        modifier = Modifier.weight(1f))
+                    TextButton(onClick = onRetry) { Text("Retry", color = NeerlyColors.CustomerPrimary) }
+                }
+                else -> {
+                    BillLine("Water", quote.subtotal.asRupees())
+                    BillLine(
+                        "Delivery",
+                        if (quote.deliveryFee.signum() == 0) "Free" else quote.deliveryFee.asRupees()
+                    )
+                    if (quote.surgeSurcharge.signum() > 0) BillLine("Busy-hour surcharge", quote.surgeSurcharge.asRupees())
+                    if (quote.taxes.signum() > 0) BillLine("Taxes", quote.taxes.asRupees())
+                    if (quote.discount.signum() > 0) BillLine("Promo", "−" + quote.discount.asRupees(), NeerlyColors.Ok)
+                    quote.promoMessage?.let { Text(it, fontSize = 12.sp, color = NeerlyColors.Warn) }
+                    if (quote.depositTotal.signum() > 0) {
+                        BillLine("Refundable deposit", quote.depositTotal.asRupees())
+                        Text(
+                            "Comes back to your wallet when you return the jar.",
+                            fontSize = 11.sp, color = NeerlyColors.Ink500
+                        )
+                    }
+                    HorizontalDivider(color = NeerlyColors.Ink100)
+                    BillLine("Total", quote.totalAmount.asRupees(), bold = true)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BillLine(
+    label: String,
+    value: String,
+    valueColor: androidx.compose.ui.graphics.Color = NeerlyColors.Ink900,
+    bold: Boolean = false
+) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, fontSize = 14.sp, color = NeerlyColors.Ink700, modifier = Modifier.weight(1f),
+            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+        Text(value, fontSize = 14.sp, color = valueColor,
+            fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold)
     }
 }

@@ -27,10 +27,10 @@ class SubscriptionListViewModelTest {
     private fun sub(id: String = "s1", status: String = "ACTIVE") = SubscriptionResponse(
         id = id, customerId = "c1", vendorId = "v1", vendorName = "Sri Ganesh",
         productId = "p1", productName = "20L Cool", frequency = "DAILY",
-        daysOfWeek = emptyList(), quantity = 1, deliverySlot = "7-9AM",
+        daysOfWeek = emptyList(), quantityPerDelivery = 1, slotStart = "07:00:00", slotEnd = "09:00:00",
+        startDate = "2026-04-25", paymentMethod = "UPI_AUTOPAY",
         addressId = "a1", unitPrice = BigDecimal("95"), status = status,
-        pausedFrom = null, pausedUntil = null, nextDeliveryDate = "2026-04-26",
-        createdAt = "2026-04-25T09:00:00Z"
+        pausedUntil = null, nextDeliveryDate = "2026-04-26"
     )
 
     @Before fun setUp() { Dispatchers.setMain(dispatcher) }

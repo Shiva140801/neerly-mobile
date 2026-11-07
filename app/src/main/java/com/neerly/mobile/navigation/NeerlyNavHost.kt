@@ -14,6 +14,9 @@ import com.neerly.mobile.feature.auth.LanguageScreen
 import com.neerly.mobile.feature.auth.NameScreen
 import com.neerly.mobile.feature.auth.OtpScreen
 import com.neerly.mobile.feature.auth.PhoneScreen
+import com.neerly.mobile.feature.auth.PortalRole
+import com.neerly.mobile.feature.auth.RoleGateScreen
+import com.neerly.mobile.feature.auth.SessionViewModel
 import com.neerly.mobile.feature.auth.SplashScreen
 import com.neerly.mobile.feature.auth.WelcomeScreen
 import com.neerly.mobile.feature.cart.CartScreen
@@ -65,6 +68,8 @@ object Routes {
     const val Address = "address"
     const val RolePicker = "auth/role-picker"
     const val AdminTotp = "auth/admin-totp"
+    const val RoleGate = "auth/enter/{role}?remember={remember}"
+    fun roleGate(role: String, remember: Boolean = false) = "auth/enter/$role?remember=$remember"
     const val CustomerHome = "customer/home"
     const val CustomerSearch = "customer/search"
     const val VendorDetail = "customer/vendor/{vendorId}"
@@ -119,14 +124,36 @@ object Routes {
 
     fun otp(phone: String, role: String): String = "otp/$phone/$role"
     fun vendorDetail(vendorId: String): String = "customer/vendor/$vendorId"
-    fun reviewSubmit(orderId: String, vendorName: String): String =
-        "customer/review/$orderId/${vendorName.replace("/", "-")}"
+    fun reviewSubmit(orderId: String, orderNumber: String): String =
+        "customer/review/$orderId/${android.net.Uri.encode(orderNumber)}"
     fun complaintFile(orderId: String?): String =
         if (orderId.isNullOrBlank()) "customer/complaint?orderId=" else "customer/complaint?orderId=$orderId"
     fun orderPlaced(orderId: String, orderNumber: String) = "customer/order/$orderId/placed/$orderNumber"
     fun orderTracking(orderId: String) = "customer/order/$orderId"
     fun subscriptionDetail(id: String) = "customer/subscription/$id"
     fun complaintThread(id: String) = "customer/complaint/$id"
+}
+
+/** Where each app-facing role lands once its token is active. */
+private fun homeFor(role: String): String = when (role) {
+    PortalRole.VENDOR -> Routes.VendorToday
+    PortalRole.DRIVER -> Routes.DriverHome
+    else -> Routes.CustomerHome
+}
+
+/**
+ * After sign-in or on relaunch: a remembered role goes straight through the gate, several
+ * roles get the picker, a single role goes through the gate (which is a no-op when the
+ * token is already in that role).
+ */
+private fun entryRouteFor(tokenStore: TokenStore): String {
+    val roles = PortalRole.of(tokenStore.grantedRoles)
+    val pref = tokenStore.lastRolePreference?.takeIf { it in roles }
+    return when {
+        pref != null -> Routes.roleGate(pref, remember = true)
+        roles.size > 1 -> Routes.RolePicker
+        else -> Routes.roleGate(roles.firstOrNull() ?: PortalRole.CUSTOMER)
+    }
 }
 
 /**
@@ -155,20 +182,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.Splash) {
             SplashScreen(onDone = {
                 if (tokenStore.hasSession()) {
-                    val roles = tokenStore.grantedRoles
-                    val pref = tokenStore.lastRolePreference
-                    val target = when {
-                        pref != null -> when (pref) {
-                            "VENDOR" -> Routes.VendorToday
-                            "DRIVER" -> Routes.DriverHome
-                            else -> Routes.CustomerHome
-                        }
-                        roles.size > 1 -> Routes.RolePicker
-                        roles.contains("VENDOR") -> Routes.VendorToday
-                        roles.contains("DRIVER") -> Routes.DriverHome
-                        else -> Routes.CustomerHome
-                    }
-                    nav.navigate(target) { popUpTo(Routes.Splash) { inclusive = true } }
+                    nav.navigate(entryRouteFor(tokenStore)) { popUpTo(Routes.Splash) { inclusive = true } }
                 } else {
                     nav.navigate(Routes.Welcome) { popUpTo(Routes.Splash) { inclusive = true } }
                 }
@@ -190,17 +204,13 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.Otp) { entry ->
             val phone = entry.arguments?.getString("phone").orEmpty()
             val role = entry.arguments?.getString("role") ?: "CUSTOMER"
-            OtpScreen(phone = phone, onVerified = { isNew: Boolean, roles: List<String> ->
-                if (isNew) {
-                    nav.navigate(Routes.Name)
-                } else {
-                    val target = when {
-                        roles.size > 1 -> Routes.RolePicker
-                        roles.contains("VENDOR") -> Routes.VendorToday
-                        roles.contains("DRIVER") -> Routes.DriverHome
-                        else -> Routes.CustomerHome
-                    }
-                    nav.navigate(target) { popUpTo(Routes.Welcome) { inclusive = true } }
+            OtpScreen(phone = phone, onVerified = { isNew: Boolean, _: List<String> ->
+                when {
+                    // "I sell water" — the registration wizard, not customer onboarding.
+                    role == "VENDOR" && PortalRole.VENDOR !in tokenStore.grantedRoles ->
+                        nav.navigate(Routes.VendorOnboarding) { popUpTo(Routes.Welcome) { inclusive = true } }
+                    isNew -> nav.navigate(Routes.Name)
+                    else -> nav.navigate(entryRouteFor(tokenStore)) { popUpTo(Routes.Welcome) { inclusive = true } }
                 }
             })
         }
@@ -208,15 +218,31 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             com.neerly.mobile.feature.auth.RolePickerScreen(
                 grantedRoles = tokenStore.grantedRoles,
                 onRoleSelected = { role: String, remember: Boolean ->
-                    if (remember) tokenStore.lastRolePreference = role
-                    val target = when (role) {
-                        "VENDOR" -> Routes.VendorToday
-                        "DRIVER" -> Routes.DriverHome
-                        "ADMIN" -> Routes.AdminTotp
-                        else -> Routes.CustomerHome
-                    }
-                    nav.navigate(target) { popUpTo(Routes.RolePicker) { inclusive = true } }
+                    nav.navigate(Routes.roleGate(role, remember)) { popUpTo(Routes.RolePicker) { inclusive = true } }
                 }
+            )
+        }
+        composable(
+            Routes.RoleGate,
+            arguments = listOf(
+                androidx.navigation.navArgument("role") { defaultValue = PortalRole.CUSTOMER },
+                androidx.navigation.navArgument("remember") {
+                    type = androidx.navigation.NavType.BoolType; defaultValue = false
+                }
+            )
+        ) { entry ->
+            val role = entry.arguments?.getString("role") ?: PortalRole.CUSTOMER
+            val remember = entry.arguments?.getBoolean("remember") ?: false
+            RoleGateScreen(
+                role = role,
+                remember = remember,
+                onReady = {
+                    nav.navigate(homeFor(role)) {
+                        popUpTo(nav.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onBack = { if (!nav.popBackStack()) nav.navigate(Routes.RolePicker) }
             )
         }
         composable(Routes.AdminTotp) {
@@ -261,7 +287,11 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             )
         }
         composable(Routes.VendorOnboarding) {
-            VendorOnboardingWizard(onSubmitted = { nav.popBackStack() })
+            VendorOnboardingWizard(
+                onSubmitted = { nav.popBackStack() },
+                // Arriving from "I sell water" leaves nothing beneath the wizard.
+                onExit = { if (!nav.popBackStack()) nav.navigate(entryRouteFor(tokenStore)) }
+            )
         }
         composable(Routes.ReviewSubmit) { entry ->
             val orderId = entry.arguments?.getString("orderId").orEmpty()
@@ -334,12 +364,9 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             CheckoutScreen(
                 cart = cartStore,
                 onBack = { nav.popBackStack() },
+                // Reached only once the order is settled: cash/wallet on placement,
+                // UPI/card after the backend captured the payment.
                 onOrderPlaced = { order ->
-                    nav.navigate(Routes.orderPlaced(order.id, order.orderNumber)) {
-                        popUpTo(Routes.CustomerHome)
-                    }
-                },
-                onLaunchPayment = { order, _ ->
                     nav.navigate(Routes.orderPlaced(order.id, order.orderNumber)) {
                         popUpTo(Routes.CustomerHome)
                     }
@@ -359,7 +386,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.OrderTracking) {
             OrderTrackingScreen(
                 onBack = { nav.popBackStack() },
-                onRateOrder = { id -> nav.navigate(Routes.reviewSubmit(id, "this order")) },
+                onRateOrder = { id, number -> nav.navigate(Routes.reviewSubmit(id, number)) },
                 onFileComplaint = { id -> nav.navigate(Routes.complaintFile(id)) }
             )
         }
@@ -374,7 +401,6 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.Wallet) {
             WalletScreen(
                 onBack = { nav.popBackStack() },
-                onTopupReady = { _, _ -> },
                 onSelectTab = nav::switchTab
             )
         }
@@ -424,9 +450,9 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onDeposits = { nav.navigate(Routes.Deposits) },
                 onNotifications = { nav.navigate(Routes.NotificationFeed) },
                 onNotificationPrefs = { nav.navigate(Routes.NotificationPrefs) },
-                onVendorDashboard = { nav.navigate(Routes.VendorToday) },
+                onVendorDashboard = { nav.navigate(Routes.roleGate(PortalRole.VENDOR)) },
                 onBecomeVendor = { nav.navigate(Routes.VendorOnboarding) },
-                onDriverMode = { nav.navigate(Routes.DriverHome) },
+                onDriverMode = { nav.navigate(Routes.roleGate(PortalRole.DRIVER)) },
                 onEventBooking = { nav.navigate(Routes.EventBookingNew) },
                 onSwitchRole = { nav.navigate(Routes.RolePicker) },
                 onSelectTab = nav::switchTab,
@@ -450,6 +476,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             VendorSubscriptionsTodayScreen(onBack = { nav.popBackStack() })
         }
         composable(Routes.VendorSettings) {
+            val session: SessionViewModel = hiltViewModel()
             VendorSettingsScreen(
                 onBack = { nav.popBackStack() },
                 onCompliance = { nav.navigate(Routes.VendorCompliance) },
@@ -457,7 +484,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onBusinessConfig = { nav.navigate(Routes.VendorBusinessConfig) },
                 onTeam = { nav.navigate(Routes.VendorTeam) },
                 onBank = { nav.navigate(Routes.VendorBank) },
-                onLogout = { nav.navigate(Routes.Welcome) { popUpTo(Routes.VendorToday) { inclusive = true } } }
+                onLogout = { session.logout { nav.navigate(Routes.Welcome) { popUpTo(nav.graph.id) { inclusive = true } } } },
+                onSwitchRole = if (session.canSwitchRole) ({ nav.navigate(Routes.RolePicker) }) else null
             )
         }
         composable(Routes.VendorBusinessConfig) {
@@ -471,7 +499,12 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         }
         // ---- Week 6 driver app ----
         composable(Routes.DriverHome) {
-            DriverHomeScreen(onCodReconcile = { nav.navigate(Routes.DriverCod) })
+            val session: SessionViewModel = hiltViewModel()
+            DriverHomeScreen(
+                onCodReconcile = { nav.navigate(Routes.DriverCod) },
+                onSwitchRole = if (session.canSwitchRole) ({ nav.navigate(Routes.RolePicker) }) else null,
+                onLogout = { session.logout { nav.navigate(Routes.Welcome) { popUpTo(nav.graph.id) { inclusive = true } } } }
+            )
         }
         composable(Routes.DriverCod) {
             DriverCodReconcileScreen(onBack = { nav.popBackStack() }, onDone = { nav.popBackStack() })

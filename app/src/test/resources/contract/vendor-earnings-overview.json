@@ -1,0 +1,25 @@
+{
+  "today": {
+    "gross": 1365.00,
+    "commission": 136.50,
+    "tax": 24.57,
+    "net": 1203.93,
+    "orders": 7
+  },
+  "week": {
+    "gross": 4195.00,
+    "commission": 419.50,
+    "tax": 75.51,
+    "net": 3699.99,
+    "orders": 11
+  },
+  "month": {
+    "gross": 4195.00,
+    "commission": 419.50,
+    "tax": 75.51,
+    "net": 3699.99,
+    "orders": 11
+  },
+  "nextPayoutAt": "2026-11-09T04:30:00Z",
+  "nextPayoutAmount": 27434.60
+}

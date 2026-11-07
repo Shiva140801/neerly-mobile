@@ -88,9 +88,8 @@ private fun BucketCard(label: String, bucket: EarningsBucket) {
                 fontSize = 12.sp, color = NeerlyColors.Ink500)
             Spacer(Modifier.height(NeerlySpacing.x2))
             Row(Modifier.fillMaxWidth()) {
-                LineCol("Commission", "−₹${bucket.commission}", Modifier.weight(1f))
-                LineCol("Gateway", "−₹${bucket.gatewayFee}", Modifier.weight(1f))
-                LineCol("TCS", "−₹${bucket.tcs}", Modifier.weight(1f))
+                LineCol("Boondh fee", "−₹${bucket.commission}", Modifier.weight(1f))
+                LineCol("GST on fee", "−₹${bucket.tax}", Modifier.weight(1f))
             }
         }
     }

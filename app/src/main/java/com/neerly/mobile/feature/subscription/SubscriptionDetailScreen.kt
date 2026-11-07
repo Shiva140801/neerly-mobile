@@ -72,9 +72,9 @@ fun SubscriptionDetailScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(Modifier.padding(NeerlySpacing.x4)) {
-                            Text(s.productName,
+                            Text(s.productName ?: "Subscription",
                                 fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                            Text(s.vendorName, fontSize = 13.sp, color = NeerlyColors.Ink500)
+                            Text(s.vendorName ?: "", fontSize = 13.sp, color = NeerlyColors.Ink500)
                             Spacer(Modifier.height(NeerlySpacing.x2))
                             Text("${s.frequency} · ${s.quantity} qty · ${s.deliverySlot}",
                                 fontSize = 13.sp, color = NeerlyColors.Ink700)
@@ -140,8 +140,8 @@ fun SubscriptionDetailScreen(
             text = { Text("We'll pause for 7 days. You can resume anytime from this screen. Up to 30 consecutive days allowed.") },
             confirmButton = {
                 TextButton(onClick = {
-                    val from = java.time.Instant.now().toString()
-                    val until = java.time.Instant.now().plusSeconds(7L * 24 * 3600).toString()
+                    val from = java.time.LocalDate.now().toString()
+                    val until = java.time.LocalDate.now().plusDays(7).toString()
                     vm.pause(from, until, reason = null); pauseOpen = false
                 }) { Text("Pause 7 days", color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) }
             },

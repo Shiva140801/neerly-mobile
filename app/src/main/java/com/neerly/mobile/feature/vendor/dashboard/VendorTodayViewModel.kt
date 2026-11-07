@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import com.neerly.mobile.core.util.userMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,10 +32,12 @@ class VendorTodayViewModel @Inject constructor(
                 // supervisorScope: a failed async child (e.g. summary) must surface
                 // via await() into runCatching, not cancel the whole scope.
                 supervisorScope {
+                    // The order lists fail loudly. Swallowed into empty lists, a parse
+                    // failure read as "Quiet so far" over orders waiting to be accepted.
                     val summary = async { repo.today() }
-                    val pending = async { runCatching { repo.pendingOrders() }.getOrDefault(emptyList()) }
-                    val active = async { runCatching { repo.activeOrders() }.getOrDefault(emptyList()) }
-                    val completed = async { runCatching { repo.completedToday() }.getOrDefault(emptyList()) }
+                    val pending = async { repo.pendingOrders() }
+                    val active = async { repo.activeOrders() }
+                    val completed = async { repo.completedToday() }
                     Quartet(summary.await(), pending.await(), active.await(), completed.await())
                 }
             }
@@ -42,26 +45,44 @@ class VendorTodayViewModel @Inject constructor(
                     _state.value = VendorTodayUiState(
                         loading = false,
                         summary = it.a,
-                        pending = it.b,
-                        active = it.c,
-                        completed = it.d
+                        // Newest first: a just-accepted order belongs at the top, not below 18 old ones.
+                        pending = it.b.sortedBy { o -> o.acceptDeadlineAt ?: o.placedAt },
+                        active = it.c.sortedByDescending { o -> o.placedAt },
+                        completed = it.d.sortedByDescending { o -> o.placedAt }
                     )
                 }
                 .onFailure {
-                    _state.value = _state.value.copy(loading = false, error = it.message)
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = it.userMessage(context = "vendor today", fallback = "Couldn't load today's orders.")
+                    )
                 }
         }
     }
 
     fun acceptOrder(orderId: String) {
         viewModelScope.launch {
-            runCatching { repo.accept(orderId) }.onSuccess { refresh() }
+            runCatching { repo.accept(orderId) }
+                .onSuccess { refresh() }
+                .onFailure {
+                    // Usually the 3-minute window closed — say so, and drop the stale card.
+                    _state.value = _state.value.copy(
+                        error = it.userMessage(context = "accept order", fallback = "Couldn't accept that order.")
+                    )
+                    refresh()
+                }
         }
     }
 
     fun rejectOrder(orderId: String, reason: String) {
         viewModelScope.launch {
-            runCatching { repo.reject(orderId, reason) }.onSuccess { refresh() }
+            runCatching { repo.reject(orderId, reason) }
+                .onSuccess { refresh() }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        error = it.userMessage(context = "reject order", fallback = "Couldn't reject that order.")
+                    )
+                }
         }
     }
 

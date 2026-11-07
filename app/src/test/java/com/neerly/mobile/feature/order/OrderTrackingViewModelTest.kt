@@ -48,7 +48,7 @@ class OrderTrackingViewModelTest {
     )
 
     private fun vm(savedOrderId: String = "o1") =
-        OrderTrackingViewModel(repo, connectivity, SavedStateHandle(mapOf("orderId" to savedOrderId)))
+        OrderTrackingViewModel(repo, connectivity, mockk<com.neerly.mobile.data.order.OrderLocalStore>(relaxed = true), SavedStateHandle(mapOf("orderId" to savedOrderId)))
 
     @Test
     fun init_firstFetch_populatesOrder() = runTest(dispatcher) {

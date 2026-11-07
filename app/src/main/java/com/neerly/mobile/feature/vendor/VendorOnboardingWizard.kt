@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
@@ -46,23 +47,53 @@ data class OnboardingState(
 @Composable
 fun VendorOnboardingWizard(
     onSubmitted: () -> Unit,
+    onExit: () -> Unit,
     vm: VendorOnboardingViewModel = hiltViewModel()
 ) {
     NeerlyTheme(role = Role.VENDOR) {
-        var step by remember { mutableStateOf(OnboardingStep.PATH) }
+        var step by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(OnboardingStep.PATH) }
         var state by remember { mutableStateOf(OnboardingState()) }
         val submit by vm.state.collectAsState()
+
+        // One step back at a time; leaving only from the first. There was no way back
+        // at all — the system back button dropped the whole wizard and everything typed.
+        val goBack: () -> Unit = {
+            step = when (step) {
+                OnboardingStep.PATH -> { onExit(); OnboardingStep.PATH }
+                OnboardingStep.BASICS -> OnboardingStep.PATH
+                OnboardingStep.ADDRESS -> OnboardingStep.BASICS
+                OnboardingStep.SERVICE_AREA -> OnboardingStep.ADDRESS
+                OnboardingStep.FSSAI -> OnboardingStep.SERVICE_AREA
+                OnboardingStep.REVIEW -> if (state.isTier2) OnboardingStep.SERVICE_AREA else OnboardingStep.FSSAI
+            }
+        }
+        androidx.activity.compose.BackHandler(enabled = !submit.submitting, onBack = goBack)
 
         Scaffold(
             containerColor = NeerlyColors.Paper,
             topBar = {
                 Surface(color = NeerlyColors.Paper, shadowElevation = 1.dp) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Step ${step.ordinal + 1} of 6",
-                            fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink500
-                        )
-                        Text(step.label(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    Column(modifier = Modifier.statusBarsPadding().padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = goBack,
+                                enabled = !submit.submitting,
+                                modifier = Modifier.offset(x = (-12).dp)
+                            ) {
+                                Icon(
+                                    androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = if (step == OnboardingStep.PATH) "Close" else "Back",
+                                    tint = NeerlyColors.Ink900
+                                )
+                            }
+                            Column(Modifier.offset(x = (-4).dp)) {
+                                Text(
+                                    text = "Step ${step.ordinal + 1} of 6",
+                                    fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink500
+                                )
+                                Text(step.label(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                            }
+                        }
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { (step.ordinal + 1) / 6f },

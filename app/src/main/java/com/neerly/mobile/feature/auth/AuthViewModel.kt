@@ -105,7 +105,7 @@ class AuthViewModel @Inject constructor(
     fun switchRole(newRole: String, onDone: () -> Unit) {
         _state.value = _state.value.copy(verifying = true)
         viewModelScope.launch {
-            runCatching { repo.switchRole(newRole) }
+            runCatching { repo.switchRole(newRole, remember = false) }
                 .onSuccess {
                     _state.value = _state.value.copy(verifying = false)
                     onDone()

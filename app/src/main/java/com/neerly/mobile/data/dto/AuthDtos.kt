@@ -61,7 +61,9 @@ data class SwitchRoleResponse(
     val accessToken: String,
     val accessExpiresAt: String,
     val activeRole: String,
-    val grantedRoles: List<String>
+    // The backend's switch response carries only the new access token and role; granted
+    // roles don't change on a switch. Required here, it failed every switch with a 200.
+    val grantedRoles: List<String>? = null
 )
 
 @JsonClass(generateAdapter = true)

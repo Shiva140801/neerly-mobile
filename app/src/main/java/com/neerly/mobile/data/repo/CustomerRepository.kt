@@ -69,6 +69,7 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun myOrders(page: Int = 0, size: Int = 20): List<OrderResponse> = api.myOrders(page, size)
     suspend fun order(id: String): OrderResponse = api.order(id)
     suspend fun orderTracking(id: String): OrderTrackingResponse = api.orderTracking(id)
+    suspend fun regenerateDeliveryCode(id: String): String? = api.regenerateDeliveryCode(id)["otp"]
 
     // Wallet
     suspend fun wallet(): WalletResponse = api.wallet()

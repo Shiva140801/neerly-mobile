@@ -33,7 +33,8 @@ class VendorRepository @Inject constructor(private val api: NeerlyApi) {
 
     suspend fun today(): VendorTodaySummary = api.vendorTodaySummary()
 
-    suspend fun pendingOrders(): List<VendorOrderResponse> = api.vendorOrders(status = "PLACED")
+    /** Offers waiting on this vendor. "PLACED" never matched one — routed orders are VENDOR_ASSIGNED. */
+    suspend fun pendingOrders(): List<VendorOrderResponse> = api.vendorOrders(status = "VENDOR_ASSIGNED")
     suspend fun activeOrders(): List<VendorOrderResponse> = api.vendorOrders(status = "ACTIVE")
     suspend fun completedToday(): List<VendorOrderResponse> = api.vendorOrders(status = "COMPLETED_TODAY")
     suspend fun order(id: String): VendorOrderResponse = api.vendorOrder(id)
@@ -41,6 +42,7 @@ class VendorRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun accept(id: String) = api.vendorAcceptOrder(id, AcceptOrderRequest())
     suspend fun reject(id: String, reason: String) = api.vendorRejectOrder(id, RejectOrderRequest(reason))
     suspend fun ready(id: String) = api.vendorMarkReady(id)
+    suspend fun offerDriver(id: String) = api.vendorOfferDriver(id)
     suspend fun dispatch(id: String, driverId: String) =
         api.vendorDispatchOrder(id, DispatchOrderRequest(driverId))
 

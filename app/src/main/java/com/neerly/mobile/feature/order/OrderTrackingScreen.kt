@@ -1,6 +1,7 @@
 package com.neerly.mobile.feature.order
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,12 +33,22 @@ import com.neerly.mobile.core.util.asRupees
 @Composable
 fun OrderTrackingScreen(
     onBack: () -> Unit,
-    onRateOrder: (String) -> Unit,
+    onRateOrder: (orderId: String, orderNumber: String) -> Unit,
     onFileComplaint: (String) -> Unit,
     vm: OrderTrackingViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
     val online by vm.isOnline.collectAsState()
+
+    // Coming back from the review screen: re-read so "Rate your order" does not linger.
+    val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current.lifecycle
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, e ->
+            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.refresh()
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
@@ -83,7 +94,10 @@ fun OrderTrackingScreen(
             else -> {
                 val order = state.order!!
                 Column(
-                    Modifier.fillMaxSize().padding(NeerlySpacing.x5),
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                        .padding(NeerlySpacing.x5),
                     verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x4)
                 ) {
                     Text("Order #${order.orderNumber}",
@@ -93,6 +107,15 @@ fun OrderTrackingScreen(
                     // Only stamped when we actually have a fetch time to quote.
                     if (!online) {
                         state.lastUpdatedLabel?.let { StaleDataStamp(it) }
+                    }
+
+                    if (order.status !in OrderTrackingViewModel.TERMINAL) {
+                        DeliveryCodeCard(
+                            code = state.deliveryCode,
+                            requesting = state.codeRequesting,
+                            error = state.codeError,
+                            onRequest = vm::requestNewDeliveryCode
+                        )
                     }
 
                     // Live map while the driver is on the road. Gated on the order
@@ -123,17 +146,20 @@ fun OrderTrackingScreen(
                     }
 
                     when (order.status) {
-                        "DELIVERED" -> {
+                        "DELIVERED" -> if (state.reviewed) {
+                            Text(
+                                "Thanks — you've rated this order.",
+                                fontSize = 13.sp, color = NeerlyColors.Ink500,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                        } else {
                             Button(
-                                onClick = { onRateOrder(order.id) },
+                                onClick = { onRateOrder(order.id, order.orderNumber) },
                                 modifier = Modifier.fillMaxWidth().height(50.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
                             ) { Text("Rate your order", fontWeight = FontWeight.SemiBold) }
                         }
-                        "FAILED", "CANCELLED" -> {
-                            Text("Status: ${order.status}",
-                                fontSize = 13.sp, color = NeerlyColors.Err)
-                        }
+                        "FAILED", "CANCELLED" -> EndedCard(order.status, order.paymentMethod)
                     }
 
                     if (!online) OfflineCapabilityCard(Modifier.fillMaxWidth())
@@ -147,6 +173,61 @@ fun OrderTrackingScreen(
                 }
             }
         }
+        }
+    }
+}
+
+@Composable
+private fun DeliveryCodeCard(code: String?, requesting: Boolean, error: String?, onRequest: () -> Unit) {
+    Surface(
+        color = NeerlyColors.CustomerSofter,
+        shape = RoundedCornerShape(NeerlyRadius.md),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(NeerlySpacing.x4)) {
+            Text("DELIVERY CODE", fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
+                color = NeerlyColors.CustomerDark, letterSpacing = 1.sp)
+            if (code != null) {
+                Text(
+                    code.chunked(3).joinToString(" "),
+                    fontSize = 28.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
+                    letterSpacing = 2.sp
+                )
+                Text("Read this to your driver at the door — they can't complete the drop without it.",
+                    fontSize = 12.sp, color = NeerlyColors.Ink600)
+            } else {
+                Text("This phone doesn't have the code for this order.",
+                    fontSize = 13.sp, color = NeerlyColors.Ink700)
+                Spacer(Modifier.height(6.dp))
+                OutlinedButton(onClick = onRequest, enabled = !requesting) {
+                    Text(if (requesting) "Getting a code…" else "Get a delivery code",
+                        color = NeerlyColors.CustomerPrimary)
+                }
+            }
+            error?.let { Text(it, fontSize = 12.sp, color = NeerlyColors.Err) }
+        }
+    }
+}
+
+@Composable
+private fun EndedCard(status: String, paymentMethod: String?) {
+    val (title, body) = if (status == "FAILED") {
+        "No vendor could take this order" to
+            if (paymentMethod == "COD") "Nothing was charged. Try again in a little while, or pick another vendor."
+            else "Any amount you paid is being refunded to your original payment method."
+    } else {
+        "This order was cancelled" to
+            if (paymentMethod == "COD") "Nothing was charged." else "Any amount you paid is being refunded."
+    }
+    Surface(
+        color = NeerlyColors.ErrSoft,
+        shape = RoundedCornerShape(NeerlyRadius.md),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(NeerlySpacing.x4)) {
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Err)
+            Spacer(Modifier.height(4.dp))
+            Text(body, fontSize = 13.sp, color = NeerlyColors.Ink700)
         }
     }
 }
@@ -176,13 +257,9 @@ private fun StatusTimeline(current: String) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.size(22.dp).clip(CircleShape)
-                        .background(
-                            when {
-                                current == "FAILED" || current == "CANCELLED" -> NeerlyColors.Err
-                                done -> NeerlyColors.Ok
-                                else -> NeerlyColors.Ink200
-                            }
-                        ),
+                        // Reached steps stay green on an ended order; painting every step red
+                        // read as "all of this failed". The ended card says what happened.
+                        .background(if (done) NeerlyColors.Ok else NeerlyColors.Ink200),
                     contentAlignment = Alignment.Center
                 ) {
                     if (done) Text("✓", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)

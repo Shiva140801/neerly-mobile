@@ -34,14 +34,14 @@ class PaymentLauncher @Inject constructor() {
         customerName: String,
         customerEmail: String?,
         customerContact: String?,
-        description: String = "Neerly water delivery"
+        description: String = "Boondh water delivery"
     ) {
         val checkout = Checkout().apply {
             setKeyID(keyId)
         }
 
         val options = JSONObject().apply {
-            put("name", "Neerly")
+            put("name", "Boondh")
             put("description", description)
             put("order_id", razorpayOrderId)
             put("currency", "INR")
@@ -52,7 +52,7 @@ class PaymentLauncher @Inject constructor() {
                 if (!customerContact.isNullOrBlank()) put("contact", customerContact)
             })
             put("theme", JSONObject().apply {
-                put("color", "#2E75B6") // customer role primary
+                put("color", "#233580") // Boondh navy
             })
             // Method toggles — UPI + card only; Razorpay wallet UI off
             put("method", JSONObject().apply {

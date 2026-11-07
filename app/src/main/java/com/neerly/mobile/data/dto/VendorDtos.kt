@@ -23,7 +23,11 @@ data class VendorOrderResponse(
     val notes: String?,
     val status: String,                   // PLACED / VENDOR_ASSIGNED / PREPARING / OUT_FOR_DELIVERY / ARRIVING / DELIVERED / CANCELLED / FAILED
     val placedAt: String,
-    val acceptDeadlineAt: String?         // 3-min countdown for new orders
+    val acceptDeadlineAt: String?,        // 3-min countdown for new orders
+    val jarsGoingOut: Int = 0,
+    val emptiesExpected: Int? = null,
+    val depositTotal: BigDecimal = BigDecimal.ZERO,
+    val driverId: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -32,6 +36,13 @@ data class VendorOrderItem(
     val productName: String,
     val quantity: Int,
     val unitPrice: BigDecimal
+)
+
+@JsonClass(generateAdapter = true)
+data class DriverOfferResult(
+    val offered: Boolean,
+    val driverId: String? = null,
+    val expiresAt: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -60,12 +71,26 @@ data class VendorTodaySummary(
 @JsonClass(generateAdapter = true)
 data class VendorProductRow(
     val id: String,
-    val name: String,                     // from template
-    val brand: String?,
+    /** Backend nests the name in the template; a flat `name` never arrived and broke the catalog. */
+    val template: VendorProductTemplate,
+    val brand: String? = null,
     val price: BigDecimal,
-    val photoUrl: String?,
+    val photoUrl: String? = null,
     val status: String,                   // AVAILABLE / OUT_OF_STOCK / PAUSED
-    val dailyCapacity: Int
+    val dailyCapacity: Int,
+    val soldThisMonth: Long? = null,
+    val containersInStock: Int? = null
+) {
+    /** "Plain 20L Jar" — brand then template, as orders snapshot it. */
+    val name: String get() = listOfNotNull(brand, template.displayName).joinToString(" ")
+}
+
+@JsonClass(generateAdapter = true)
+data class VendorProductTemplate(
+    val id: String,
+    val categoryCode: String,
+    val displayName: String,
+    val sizeLabel: String
 )
 
 @JsonClass(generateAdapter = true)
@@ -73,6 +98,7 @@ data class TogglePauseRequest(val paused: Boolean)
 
 // ---------- Vendor earnings ----------
 
+/** Mirror of backend `EarningsOverviewResponse` (GET /vendor/earnings/overview). */
 @JsonClass(generateAdapter = true)
 data class EarningsSummary(
     val today: EarningsBucket,
@@ -82,12 +108,12 @@ data class EarningsSummary(
     val nextPayoutAmount: BigDecimal?
 )
 
+/** Platform fee and the GST on it are the only deductions the backend makes. */
 @JsonClass(generateAdapter = true)
 data class EarningsBucket(
     val gross: BigDecimal,
     val commission: BigDecimal,
-    val gatewayFee: BigDecimal,
-    val tcs: BigDecimal,
+    val tax: BigDecimal,
     val net: BigDecimal,
     val orders: Int
 )

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
+import com.neerly.mobile.core.util.asRupees
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
 import com.neerly.mobile.data.dto.VendorOrderResponse
@@ -49,14 +51,15 @@ fun VendorTodayScreen(
                 actions = {
                     TextButton(onClick = onCatalog) { Text("Catalog", color = NeerlyColors.VendorPrimary) }
                     TextButton(onClick = onEarnings) { Text("Earnings", color = NeerlyColors.VendorPrimary) }
-                    TextButton(onClick = onSettings) { Text("More", color = NeerlyColors.Ink700) }
+                    TextButton(onClick = onSettings) { Text("More", color = NeerlyColors.VendorPrimary) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
             )
         }
     ) { padding ->
         when {
-            state.loading -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
+            // Only the first load blanks the screen; a refresh after Accept keeps the list.
+            state.loading && state.summary == null -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
                 Text("Loading…", color = NeerlyColors.Ink500)
             }
             else -> LazyColumn(
@@ -65,6 +68,17 @@ fun VendorTodayScreen(
                 modifier = Modifier.fillMaxSize().padding(padding)
             ) {
                 item { SummaryCard(state) }
+                state.error?.let {
+                    item {
+                        Surface(color = NeerlyColors.ErrSoft, shape = RoundedCornerShape(NeerlyRadius.md),
+                            modifier = Modifier.fillMaxWidth()) {
+                            Row(Modifier.padding(start = NeerlySpacing.x4), verticalAlignment = Alignment.CenterVertically) {
+                                Text(it, color = NeerlyColors.Err, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                TextButton(onClick = vm::refresh) { Text("Retry", color = NeerlyColors.Err) }
+                            }
+                        }
+                    }
+                }
                 if (state.pending.isNotEmpty()) {
                     item { Section("New orders — accept or reject", state.pending.size) }
                     items(state.pending, key = { it.id }) { order ->
@@ -83,16 +97,13 @@ fun VendorTodayScreen(
                     item { Section("Completed today", state.completed.size) }
                     items(state.completed, key = { it.id }) { OrderRow(it, onOpen) }
                 }
-                if (state.pending.isEmpty() && state.active.isEmpty() && state.completed.isEmpty()) {
+                if (state.error == null && state.pending.isEmpty() && state.active.isEmpty() && state.completed.isEmpty()) {
                     item {
                         Text(
                             "Quiet so far. Orders show up here as customers place them.",
                             fontSize = 13.sp, color = NeerlyColors.Ink500
                         )
                     }
-                }
-                state.error?.let {
-                    item { Text(it, color = NeerlyColors.Err, fontSize = 13.sp) }
                 }
             }
         }
@@ -196,25 +207,21 @@ private fun PendingOrderCard(
                     Text(order.customerFirstName,
                         fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
                 }
-                Surface(color = NeerlyColors.WarnSoft, shape = RoundedCornerShape(NeerlyRadius.pill)) {
-                    Text("3:00 to accept",
-                        Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        fontSize = 11.sp, color = NeerlyColors.Warn,
-                        fontWeight = FontWeight.Bold)
-                }
+                AcceptCountdown(order.acceptDeadlineAt)
             }
             Spacer(Modifier.height(NeerlySpacing.x2))
             order.items.forEach {
-                Text("${it.quantity} × ${it.productName} @ ₹${it.unitPrice}",
+                Text("${it.quantity} × ${it.productName} @ ${it.unitPrice.asRupees()}",
                     fontSize = 13.sp, color = NeerlyColors.Ink700)
             }
             Spacer(Modifier.height(NeerlySpacing.x2))
-            Text("${order.deliveryAddress} · ${order.pincode}" +
+            // deliveryAddress already ends in the pincode; appending it again doubled it.
+            Text(order.deliveryAddress.ifBlank { order.pincode } +
                 (order.distanceKm?.let { " · ${it} km" } ?: ""),
                 fontSize = 12.sp, color = NeerlyColors.Ink500)
             Spacer(Modifier.height(NeerlySpacing.x2))
             Row {
-                Text("₹${order.orderValue} order · ₹${order.yourEarning} earning",
+                Text("${order.orderValue.asRupees()} order · you earn ${order.yourEarning.asRupees()}",
                     fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                     color = NeerlyColors.VendorDark, modifier = Modifier.weight(1f))
                 Text(order.paymentStatus, fontSize = 11.sp, color = NeerlyColors.Ink500)
@@ -252,11 +259,43 @@ private fun OrderRow(order: VendorOrderResponse, onOpen: (String) -> Unit) {
                 Text(order.status.replace("_", " ").lowercase()
                     .replaceFirstChar { it.uppercase() },
                     fontSize = 11.sp, color = NeerlyColors.VendorDark)
-                Text("${order.items.sumOf { it.quantity }} items · ${order.pincode}",
+                Text(order.items.sumOf { it.quantity }.let { n -> if (n == 1) "1 item" else "$n items" } +
+                    " · ${order.pincode}",
                     fontSize = 11.sp, color = NeerlyColors.Ink500)
             }
-            Text("₹${order.yourEarning}",
+            Text(order.yourEarning.asRupees(),
                 fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
         }
+    }
+}
+
+/**
+ * Live accept timer from the server's deadline. It used to be the literal text
+ * "3:00 to accept", frozen while the real window ran out underneath it.
+ */
+@Composable
+private fun AcceptCountdown(deadlineIso: String?) {
+    val deadline = remember(deadlineIso) {
+        deadlineIso?.let { runCatching { java.time.Instant.parse(it) }.getOrNull() }
+    } ?: return
+    var now by remember { mutableStateOf(java.time.Instant.now()) }
+    LaunchedEffect(deadline) {
+        while (now.isBefore(deadline)) {
+            kotlinx.coroutines.delay(1_000)
+            now = java.time.Instant.now()
+        }
+    }
+    val left = java.time.Duration.between(now, deadline).seconds.coerceAtLeast(0)
+    val urgent = left <= 30
+    Surface(
+        color = if (urgent) NeerlyColors.ErrSoft else NeerlyColors.WarnSoft,
+        shape = RoundedCornerShape(NeerlyRadius.pill)
+    ) {
+        Text(
+            if (left == 0L) "Expired" else "%d:%02d to accept".format(left / 60, left % 60),
+            Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            fontSize = 11.sp, color = if (urgent) NeerlyColors.Err else NeerlyColors.Warn,
+            fontWeight = FontWeight.Bold
+        )
     }
 }

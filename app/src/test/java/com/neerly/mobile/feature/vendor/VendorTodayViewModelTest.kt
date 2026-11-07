@@ -64,17 +64,18 @@ class VendorTodayViewModelTest {
     }
 
     @Test
-    fun load_partialFailure_ignoresMissingSegments() = runTest(dispatcher) {
+    fun load_listFailure_isSurfaced_notShownAsQuiet() = runTest(dispatcher) {
+        // A list that fails to load must not read as "Quiet so far" — that is how a
+        // DTO mismatch hid every incoming order from the vendor.
         coEvery { repo.today() } returns summary()
-        coEvery { repo.pendingOrders() } throws RuntimeException("filter not supported")
+        coEvery { repo.pendingOrders() } throws RuntimeException("parse failure")
         coEvery { repo.activeOrders() } returns emptyList()
         coEvery { repo.completedToday() } returns emptyList()
 
         val vm = VendorTodayViewModel(repo)
         advanceUntilIdle()
 
-        assertNotNull(vm.state.value.summary)
-        assertEquals(0, vm.state.value.pending.size)
+        assertEquals("Couldn't load today's orders.", vm.state.value.error)
     }
 
     @Test
@@ -87,6 +88,6 @@ class VendorTodayViewModelTest {
         val vm = VendorTodayViewModel(repo)
         advanceUntilIdle()
 
-        assertEquals("offline", vm.state.value.error)
+        assertEquals("Couldn't load today's orders.", vm.state.value.error)
     }
 }

@@ -27,6 +27,8 @@ class WalletViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repo: CustomerRepository = mockk()
+    private val gateway: com.neerly.mobile.feature.checkout.GatewayPayments = mockk()
+    private val activity: android.app.Activity = mockk(relaxed = true)
 
     @Before fun setUp() { Dispatchers.setMain(dispatcher) }
     @After  fun tearDown() { Dispatchers.resetMain() }
@@ -39,7 +41,7 @@ class WalletViewModelTest {
             WalletTransaction("t1", "TOPUP", BigDecimal("500"),
                 BigDecimal("500"), "UPI", "2026-04-25T09:00:00Z")
         )
-        val vm = WalletViewModel(repo)
+        val vm = WalletViewModel(repo, gateway)
         advanceUntilIdle()
 
         assertEquals(BigDecimal("500"), vm.state.value.balance?.availableAmount)
@@ -52,29 +54,49 @@ class WalletViewModelTest {
             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
         coEvery { repo.walletTransactions() } returns emptyList()
 
-        val vm = WalletViewModel(repo)
+        val vm = WalletViewModel(repo, gateway)
         advanceUntilIdle()
-        vm.topup(BigDecimal.ZERO) { fail("should not call") }
+        vm.topup(activity, BigDecimal.ZERO)
         advanceUntilIdle()
 
         assertEquals("Enter a valid amount", vm.state.value.error)
     }
 
     @Test
-    fun topup_success_invokesCallbackWithResult() = runTest(dispatcher) {
+    fun topup_captured_saysSo_andReloadsBalance() = runTest(dispatcher) {
+        coEvery { repo.wallet() } returns WalletResponse("u1",
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO) andThen WalletResponse("u1",
+            BigDecimal("500"), BigDecimal.ZERO, BigDecimal("500"))
+        coEvery { repo.walletTransactions() } returns emptyList()
+        val init = InitiatePaymentResult("pay1", "rzp_order_1", 50000L, "rzp_test_key")
+        coEvery { repo.walletTopup(any<WalletTopupRequest>()) } returns init
+        coEvery { gateway.pay(activity, init, any(), any(), any()) } returns
+            com.neerly.mobile.feature.checkout.PaymentOutcome.Captured
+
+        val vm = WalletViewModel(repo, gateway)
+        advanceUntilIdle()
+        vm.topup(activity, BigDecimal("500"))
+        advanceUntilIdle()
+
+        assertEquals(BigDecimal("500"), vm.state.value.balance?.availableAmount)
+    }
+
+    @Test
+    fun topup_declined_showsWhy() = runTest(dispatcher) {
         coEvery { repo.wallet() } returns WalletResponse("u1",
             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
         coEvery { repo.walletTransactions() } returns emptyList()
         coEvery { repo.walletTopup(any<WalletTopupRequest>()) } returns
             InitiatePaymentResult("pay1", "rzp_order_1", 50000L, "rzp_test_key")
+        coEvery { gateway.pay(any(), any(), any(), any(), any()) } returns
+            com.neerly.mobile.feature.checkout.PaymentOutcome.Declined("Payment cancelled. Nothing was taken.")
 
-        val vm = WalletViewModel(repo)
+        val vm = WalletViewModel(repo, gateway)
         advanceUntilIdle()
-        var captured: InitiatePaymentResult? = null
-        vm.topup(BigDecimal("500")) { captured = it }
+        vm.topup(activity, BigDecimal("500"))
         advanceUntilIdle()
 
-        assertEquals("rzp_order_1", captured?.razorpayOrderId)
+        assertEquals("Payment cancelled. Nothing was taken.", vm.state.value.error)
     }
 
     @Test
@@ -82,7 +104,7 @@ class WalletViewModelTest {
         coEvery { repo.wallet() } throws
             RuntimeException("Unable to create converter for WalletResponse")
 
-        val vm = WalletViewModel(repo)
+        val vm = WalletViewModel(repo, gateway)
         advanceUntilIdle()
 
         // The screen keys "did the load succeed?" off `balance`, so a failed load

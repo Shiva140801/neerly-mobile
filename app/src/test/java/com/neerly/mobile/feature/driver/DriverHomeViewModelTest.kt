@@ -79,13 +79,13 @@ class DriverHomeViewModelTest {
     fun activeAssignment_onlyNonTerminalStates() = runTest(dispatcher) {
         coEvery { repo.currentShift() } returns activeShift()
         coEvery { repo.assignments() } returns listOf(
-            assignment("DELIVERED"), assignment("ARRIVED")
+            assignment("DELIVERED"), assignment("ARRIVING")
         )
 
         val vm = DriverHomeViewModel(repo, ticker)
         advanceUntilIdle()
 
-        assertEquals("ARRIVED", vm.state.value.activeAssignment?.status)
+        assertEquals("ARRIVING", vm.state.value.activeAssignment?.status)
     }
 
     @Test

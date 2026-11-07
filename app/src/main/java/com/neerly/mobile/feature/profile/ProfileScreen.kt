@@ -116,10 +116,10 @@ fun ProfileScreen(
             LanguageRow(state.user?.preferredLanguage ?: "en", vm::updateLanguage)
 
             SectionLabel("Business")
-            if (state.grantedRoles.size > 1) {
+            if (com.neerly.mobile.feature.auth.PortalRole.of(state.grantedRoles).size > 1) {
                 ProfileLink("Switch role", onSwitchRole)
             }
-            if (state.grantedRoles.contains("VENDOR")) {
+            if (state.grantedRoles.contains(com.neerly.mobile.feature.auth.PortalRole.VENDOR)) {
                 ProfileLink("Vendor dashboard", onVendorDashboard)
             } else {
                 ProfileLink("Become a vendor", onBecomeVendor)

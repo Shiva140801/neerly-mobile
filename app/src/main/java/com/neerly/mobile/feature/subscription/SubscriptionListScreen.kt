@@ -140,9 +140,9 @@ private fun Row(s: SubscriptionResponse, onOpen: (String) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
-                Text(s.productName, fontSize = 15.sp,
+                Text(s.productName ?: "Subscription", fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                Text("${s.vendorName} · ${s.frequency} · ${s.deliverySlot}",
+                Text(listOfNotNull(s.vendorName, s.frequency, s.deliverySlot).joinToString(" · "),
                     fontSize = 12.sp, color = NeerlyColors.Ink500)
                 s.nextDeliveryDate?.let {
                     Text("Next: ${it.take(10)}", fontSize = 11.sp, color = NeerlyColors.CustomerDark)

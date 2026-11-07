@@ -33,6 +33,7 @@ fun VendorSettingsScreen(
     onTeam: () -> Unit = {},
     onBank: () -> Unit = {},
     onLogout: () -> Unit,
+    onSwitchRole: (() -> Unit)? = null,
     vm: VendorSettingsViewModel = hiltViewModel()
 ) {
     var closeOpen by remember { mutableStateOf(false) }
@@ -69,6 +70,13 @@ fun VendorSettingsScreen(
             ) { Text("Emergency close", fontWeight = FontWeight.SemiBold) }
 
             Spacer(Modifier.height(8.dp))
+            onSwitchRole?.let {
+                OutlinedButton(
+                    onClick = it,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NeerlyColors.VendorPrimary)
+                ) { Text("Switch role") }
+            }
             OutlinedButton(
                 onClick = onLogout,
                 modifier = Modifier.fillMaxWidth(),

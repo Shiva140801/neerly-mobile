@@ -100,8 +100,9 @@ class CartStoreTest {
 
     @Test
     fun total_appliesDeliveryAndSurgeAndDepositLessDiscount_clampedToZero() {
-        store.addItem("v1", "Sri Ganesh", item("p1", "100", qty = 1))
-        store.setPricing(BigDecimal("30"), BigDecimal("20"), BigDecimal("500"))
+        // The deposit now comes from the kept line itself, not a separate setter.
+        store.addItem("v1", "Sri Ganesh", item("p1", "100", qty = 1, keep = true, deposit = "500"))
+        store.setPricing(BigDecimal("30"), BigDecimal("20"))
         store.applyPromoQuote("NEERLY50", BigDecimal("100"))
         // 100 + 30 + 20 + 500 − 100 = 550
         assertEquals(BigDecimal("550.00"), store.snapshot.total)

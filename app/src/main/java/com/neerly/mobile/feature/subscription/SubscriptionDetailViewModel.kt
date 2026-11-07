@@ -38,19 +38,22 @@ class SubscriptionDetailViewModel @Inject constructor(
         }
     }
 
-    fun pause(pausedFromIso: String, pausedUntilIso: String, reason: String?) {
+    /** Dates are yyyy-MM-dd. */
+    fun pause(pausedFrom: String, pausedUntil: String, reason: String?) {
         viewModelScope.launch {
             runCatching {
-                repo.pauseSubscription(subscriptionId, PauseSubscriptionRequest(pausedFromIso, pausedUntilIso, reason))
+                repo.pauseSubscription(subscriptionId, PauseSubscriptionRequest(pausedFrom, pausedUntil, reason))
             }.onSuccess { _state.value = _state.value.copy(subscription = it) }
              .onFailure { _state.value = _state.value.copy(error = it.message) }
         }
     }
 
+    /** Skip answers with the skipped delivery, not the subscription; re-read the subscription. */
     fun skip(deliveryDate: String) {
         viewModelScope.launch {
             runCatching {
                 repo.skipSubscription(subscriptionId, SkipSubscriptionRequest(deliveryDate))
+                repo.subscription(subscriptionId)
             }.onSuccess { _state.value = _state.value.copy(subscription = it) }
              .onFailure { _state.value = _state.value.copy(error = it.message) }
         }

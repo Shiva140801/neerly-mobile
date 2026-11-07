@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import com.neerly.mobile.core.util.userMessage
+import com.neerly.mobile.data.dto.DriverOffer
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 /**
@@ -37,6 +40,14 @@ class DriverHomeViewModel @Inject constructor(
     val state: StateFlow<DriverHomeUiState> = _state.asStateFlow()
 
     private var sendJob: Job? = null
+    private var offerJob: Job? = null
+    private var visible = false
+
+    /** Polling runs only while the screen is on screen — not for a backgrounded app. */
+    fun setVisible(isVisible: Boolean) {
+        visible = isVisible
+        if (isVisible) refresh() else syncOfferLoop()
+    }
     private var locationPermitted = false
 
     init { refresh() }
@@ -102,10 +113,13 @@ class DriverHomeViewModel @Inject constructor(
                 shift to jobs
             }
                 .onSuccess { (shift, jobs) ->
-                    _state.value = DriverHomeUiState(loading = false, shift = shift, assignments = jobs)
+                    _state.value = _state.value.copy(
+                        loading = false, shift = shift, assignments = jobs, error = null
+                    )
                     syncLocationLoop()
+                    syncOfferLoop()
                 }
-                .onFailure { _state.value = DriverHomeUiState(loading = false, error = it.message) }
+                .onFailure { _state.value = DriverHomeUiState(loading = false, error = it.say("driver home")) }
         }
     }
 
@@ -113,7 +127,7 @@ class DriverHomeViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.startShift() }
                 .onSuccess { _state.value = _state.value.copy(shift = it); refresh() }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+                .onFailure { _state.value = _state.value.copy(error = it.say("start shift")) }
         }
     }
 
@@ -122,28 +136,82 @@ class DriverHomeViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.endShift(id, codHandedOver) }
                 .onSuccess { refresh() }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
-        }
-    }
-
-    fun startDelivery(orderId: String) {
-        viewModelScope.launch {
-            runCatching { repo.startDelivery(orderId) }.onSuccess { refresh() }
+                .onFailure { _state.value = _state.value.copy(error = it.say("end shift")) }
         }
     }
 
     fun markArrived(orderId: String) {
         viewModelScope.launch {
-            runCatching { repo.markArrived(orderId) }.onSuccess { refresh() }
+            runCatching { repo.markArrived(orderId) }
+                .onSuccess { refresh() }
+                .onFailure { _state.value = _state.value.copy(error = it.say("mark arrived")) }
         }
     }
 
-    fun completeDelivery(orderId: String, otp: String, photoS3Key: String, codCollected: BigDecimal?) {
+    /** Returns through [onDone] so the dialog stays open on a wrong code. */
+    fun completeDelivery(
+        orderId: String, otp: String, photoS3Key: String, codCollected: BigDecimal?,
+        emptiesCollected: Int?, codSettlement: String?, onDone: (ok: Boolean) -> Unit
+    ) {
+        _state.value = _state.value.copy(delivering = true, deliverError = null)
         viewModelScope.launch {
-            runCatching { repo.complete(orderId, otp, photoS3Key, codCollected) }
-                .onSuccess { refresh() }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+            runCatching { repo.complete(orderId, otp, photoS3Key, codCollected, emptiesCollected, codSettlement) }
+                .onSuccess {
+                    _state.value = _state.value.copy(
+                        delivering = false, lastDelivered = _state.value.assignments.firstOrNull { it.orderId == orderId }?.orderNumber
+                    )
+                    onDone(true); refresh()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(delivering = false, deliverError = it.say("deliver"))
+                    onDone(false)
+                }
         }
+    }
+
+    // ---- Task offers (S-DRIV-ASSIGN) ----------------------------------------------------
+    // A vendor offers a run; it reaches this driver with an accept window. The app had no
+    // offer screen at all, so a driver could never take a run on their phone.
+
+    private fun syncOfferLoop() {
+        val shouldPoll = visible && _state.value.isOnDuty && _state.value.activeAssignment == null
+        if (!shouldPoll) { offerJob?.cancel(); offerJob = null; _state.value = _state.value.copy(offer = null); return }
+        if (offerJob?.isActive == true) return
+        offerJob = viewModelScope.launch {
+            while (true) {
+                runCatching { repo.pendingOffer() }
+                    .onSuccess { _state.value = _state.value.copy(offer = it) }
+                delay(OFFER_POLL_MS)
+            }
+        }
+    }
+
+    fun acceptOffer() {
+        val offer = _state.value.offer ?: return
+        _state.value = _state.value.copy(offerBusy = true, error = null)
+        viewModelScope.launch {
+            runCatching { repo.acceptOffer(offer.orderId) }
+                .onSuccess { _state.value = _state.value.copy(offer = null, offerBusy = false); refresh() }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        offer = null, offerBusy = false,
+                        error = it.say("accept run", "That run is no longer available.")
+                    )
+                }
+        }
+    }
+
+    fun passOffer() {
+        val offer = _state.value.offer ?: return
+        _state.value = _state.value.copy(offer = null)
+        viewModelScope.launch { runCatching { repo.passOffer(offer.orderId) } }
+    }
+
+    private fun Throwable.say(context: String, fallback: String = "That didn't go through. Try again.") =
+        userMessage(context = context, fallback = fallback)
+
+    private companion object {
+        const val OFFER_POLL_MS = 5_000L
     }
 }
 
@@ -151,10 +219,15 @@ data class DriverHomeUiState(
     val loading: Boolean = true,
     val shift: DriverShiftResponse? = null,
     val assignments: List<DriverAssignment> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val offer: DriverOffer? = null,
+    val offerBusy: Boolean = false,
+    val delivering: Boolean = false,
+    val deliverError: String? = null,
+    val lastDelivered: String? = null
 ) {
     val isOnDuty: Boolean get() = shift != null && shift.endedAt == null
     val activeAssignment: DriverAssignment? get() = assignments.firstOrNull {
-        it.status in setOf("DISPATCHED", "EN_ROUTE", "ARRIVED")
+        it.status in setOf("PREPARING", "DISPATCHED", "ARRIVING")
     }
 }

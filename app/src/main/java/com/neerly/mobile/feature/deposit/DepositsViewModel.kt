@@ -37,8 +37,19 @@ class DepositsViewModel @Inject constructor(
      * to the next delivery so it doesn't go through this entry point.
      */
     fun scheduleReturn(depositId: String, mode: String) {
+        val deposit = _state.value.deposits.firstOrNull { it.id == depositId } ?: return
         viewModelScope.launch {
-            runCatching { repo.scheduleReturn(ReturnRequest(depositId, mode)) }
+            runCatching {
+                // A pickup needs somewhere to pick up from: the customer's primary address.
+                val addressId = if (mode == "SCHEDULED_PICKUP") {
+                    repo.addresses().let { all -> all.firstOrNull { it.isPrimary } ?: all.firstOrNull() }?.id
+                        ?: error("Add an address first so the driver knows where to collect the jar")
+                } else null
+                repo.scheduleReturn(ReturnRequest(
+                    depositId = depositId, returnMode = mode,
+                    containerCount = deposit.containerCount, addressId = addressId
+                ))
+            }
                 .onSuccess { refresh() }
                 .onFailure { _state.value = _state.value.copy(error = it.message) }
         }
@@ -50,7 +61,9 @@ data class DepositsUiState(
     val deposits: List<DepositResponse> = emptyList(),
     val error: String? = null
 ) {
-    val held      get() = deposits.filter { it.status == "HELD" }
+    // Backend statuses: HELD, LATE (still out, fee accruing), RETURNED, FORFEIT, WAIVED.
+    // WAIVED rows are deposits voided on orders that never arrived — no jar, nothing to show.
+    val held      get() = deposits.filter { it.status == "HELD" || it.status == "LATE" }
     val returned  get() = deposits.filter { it.status == "RETURNED" }
-    val forfeited get() = deposits.filter { it.status == "FORFEITED" }
+    val forfeited get() = deposits.filter { it.status == "FORFEIT" }
 }

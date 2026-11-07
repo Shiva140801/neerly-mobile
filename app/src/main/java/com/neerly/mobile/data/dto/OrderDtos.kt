@@ -47,7 +47,26 @@ data class OrderResponse(
     val depositTotal: BigDecimal?,
     val totalAmount: BigDecimal,
     val placedAt: String,
-    val items: List<OrderItemResponse> = emptyList()
+    val paymentMethod: String? = null,
+    val items: List<OrderItemResponse> = emptyList(),
+    /**
+     * The delivery code — present only on the place-order response. The server keeps a
+     * hash, so this is the one chance to keep it (see OrderLocalStore).
+     */
+    val otp: String? = null
+)
+
+/** Mirrors backend `OrderQuoteResponse` — what placement will charge, before it does. */
+@JsonClass(generateAdapter = true)
+data class OrderQuoteResponse(
+    val subtotal: BigDecimal,
+    val deliveryFee: BigDecimal,
+    val surgeSurcharge: BigDecimal,
+    val taxes: BigDecimal,
+    val discount: BigDecimal,
+    val depositTotal: BigDecimal,
+    val totalAmount: BigDecimal,
+    val promoMessage: String? = null
 )
 
 /** Field names mirror the backend `OrderItemResponse` exactly — see note on [OrderResponse]. */

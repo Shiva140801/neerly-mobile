@@ -15,15 +15,19 @@ import com.neerly.mobile.core.design.Role
 import com.neerly.mobile.data.auth.TokenStore
 import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.navigation.NeerlyNavHost
-import com.razorpay.PaymentResultListener
+import com.neerly.mobile.feature.checkout.GatewayResult
+import com.neerly.mobile.feature.checkout.GatewayResults
+import com.razorpay.PaymentData
+import com.razorpay.PaymentResultWithDataListener
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity(), PaymentResultListener {
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
     @Inject lateinit var cartStore: CartStore
     @Inject lateinit var tokenStore: TokenStore
+    @Inject lateinit var gatewayResults: GatewayResults
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,19 +49,21 @@ class MainActivity : ComponentActivity(), PaymentResultListener {
     }
 
     /**
-     * Razorpay success callback — called after the Razorpay Checkout overlay
-     * closes with a paid UPI / card transaction. The backend verifies the HMAC
-     * signature on capture(), so we don't need to check it client-side.
-     *
-     * V1 stub: we log + clear cart; the next slice wires this to
-     * CheckoutViewModel.onPaymentCaptured() + navigates to Order Placed.
+     * Razorpay reports here when its overlay closes. The "with data" listener is the one
+     * that carries the signature the backend needs to verify a capture; the plain one
+     * gave only a payment id, so nothing could ever be captured. Whoever opened the
+     * payment (checkout, wallet) is waiting on [GatewayResults].
      */
-    override fun onPaymentSuccess(razorpayPaymentId: String?) {
-        cartStore.clear()
+    override fun onPaymentSuccess(razorpayPaymentId: String?, data: PaymentData?) {
+        val id = razorpayPaymentId ?: data?.paymentId
+        if (id == null) {
+            gatewayResults.publish(GatewayResult.NotPaid(-1, null))
+            return
+        }
+        gatewayResults.publish(GatewayResult.Paid(id, data?.orderId, data?.signature))
     }
 
-    override fun onPaymentError(code: Int, description: String?) {
-        // No-op for V1; logged to Timber + surfaced via a snackbar once we
-        // wire this through CheckoutViewModel. Cart is preserved for retry.
+    override fun onPaymentError(code: Int, description: String?, data: PaymentData?) {
+        gatewayResults.publish(GatewayResult.NotPaid(code, description))
     }
 }

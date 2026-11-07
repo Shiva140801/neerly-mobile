@@ -28,10 +28,10 @@ class DepositsViewModelTest {
 
     private fun dep(id: String = "d1", status: String = "HELD") = DepositResponse(
         id = id, customerId = "c1", vendorId = "v1", vendorName = "Sri Ganesh",
-        orderId = "o1", productId = "p1", productName = "20L Cool",
+        orderId = "o1", productName = "20L Cool",
         amount = BigDecimal("500"), status = status,
         heldAt = "2026-04-25T09:00:00Z",
-        returnDeadline = "2026-04-27", returnedAt = null, forfeitedAt = null,
+        returnDeadline = "2026-04-27", returnedAt = null,
         lateFeeAccrued = BigDecimal.ZERO, gracePeriodEndAt = null
     )
 
@@ -41,7 +41,7 @@ class DepositsViewModelTest {
     @Test
     fun load_groupsByStatus() = runTest(dispatcher) {
         coEvery { repo.deposits() } returns listOf(
-            dep("d1", "HELD"), dep("d2", "RETURNED"), dep("d3", "FORFEITED")
+            dep("d1", "HELD"), dep("d2", "RETURNED"), dep("d3", "FORFEIT")
         )
         val vm = DepositsViewModel(repo)
         advanceUntilIdle()
@@ -53,10 +53,12 @@ class DepositsViewModelTest {
     @Test
     fun scheduleReturn_postsAndRefreshes() = runTest(dispatcher) {
         coEvery { repo.deposits() } returns listOf(dep())
+        coEvery { repo.addresses() } returns listOf(mockk<com.neerly.mobile.data.dto.AddressResponse> {
+            io.mockk.every { id } returns "a1"; io.mockk.every { isPrimary } returns true
+        })
         coEvery { repo.scheduleReturn(any()) } returns ReturnResponse(
-            id = "r1", depositId = "d1", mode = "SCHEDULED_PICKUP",
-            status = "SCHEDULED", scheduledSlot = "2026-04-27T10:00:00Z",
-            completedAt = null, refundAmount = null, photoS3Keys = emptyList()
+            id = "r1", depositId = "d1", returnMode = "SCHEDULED_PICKUP", containerCount = 1,
+            status = "REQUESTED"
         )
 
         val vm = DepositsViewModel(repo)
@@ -64,6 +66,8 @@ class DepositsViewModelTest {
         vm.scheduleReturn("d1", "SCHEDULED_PICKUP")
         advanceUntilIdle()
 
-        coVerify { repo.scheduleReturn(any<ReturnRequest>()) }
+        // The backend needs the jar count and, for a pickup, where to collect from.
+        coVerify { repo.scheduleReturn(ReturnRequest(
+            depositId = "d1", returnMode = "SCHEDULED_PICKUP", containerCount = 1, addressId = "a1")) }
     }
 }

@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.NeerlyColors
 import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.util.asRupees
 
 /**
  * Vendor order detail with state-machine actions:
@@ -32,8 +33,6 @@ fun VendorOrderDetailScreen(
     vm: VendorOrderDetailViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
-    var dispatchOpen by remember { mutableStateOf(false) }
-    var driverIdDraft by remember { mutableStateOf("") }
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
@@ -71,6 +70,19 @@ fun VendorOrderDetailScreen(
                             Text("Customer: ${o.customerFirstName} · ${o.customerPhoneMask}",
                                 fontSize = 13.sp, color = NeerlyColors.Ink700)
                             Text(o.deliveryAddress, fontSize = 13.sp, color = NeerlyColors.Ink700)
+                            if (o.jarsGoingOut > 0) {
+                                Spacer(Modifier.height(NeerlySpacing.x2))
+                                Text(
+                                    buildString {
+                                        append(if (o.jarsGoingOut == 1) "1 jar out" else "${o.jarsGoingOut} jars out")
+                                        append(" · ")
+                                        val e = o.emptiesExpected ?: 0
+                                        append(if (e == 0) "no empties to collect" else if (e == 1) "collect 1 empty" else "collect $e empties")
+                                        if (o.depositTotal.signum() > 0) append(" · ${o.depositTotal.asRupees()} deposit held")
+                                    },
+                                    fontSize = 12.sp, color = NeerlyColors.Ink500
+                                )
+                            }
                             o.notes?.let {
                                 Spacer(Modifier.height(NeerlySpacing.x2))
                                 Text("Note: $it", fontSize = 12.sp,
@@ -89,38 +101,63 @@ fun VendorOrderDetailScreen(
                                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                                     Text("${it.quantity} × ${it.productName}",
                                         Modifier.weight(1f), fontSize = 14.sp, color = NeerlyColors.Ink800)
-                                    Text("₹${it.unitPrice}",
+                                    Text(it.unitPrice.asRupees(),
                                         fontSize = 14.sp, color = NeerlyColors.Ink800)
                                 }
                             }
                             HorizontalDivider(Modifier.padding(vertical = 8.dp))
                             Row(Modifier.fillMaxWidth()) {
                                 Text("Order value", Modifier.weight(1f), fontSize = 13.sp, color = NeerlyColors.Ink700)
-                                Text("₹${o.orderValue}", fontSize = 13.sp, color = NeerlyColors.Ink900)
+                                Text(o.orderValue.asRupees(), fontSize = 13.sp, color = NeerlyColors.Ink900)
                             }
                             Row(Modifier.fillMaxWidth()) {
                                 Text("Your earning",
                                     Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                                     color = NeerlyColors.VendorDark)
-                                Text("₹${o.yourEarning}",
+                                Text(o.yourEarning.asRupees(),
                                     fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.VendorDark)
                             }
                         }
                     }
 
+                    // Actions follow the backend's real statuses. The old switch keyed on
+                    // VENDOR_ASSIGNED and a READY_FOR_DISPATCH that does not exist, so an
+                    // accepted order showed no next step at all.
+                    val primary = ButtonDefaults.buttonColors(containerColor = NeerlyColors.VendorPrimary)
                     when (o.status) {
-                        "PREPARING", "VENDOR_ASSIGNED" -> Button(
-                            onClick = vm::markReady,
-                            modifier = Modifier.fillMaxWidth().height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.VendorPrimary)
-                        ) { Text("Mark ready for dispatch", fontWeight = FontWeight.SemiBold) }
-
-                        "READY_FOR_DISPATCH" -> Button(
-                            onClick = { dispatchOpen = true },
-                            modifier = Modifier.fillMaxWidth().height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.VendorPrimary)
-                        ) { Text("Dispatch driver", fontWeight = FontWeight.SemiBold) }
+                        "VENDOR_ACCEPTED", "PREPARING" -> {
+                            if (o.driverId == null) {
+                                Button(
+                                    onClick = vm::offerDriver,
+                                    enabled = !state.offering,
+                                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                                    colors = primary
+                                ) { Text(if (state.offering) "Offering…" else "Offer to a driver", fontWeight = FontWeight.SemiBold) }
+                            } else {
+                                StatusNote("A driver has taken this run.")
+                            }
+                            if (o.status == "VENDOR_ACCEPTED") {
+                                OutlinedButton(
+                                    onClick = vm::markReady,
+                                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                                ) {
+                                    Text(
+                                        if (o.driverId == null) "Mark load ready" else "Mark ready — send it out",
+                                        color = NeerlyColors.VendorPrimary, fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            } else {
+                                StatusNote(if (o.driverId == null) "Load is ready — waiting for a driver."
+                                    else "Load is ready.")
+                            }
+                        }
+                        "DISPATCHED" -> StatusNote("Out for delivery.")
+                        "ARRIVING" -> StatusNote("Driver is at the customer's door.")
+                        "DELIVERED" -> StatusNote("Delivered.")
+                        "VENDOR_ASSIGNED" -> StatusNote("Accept this order from the Today screen.")
+                        else -> StatusNote(o.status.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
                     }
+                    state.offerNote?.let { Text(it, color = NeerlyColors.Ink600, fontSize = 13.sp) }
 
                     state.error?.let { Text(it, color = NeerlyColors.Err, fontSize = 13.sp) }
                 }
@@ -128,28 +165,9 @@ fun VendorOrderDetailScreen(
         }
     }
 
-    if (dispatchOpen) {
-        AlertDialog(
-            onDismissRequest = { dispatchOpen = false },
-            title = { Text("Dispatch to driver") },
-            text = {
-                Column {
-                    Text("Driver id (V1.1 will replace with a picker):",
-                        fontSize = 12.sp, color = NeerlyColors.Ink500)
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(value = driverIdDraft, onValueChange = { driverIdDraft = it },
-                        modifier = Modifier.fillMaxWidth(), singleLine = true)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (driverIdDraft.isNotBlank()) {
-                        vm.dispatch(driverIdDraft.trim())
-                        dispatchOpen = false
-                    }
-                }) { Text("Dispatch", color = NeerlyColors.VendorPrimary, fontWeight = FontWeight.SemiBold) }
-            },
-            dismissButton = { TextButton(onClick = { dispatchOpen = false }) { Text("Cancel") } }
-        )
-    }
+}
+
+@Composable
+private fun StatusNote(text: String) {
+    Text(text, fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
 }

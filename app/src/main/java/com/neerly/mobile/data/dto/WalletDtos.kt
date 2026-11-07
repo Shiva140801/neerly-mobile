@@ -24,11 +24,13 @@ data class WalletResponse(
 @JsonClass(generateAdapter = true)
 data class WalletTransaction(
     val id: String,
-    val type: String,               // TOPUP / ORDER / REFUND / CREDIT / BONUS
-    val amount: BigDecimal,
-    val runningBalance: BigDecimal,
+    val type: String,               // TOPUP / ORDER_DEBIT / ORDER_REFUND / CASHBACK / REFERRAL …
+    // Backend `WalletTransactionResponse` names; the old ones never matched, so the
+    // list stayed "No transactions yet" under a ₹300 balance.
+    @Json(name = "amountSigned") val amount: BigDecimal,
+    @Json(name = "balanceAfter") val runningBalance: BigDecimal,
     val description: String?,
-    val occurredAt: String
+    @Json(name = "createdAt") val occurredAt: String
 )
 
 @JsonClass(generateAdapter = true)

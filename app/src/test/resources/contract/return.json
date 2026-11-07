@@ -1,0 +1,13 @@
+{
+  "id": "c6e0f406-26e1-4459-adf1-6a125b9f83c0",
+  "customerId": "88de5231-a656-49d4-8250-2d12d326044f",
+  "vendorId": "a4b64aa2-8ebd-45ad-bbaa-e70e6326b559",
+  "depositId": "d3cf4ee9-1a65-43a5-bfd4-27098f59cf80",
+  "orderId": "90c91f88-2342-43e1-a249-cbfb0d1815fb",
+  "returnMode": "SCHEDULED_PICKUP",
+  "containerCount": 1,
+  "status": "REQUESTED",
+  "scheduledFor": null,
+  "completedAt": null,
+  "pickupPhotoUrl": null
+}

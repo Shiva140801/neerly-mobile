@@ -26,8 +26,18 @@ fun Throwable.userMessage(
         this is HttpException -> when (code()) {
             401, 403 -> "Your session expired. Please sign in again."
             in 500..599 -> "Neerly is having trouble right now. Please try again in a moment."
-            else -> fallback
+            // A 4xx carries copy written for people ("Promo not applicable", "Wrong OTP")
+            // in the error envelope — show that rather than a generic line.
+            else -> serverMessage() ?: fallback
         }
         else -> fallback
     }
 }
+
+/** `error.message` from the backend's `{"error":{"code":…,"message":…}}` envelope, if any. */
+private fun HttpException.serverMessage(): String? = runCatching {
+    val body = response()?.errorBody()?.string() ?: return null
+    Regex(""""message"\s*:\s*"((?:[^"\\]|\\.)*)"""").find(body)?.groupValues?.get(1)
+        ?.replace("\\\"", "\"")
+        ?.takeIf { it.isNotBlank() }
+}.getOrNull()

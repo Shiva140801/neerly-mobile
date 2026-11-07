@@ -20,7 +20,6 @@ data class Cart(
     val items: List<CartItem> = emptyList(),
     val deliveryFee: BigDecimal = BigDecimal.ZERO,
     val surge: BigDecimal = BigDecimal.ZERO,
-    val deposit: BigDecimal = BigDecimal.ZERO,
     val promoCode: String? = null,
     val discount: BigDecimal = BigDecimal.ZERO
 ) {
@@ -34,7 +33,15 @@ data class Cart(
         .fold(BigDecimal.ZERO) { a, b -> a + b }
         .setScale(2, RoundingMode.HALF_UP)
 
-    /** What the customer owes at checkout. */
+    /**
+     * Refundable deposit for the jars kept. Derived from the lines — it used to be a
+     * separate field nothing ever set, so the cart said ₹85 under a sheet that said ₹385.
+     */
+    val deposit: BigDecimal get() = items
+        .fold(BigDecimal.ZERO) { a, it -> a + it.lineDeposit }
+        .setScale(2, RoundingMode.HALF_UP)
+
+    /** What the customer owes before delivery is priced — checkout shows the server's figure. */
     val total: BigDecimal get() = (subtotal + deliveryFee + surge + deposit - discount)
         .max(BigDecimal.ZERO)
         .setScale(2, RoundingMode.HALF_UP)

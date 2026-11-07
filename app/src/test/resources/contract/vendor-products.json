@@ -1,0 +1,70 @@
+[
+  {
+    "id": "ffe8a673-63ca-4800-8bbe-23af311f1816",
+    "vendorId": "a4b64aa2-8ebd-45ad-bbaa-e70e6326b559",
+    "template": {
+      "id": "f0c7efb2-1436-452c-9e0b-df58bfc65519",
+      "categoryCode": "JAR_20L_NORMAL",
+      "displayName": "20L Jar (Normal)",
+      "sizeLabel": "20L",
+      "containerType": "JAR",
+      "waterType": "NORMAL",
+      "allowsDeposit": true,
+      "sortOrder": 10,
+      "netWeightKg": 19.80
+    },
+    "brand": null,
+    "price": 85.00,
+    "photoUrl": null,
+    "description": null,
+    "dailyCapacity": 50,
+    "status": "AVAILABLE",
+    "allowKeepContainer": true,
+    "allowTransferAndReturn": true,
+    "depositAmount": 300.00,
+    "retentionHours": 72,
+    "returnModes": [
+      "SCHEDULED_PICKUP",
+      "DROPOFF"
+    ],
+    "pickupFeeStructure": "FREE",
+    "pickupFeeAmount": null,
+    "dropoffBonus": null,
+    "soldThisMonth": 55,
+    "containersInStock": 0
+  },
+  {
+    "id": "07d3de91-4b1f-4626-a1dc-dfd96bb8831e",
+    "vendorId": "a4b64aa2-8ebd-45ad-bbaa-e70e6326b559",
+    "template": {
+      "id": "f0c7efb2-1436-452c-9e0b-df58bfc65519",
+      "categoryCode": "JAR_20L_NORMAL",
+      "displayName": "20L Jar (Normal)",
+      "sizeLabel": "20L",
+      "containerType": "JAR",
+      "waterType": "NORMAL",
+      "allowsDeposit": true,
+      "sortOrder": 10,
+      "netWeightKg": 19.80
+    },
+    "brand": null,
+    "price": 50.00,
+    "photoUrl": null,
+    "description": null,
+    "dailyCapacity": 50,
+    "status": "AVAILABLE",
+    "allowKeepContainer": true,
+    "allowTransferAndReturn": true,
+    "depositAmount": 300.00,
+    "retentionHours": 72,
+    "returnModes": [
+      "SCHEDULED_PICKUP",
+      "DROPOFF"
+    ],
+    "pickupFeeStructure": "FREE",
+    "pickupFeeAmount": null,
+    "dropoffBonus": null,
+    "soldThisMonth": 0,
+    "containersInStock": null
+  }
+]

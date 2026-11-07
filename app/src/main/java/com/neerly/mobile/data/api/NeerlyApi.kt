@@ -188,8 +188,22 @@ interface NeerlyApi {
 
     // ------------------------------ Orders ------------------------------
 
+    /**
+     * [requestId] stays the same for every retry of one checkout, so a double tap or a
+     * retried timeout replays the first order instead of placing a second.
+     */
     @POST("api/v1/customer/orders")
-    suspend fun placeOrder(@Body body: PlaceOrderRequest): OrderResponse
+    suspend fun placeOrder(
+        @Body body: PlaceOrderRequest,
+        @retrofit2.http.Header("X-Request-Id") requestId: String
+    ): OrderResponse
+
+    @POST("api/v1/customer/orders/quote")
+    suspend fun quoteOrder(@Body body: PlaceOrderRequest): com.neerly.mobile.data.dto.OrderQuoteResponse
+
+    /** A fresh delivery code when this device no longer has the original. */
+    @POST("api/v1/customer/orders/{id}/regenerate-otp")
+    suspend fun regenerateDeliveryCode(@Path("id") id: String): Map<String, String>
 
     @GET("api/v1/customer/orders")
     suspend fun myOrders(
@@ -293,7 +307,7 @@ interface NeerlyApi {
     suspend fun pauseSubscription(@Path("id") id: String, @Body body: PauseSubscriptionRequest): SubscriptionResponse
 
     @POST("api/v1/customer/subscriptions/{id}/skip")
-    suspend fun skipSubscription(@Path("id") id: String, @Body body: SkipSubscriptionRequest): SubscriptionResponse
+    suspend fun skipSubscription(@Path("id") id: String, @Body body: SkipSubscriptionRequest): com.neerly.mobile.data.dto.SubscriptionInstanceResponse
 
     @POST("api/v1/customer/subscriptions/{id}/cancel")
     suspend fun cancelSubscription(@Path("id") id: String, @Body body: CancelSubscriptionRequest): SubscriptionResponse
@@ -357,22 +371,26 @@ interface NeerlyApi {
     suspend fun vendorAcceptOrder(
         @Path("id") id: String,
         @Body body: com.neerly.mobile.data.dto.AcceptOrderRequest
-    ): com.neerly.mobile.data.dto.VendorOrderResponse
+    ): Unit  // body ignored; callers re-read the order
 
     @POST("api/v1/vendor/orders/{id}/reject")
     suspend fun vendorRejectOrder(
         @Path("id") id: String,
         @Body body: com.neerly.mobile.data.dto.RejectOrderRequest
-    ): com.neerly.mobile.data.dto.VendorOrderResponse
+    ): Unit  // body ignored; callers re-read the order
 
     @POST("api/v1/vendor/orders/{id}/ready")
-    suspend fun vendorMarkReady(@Path("id") id: String): com.neerly.mobile.data.dto.VendorOrderResponse
+    suspend fun vendorMarkReady(@Path("id") id: String): Unit  // body ignored; callers re-read the order
+
+    /** Offer the run to the next on-shift team driver, with their own accept window. */
+    @POST("api/v1/vendor/orders/{id}/offer-driver")
+    suspend fun vendorOfferDriver(@Path("id") id: String): com.neerly.mobile.data.dto.DriverOfferResult
 
     @POST("api/v1/vendor/orders/{id}/dispatch")
     suspend fun vendorDispatchOrder(
         @Path("id") id: String,
         @Body body: com.neerly.mobile.data.dto.DispatchOrderRequest
-    ): com.neerly.mobile.data.dto.VendorOrderResponse
+    ): Unit  // body ignored; callers re-read the order
 
     @GET("api/v1/vendor/catalog/products")
     suspend fun vendorCatalog(): List<com.neerly.mobile.data.dto.VendorProductRow>
@@ -383,7 +401,7 @@ interface NeerlyApi {
         @Body body: com.neerly.mobile.data.dto.TogglePauseRequest
     ): com.neerly.mobile.data.dto.VendorProductRow
 
-    @GET("api/v1/vendor/earnings")
+    @GET("api/v1/vendor/earnings/overview")
     suspend fun vendorEarnings(): com.neerly.mobile.data.dto.EarningsSummary
 
     @GET("api/v1/vendor/compliance/docs")
@@ -459,6 +477,16 @@ interface NeerlyApi {
 
     @GET("api/v1/driver/shifts/current")
     suspend fun driverCurrentShift(): com.neerly.mobile.data.dto.DriverShiftResponse?
+
+    /** 204 when nothing is on offer — Retrofit hands back a null body for that. */
+    @GET("api/v1/driver/tasks/offer")
+    suspend fun driverTaskOffer(): retrofit2.Response<com.neerly.mobile.data.dto.DriverOffer>
+
+    @POST("api/v1/driver/tasks/{id}/accept")
+    suspend fun driverAcceptTask(@Path("id") id: String): retrofit2.Response<Unit>
+
+    @POST("api/v1/driver/tasks/{id}/pass")
+    suspend fun driverPassTask(@Path("id") id: String): retrofit2.Response<Unit>
 
     @GET("api/v1/driver/assignments")
     suspend fun driverAssignments(): List<com.neerly.mobile.data.dto.DriverAssignment>

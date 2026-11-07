@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.neerly.mobile.core.util.userMessage
 import javax.inject.Inject
 
 /**
@@ -20,7 +21,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ReviewSubmitViewModel @Inject constructor(
-    private val repo: TrustRepository
+    private val repo: TrustRepository,
+    private val orderStore: com.neerly.mobile.data.order.OrderLocalStore
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReviewSubmitUiState())
@@ -52,13 +54,22 @@ class ReviewSubmitViewModel @Inject constructor(
                 )
             }
                 .onSuccess {
+                    orderStore.markReviewed(orderId)
                     _state.value = ReviewSubmitUiState(submitting = false)
                     onDone()
                 }
                 .onFailure {
+                    // Already reviewed (another device, or a retried submit): the review
+                    // exists, so this is done — not an error to show.
+                    if ((it as? retrofit2.HttpException)?.code() == 409) {
+                        orderStore.markReviewed(orderId)
+                        _state.value = ReviewSubmitUiState(submitting = false)
+                        onDone()
+                        return@onFailure
+                    }
                     _state.value = ReviewSubmitUiState(
                         submitting = false,
-                        error = it.message ?: "Could not submit review"
+                        error = it.userMessage(context = "submit review", fallback = "Couldn't submit your review. Please try again.")
                     )
                 }
         }

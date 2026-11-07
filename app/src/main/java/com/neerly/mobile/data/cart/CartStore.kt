@@ -128,9 +128,9 @@ class CartStore @Inject constructor() {
     }
 
     /** Hook for pricing-engine updates — delivery/surge are server-driven. */
-    fun setPricing(deliveryFee: BigDecimal, surge: BigDecimal, deposit: BigDecimal) {
+    fun setPricing(deliveryFee: BigDecimal, surge: BigDecimal) {
         val c = _state.value
-        _state.value = c.copy(deliveryFee = deliveryFee, surge = surge, deposit = deposit)
+        _state.value = c.copy(deliveryFee = deliveryFee, surge = surge)
     }
 
     private fun mergeLine(items: List<CartItem>, incoming: CartItem): List<CartItem> {

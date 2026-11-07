@@ -4,29 +4,62 @@ import com.squareup.moshi.JsonClass
 import java.math.BigDecimal
 
 /**
- * Mirror of `com.neerly.subscription.api.dto.SubscriptionDtos` — kept lean for V1.0.
- * Supplementary fields (vendor name, product name) are denormalised by the backend
- * so the customer screen doesn't have to chain calls.
+ * Mirror of backend `SubscriptionResponse`. Field names are the server's: the previous
+ * shape (`quantity`, `deliverySlot`, `createdAt`, non-null names) matched nothing the
+ * backend sends, so Moshi rejected every subscription payload and the list, detail,
+ * create, pause and cancel screens all failed after the server had already acted.
+ * Display fields (names, unit price) are nullable — the server fills them best-effort.
  */
 @JsonClass(generateAdapter = true)
 data class SubscriptionResponse(
     val id: String,
     val customerId: String,
     val vendorId: String,
-    val vendorName: String,
     val productId: String,
-    val productName: String,
-    val frequency: String,                 // DAILY / ALT_DAY / TWICE_WEEK / WEEKLY / CUSTOM
-    val daysOfWeek: List<String> = emptyList(),
-    val quantity: Int,
-    val deliverySlot: String,              // e.g. "7-9AM"
-    val addressId: String,
-    val unitPrice: BigDecimal,
+    val quantityPerDelivery: Int,
+    val containerMode: String = "KEEP",
+    val frequency: String,                 // DAILY / ALT_DAY / WEEKLY / BIWEEKLY / MONTHLY / CUSTOM
+    val daysOfWeek: List<String>? = null,
+    val slotStart: String,                 // "06:00:00"
+    val slotEnd: String,
+    val startDate: String,
+    val endDate: String? = null,
+    val paymentMethod: String,
+    val mandateMaxAmount: BigDecimal? = null,
     val status: String,                    // PENDING_MANDATE / ACTIVE / PAUSED / CANCELLED
-    val pausedFrom: String?,
-    val pausedUntil: String?,
-    val nextDeliveryDate: String?,
-    val createdAt: String
+    val pausedUntil: String? = null,
+    val nextDeliveryDate: String? = null,
+    val lastDeliveryDate: String? = null,
+    val addressId: String? = null,
+    val vendorName: String? = null,
+    val productName: String? = null,
+    val unitPrice: BigDecimal? = null
+) {
+    val quantity: Int get() = quantityPerDelivery
+
+    /** "6–9 AM" from "06:00:00" / "09:00:00". */
+    val deliverySlot: String get() = "${hour(slotStart)}–${hour(slotEnd)}"
+
+    private fun hour(t: String): String {
+        val h = t.substringBefore(':').toIntOrNull() ?: return t
+        val m = t.split(':').getOrNull(1)?.toIntOrNull() ?: 0
+        val h12 = if (h % 12 == 0) 12 else h % 12
+        val mm = if (m == 0) "" else ":%02d".format(m)
+        return "$h12$mm ${if (h < 12) "AM" else "PM"}"
+    }
+}
+
+/** One scheduled delivery of a subscription — what `skip` returns. */
+@JsonClass(generateAdapter = true)
+data class SubscriptionInstanceResponse(
+    val id: String,
+    val subscriptionId: String,
+    val deliveryDate: String,
+    val status: String,                    // SCHEDULED / SKIPPED / ORDERED / DELIVERED / ...
+    val amount: BigDecimal,
+    val orderId: String? = null,
+    val skipReason: String? = null,
+    val skippedBy: String? = null
 )
 
 /**
@@ -52,7 +85,7 @@ data class CreateSubscriptionRequest(
 
 @JsonClass(generateAdapter = true)
 data class PauseSubscriptionRequest(
-    val pausedFrom: String,                // ISO instant
+    val pausedFrom: String,                // yyyy-MM-dd (backend LocalDate — an instant was a 400)
     val pausedUntil: String,
     val reason: String? = null
 )
@@ -67,10 +100,10 @@ data class CancelSubscriptionRequest(
     val reason: String? = null
 )
 
+/** Backend PATCH reads exactly these; anything else was silently ignored. */
 @JsonClass(generateAdapter = true)
 data class ModifySubscriptionRequest(
-    val quantity: Int? = null,
-    val frequency: String? = null,
-    val deliverySlot: String? = null,
-    val addressId: String? = null
+    val quantityPerDelivery: Int? = null,
+    val slotStart: String? = null,          // "HH:mm"
+    val slotEnd: String? = null
 )

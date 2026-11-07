@@ -18,7 +18,15 @@ data class DriverShiftResponse(
 data class StartShiftRequest(val initialLocation: GpsPoint? = null)
 
 @JsonClass(generateAdapter = true)
-data class EndShiftRequest(val reason: String = "EOD", val codHandedOver: BigDecimal? = null)
+/**
+ * Mirror of backend `EndShiftRequest`. The old `reason = "EOD"` is not a ShiftEndReason,
+ * so every end-shift was refused, and `codHandedOver` was never read.
+ */
+data class EndShiftRequest(
+    val endedReason: String = "DRIVER_ENDED",   // DRIVER_ENDED / AUTO_INACTIVE / VENDOR_ENDED
+    val codCollected: BigDecimal? = null,
+    val notes: String? = null
+)
 
 @JsonClass(generateAdapter = true)
 data class GpsPoint(val lat: Double, val lng: Double, val accuracy: Double? = null)
@@ -50,16 +58,52 @@ data class DriverAssignment(
     val product: String,                  // "20L Cool × 2"
     val paymentMethod: String,            // UPI / COD
     val codAmount: BigDecimal?,
-    val status: String,                   // DISPATCHED / EN_ROUTE / ARRIVED / DELIVERED
-    val deliveryOtp: String?,             // populated when ARRIVED
-    val notes: String?
+    // Backend order statuses: PREPARING (taken, load not ready) / DISPATCHED / ARRIVING.
+    // The app used to look for EN_ROUTE / ARRIVED, which never arrive.
+    val status: String,
+    val deliveryOtp: String?,             // always null — the customer holds the code
+    val notes: String?,
+    val emptiesExpected: Int = 0,
+    val depositHeld: BigDecimal = BigDecimal.ZERO
+)
+
+/** Mirrors backend `DriverOfferResponse` — a run offered to this driver with a countdown. */
+@JsonClass(generateAdapter = true)
+data class DriverOffer(
+    val orderId: String,
+    val driverFee: BigDecimal,
+    val offeredAt: String,
+    val expiresAt: String,
+    val secondsRemaining: Long,
+    val task: DriverTaskCard? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class DriverTaskCard(
+    val orderId: String,
+    val orderNumber: String,
+    val vendorName: String,
+    val pickupAddress: String,
+    val dropAddress: String,
+    val dropDistanceKm: Double? = null,
+    val jars: Int,
+    val units: Int,
+    val loadKg: BigDecimal,
+    val paymentMethod: String,
+    val codAmount: BigDecimal? = null,
+    val emptiesExpected: Int,
+    val customerFirstName: String
 )
 
 @JsonClass(generateAdapter = true)
 data class CompleteDeliveryRequest(
     val otp: String,
     val photoS3Key: String,
-    val codCollected: BigDecimal? = null
+    val codCollected: BigDecimal? = null,
+    /** Empties actually handed back — releases earlier deposits at the door. */
+    val emptiesCollected: Int? = null,
+    /** CASH / UPI_AT_DOOR / NOT_COLLECTED */
+    val codSettlement: String? = null
 )
 
 @JsonClass(generateAdapter = true)

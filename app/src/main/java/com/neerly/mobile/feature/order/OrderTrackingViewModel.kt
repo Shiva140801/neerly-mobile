@@ -7,6 +7,7 @@ import com.neerly.mobile.core.util.ConnectivityObserver
 import com.neerly.mobile.core.util.userMessage
 import com.neerly.mobile.data.dto.OrderResponse
 import com.neerly.mobile.data.dto.OrderTrackingResponse
+import com.neerly.mobile.data.order.OrderLocalStore
 import com.neerly.mobile.data.repo.CustomerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -31,6 +32,7 @@ import javax.inject.Inject
 class OrderTrackingViewModel @Inject constructor(
     private val repo: CustomerRepository,
     private val connectivity: ConnectivityObserver,
+    private val orderStore: OrderLocalStore,
     savedState: SavedStateHandle
 ) : ViewModel() {
 
@@ -45,6 +47,28 @@ class OrderTrackingViewModel @Inject constructor(
     private var pollJob: Job? = null
 
     init { startPolling() }
+
+    /**
+     * A new code when this device lost the original (reinstall, another phone). The old
+     * one stops working, which is the point if the code leaked.
+     */
+    fun requestNewDeliveryCode() {
+        if (_state.value.codeRequesting) return
+        _state.value = _state.value.copy(codeRequesting = true, codeError = null)
+        viewModelScope.launch {
+            runCatching { repo.regenerateDeliveryCode(orderId) }
+                .onSuccess { code ->
+                    code?.let { orderStore.saveDeliveryCode(orderId, it) }
+                    _state.value = _state.value.copy(codeRequesting = false, deliveryCode = code)
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        codeRequesting = false,
+                        codeError = it.userMessage(context = "delivery code", fallback = "Couldn't get a code. Try again.")
+                    )
+                }
+        }
+    }
 
     private fun startPolling() {
         pollJob?.cancel()
@@ -104,9 +128,12 @@ class OrderTrackingViewModel @Inject constructor(
                 driverHeadingDeg = prev.driverHeadingDeg, driverLocationAt = prev.driverLocationAt
             )
         } else t
-        _state.value = OrderTrackingUiState(
+        if (o.status in TERMINAL) orderStore.forgetDeliveryCode(o.id)
+        _state.value = _state.value.copy(
             order = o,
             tracking = next,
+            deliveryCode = if (o.status in TERMINAL) null else orderStore.deliveryCode(o.id),
+            reviewed = orderStore.isReviewed(o.id),
             loading = false,
             error = null,
             // Stamped from the clock at the moment the fetch succeeded, so the
@@ -142,5 +169,10 @@ data class OrderTrackingUiState(
     val loading: Boolean = true,
     val error: String? = null,
     /** Wall-clock time of the last successful fetch, e.g. "9:38 AM". */
-    val lastUpdatedLabel: String? = null
+    val lastUpdatedLabel: String? = null,
+    /** Read out at the door; only this device has it (see OrderLocalStore). */
+    val deliveryCode: String? = null,
+    val codeRequesting: Boolean = false,
+    val codeError: String? = null,
+    val reviewed: Boolean = false
 )

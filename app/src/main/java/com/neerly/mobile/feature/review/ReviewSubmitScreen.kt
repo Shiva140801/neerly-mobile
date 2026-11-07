@@ -59,8 +59,10 @@ fun ReviewSubmitScreen(
                 .padding(padding)
                 .padding(NeerlySpacing.x5)
         ) {
-            Text(vendorName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-            Text("Order #${orderId.take(8)}", fontSize = 13.sp, color = NeerlyColors.Ink500)
+            // The route carries the order number; the old header printed "this order"
+            // over the first eight characters of a UUID.
+            Text("How was your delivery?", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            Text("Order $vendorName", fontSize = 13.sp, color = NeerlyColors.Ink500)
             Spacer(Modifier.height(NeerlySpacing.x6))
 
             StarSection(

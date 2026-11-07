@@ -1,0 +1,12 @@
+{
+  "id": "4cf05d49-0efb-4b93-8f5e-b2903be21005",
+  "subscriptionId": "a63d37c8-4ebf-4365-8252-8e7f0748a47d",
+  "deliveryDate": "2026-11-09",
+  "status": "SKIPPED",
+  "amount": 0,
+  "orderId": null,
+  "skipReason": null,
+  "skippedBy": "CUSTOMER",
+  "remindedAt": null,
+  "completedAt": null
+}

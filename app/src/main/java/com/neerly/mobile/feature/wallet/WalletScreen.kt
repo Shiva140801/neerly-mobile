@@ -24,17 +24,18 @@ import com.neerly.mobile.core.design.CustomerTab
 import com.neerly.mobile.core.design.WalletSkeleton
 import com.neerly.mobile.data.dto.WalletResponse
 import com.neerly.mobile.data.dto.WalletTransaction
+import com.neerly.mobile.feature.checkout.findActivity
 import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WalletScreen(
     onBack: () -> Unit,
-    onTopupReady: (paymentId: String, razorpayOrderId: String?) -> Unit,
     onSelectTab: (CustomerTab) -> Unit = {},
     vm: WalletViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
@@ -76,10 +77,11 @@ fun WalletScreen(
                             fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
                     }
                     item { TopupChips(disabled = state.toppingUp, onPick = { amount ->
-                        vm.topup(amount) { result ->
-                            onTopupReady(result.paymentId, result.razorpayOrderId)
-                        }
+                        context.findActivity()?.let { vm.topup(it, amount) }
                     }) }
+                    state.notice?.let { msg ->
+                        item { Text(msg, color = NeerlyColors.Ok, fontSize = 13.sp) }
+                    }
                     if (state.error != null) {
                         item { Text(state.error!!, color = NeerlyColors.Err, fontSize = 13.sp) }
                     }

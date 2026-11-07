@@ -44,40 +44,31 @@ fun RolePickerScreen(
         Spacer(Modifier.height(NeerlySpacing.x8))
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            if (grantedRoles.contains("CUSTOMER")) {
+            if (grantedRoles.contains(PortalRole.CUSTOMER)) {
                 RoleCard(
                     title = "Customer",
                     subtitle = "Browse vendors and order water",
                     color = NeerlyColors.CustomerPrimary,
                     icon = "🏠",
-                    onClick = { onRoleSelected("CUSTOMER", rememberChoice) }
+                    onClick = { onRoleSelected(PortalRole.CUSTOMER, rememberChoice) }
                 )
             }
-            if (grantedRoles.contains("VENDOR")) {
+            if (grantedRoles.contains(PortalRole.VENDOR)) {
                 RoleCard(
                     title = "Vendor",
                     subtitle = "Manage your business",
                     color = NeerlyColors.VendorPrimary,
                     icon = "🏪",
-                    onClick = { onRoleSelected("VENDOR", rememberChoice) }
+                    onClick = { onRoleSelected(PortalRole.VENDOR, rememberChoice) }
                 )
             }
-            if (grantedRoles.contains("DRIVER")) {
+            if (grantedRoles.contains(PortalRole.DRIVER)) {
                 RoleCard(
                     title = "Driver",
                     subtitle = "Deliver for your vendor",
                     color = NeerlyColors.DriverPrimary,
                     icon = "🚚",
-                    onClick = { onRoleSelected("DRIVER", rememberChoice) }
-                )
-            }
-            if (grantedRoles.contains("ADMIN")) {
-                RoleCard(
-                    title = "Admin",
-                    subtitle = "Platform operations",
-                    color = NeerlyColors.AdminPrimary,
-                    icon = "🛡️",
-                    onClick = { onRoleSelected("ADMIN", rememberChoice) }
+                    onClick = { onRoleSelected(PortalRole.DRIVER, rememberChoice) }
                 )
             }
         }
