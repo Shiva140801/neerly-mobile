@@ -1,128 +1,89 @@
 package com.neerly.mobile.feature.order
 
-import androidx.compose.foundation.clickable
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neerly.mobile.core.design.NeerlyColors
-import com.neerly.mobile.core.design.NeerlyRadius
-import com.neerly.mobile.core.design.NeerlySpacing
-import com.neerly.mobile.core.design.CustomerBottomBar
-import com.neerly.mobile.core.design.CustomerTab
-import com.neerly.mobile.core.design.SkeletonBlock
+import com.neerly.mobile.core.design.*
 import com.neerly.mobile.data.dto.OrderResponse
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val ACTIVE = setOf("PLACED", "VENDOR_ASSIGNED", "VENDOR_REJECTED", "VENDOR_ACCEPTED", "PREPARING", "DISPATCHED", "ARRIVING")
+
+/** Boondh board 24 — the order on its way first (with its code), then everything earlier. */
 @Composable
 fun OrderHistoryScreen(
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
     onSelectTab: (CustomerTab) -> Unit = {},
+    onRate: (String, String) -> Unit = { _, _ -> },
+    onInvoice: (String) -> Unit = {},
+    onCart: () -> Unit = {},
     vm: OrderHistoryViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Your orders", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
-        },
-        bottomBar = { CustomerBottomBar(current = CustomerTab.Orders, onSelect = onSelectTab) }
-    ) { padding ->
-        when {
-            state.loading -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(NeerlySpacing.x4),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                repeat(5) {
-                    SkeletonBlock(
-                        height = 92.dp,
-                        modifier = Modifier.fillMaxWidth(),
-                        radius = NeerlyRadius.md
-                    )
+    com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    BoondhPage(stringResource(R.string.cust_oh_title), bottomBar = { CustomerBottomBar(current = CustomerTab.Orders, onSelect = onSelectTab) }) {
+        if (state.orders.isEmpty()) {
+            item { LoadState(state.loading, state.error, vm::refresh, stringResource(R.string.cust_oh_empty), stringResource(R.string.cust_oh_empty_body)) }
+            return@BoondhPage
+        }
+        val (active, earlier) = state.orders.partition { it.status in ACTIVE }
+        if (active.isNotEmpty()) {
+            item { SectionLabel(stringResource(R.string.cust_oh_on_way)) }
+            items(active, key = { it.id }) { o -> ActiveCard(o, vm.codeFor(o.id)) { onOpen(o.id) } }
+        }
+        if (earlier.isNotEmpty()) {
+            item { SectionLabel(stringResource(R.string.cust_oh_earlier)) }
+            items(earlier, key = { it.id }) { o ->
+                BoondhCard(onClick = { onOpen(o.id) }) {
+                    InfoRow(o.vendorName ?: stringResource(R.string.cust_oh_order_no, o.orderNumber),
+                        listOf(shortDay(o.placedAt), itemsLine(o), endLine(o)).filter { it.isNotBlank() }.joinToString(" · "),
+                        o.totalAmount.rupees())
+                    if (o.status == "DELIVERED") Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = { if (vm.reorder(o)) onCart() }, modifier = Modifier.heightIn(min = 44.dp)) {
+                            Text(stringResource(R.string.cust_oh_reorder), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
+                        TextButton(onClick = { onRate(o.id, o.vendorName ?: o.orderNumber) }, modifier = Modifier.heightIn(min = 44.dp)) {
+                            Text(stringResource(R.string.cust_oh_rate), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
+                        TextButton(onClick = { onInvoice(o.id) }, modifier = Modifier.heightIn(min = 44.dp)) {
+                            Text(stringResource(R.string.cust_oh_invoice), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
+                    }
                 }
-            }
-            state.error != null -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Column(
-                    Modifier.padding(NeerlySpacing.x6),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Couldn't load your orders",
-                        fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                    Spacer(Modifier.height(6.dp))
-                    Text(state.error!!, fontSize = 13.sp, color = NeerlyColors.Ink500)
-                    Spacer(Modifier.height(NeerlySpacing.x4))
-                    Button(
-                        onClick = vm::refresh,
-                        colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-                    ) { Text("Try again") }
-                }
-            }
-            state.orders.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("No orders yet",
-                        fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
-                    Spacer(Modifier.height(6.dp))
-                    Text("Place your first order from a vendor on Home.",
-                        fontSize = 13.sp, color = NeerlyColors.Ink500)
-                }
-            }
-            else -> LazyColumn(
-                contentPadding = PaddingValues(NeerlySpacing.x4),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize().padding(padding)
-            ) {
-                items(state.orders, key = { it.id }) { OrderRow(it, onOpen) }
             }
         }
     }
 }
 
 @Composable
-private fun OrderRow(order: OrderResponse, onOpen: (String) -> Unit) {
-    Surface(
-        color = NeerlyColors.Paper,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        shadowElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth().clickable { onOpen(order.id) }
-    ) {
-        Row(
-            Modifier.padding(NeerlySpacing.x4),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text("Order #${order.orderNumber}",
-                    fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                Text(order.status.replace("_", " "),
-                    fontSize = 11.sp, color = statusColor(order.status),
-                    fontWeight = FontWeight.SemiBold)
-                Text(order.placedAt.take(10), fontSize = 11.sp, color = NeerlyColors.Ink500)
-            }
-            Text("₹${order.totalAmount}",
-                fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-        }
+private fun ActiveCard(o: OrderResponse, code: String?, onTrack: () -> Unit) {
+    Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark, RoundedCornerShape(16.dp)).padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(o.orderNumber, fontSize = 13.sp, color = Boondh.MutedOnNavy, letterSpacing = 0.6.sp)
+        Text(when (o.status) {
+            "DISPATCHED", "ARRIVING" -> o.driverName?.let { stringResource(R.string.cust_tr_driver_on_way, it.substringBefore(' ')) } ?: stringResource(R.string.cust_home_on_the_way)
+            "VENDOR_ACCEPTED", "PREPARING" -> stringResource(R.string.cust_oh_packing)
+            else -> stringResource(R.string.cust_home_finding_shop)
+        }, fontFamily = FontFamily.Serif, fontSize = 22.sp, color = NeerlyColors.Paper)
+        Text(listOf(itemsLine(o), o.totalAmount.rupees()).filter { it.isNotBlank() }.joinToString(" · "), fontSize = 14.sp, color = Boondh.MutedOnNavy)
+        code?.let { Text(stringResource(R.string.cust_oh_code, it.toCharArray().joinToString(" ")), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper) }
+        PrimaryButton(stringResource(R.string.cust_oh_track), onTrack, color = Boondh.Amber, contentColor = NeerlyColors.Ink900)
     }
 }
 
 @Composable
-private fun statusColor(status: String) = when (status) {
-    "DELIVERED" -> NeerlyColors.Ok
-    "CANCELLED", "FAILED" -> NeerlyColors.Err
-    else -> NeerlyColors.CustomerDark
+private fun itemsLine(o: OrderResponse) = o.items.map { stringResource(R.string.cust_qty_item, it.quantity, it.productName) }.joinToString(", ")
+@Composable
+private fun endLine(o: OrderResponse) = when (o.status) {
+    "CANCELLED" -> stringResource(R.string.cust_oh_cancelled)
+    "FAILED" -> stringResource(R.string.cust_oh_failed)
+    else -> ""
 }

@@ -11,18 +11,16 @@ plugins {
 
 android {
     namespace = "com.neerly.mobile"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.neerly.mobile"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 26   // java.time everywhere; Android 7 (24–25) would crash without desugaring
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
-
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")  // emulator localhost
 
         // Google Maps key stays out of VCS: add MAPS_API_KEY=... to local.properties.
         // An absent key still builds — the map just renders blank tiles.
@@ -31,6 +29,8 @@ android {
             ?.inputStream()?.use { props.load(it) }
         val mapsKey: String = props.getProperty("MAPS_API_KEY") ?: ""
         manifestPlaceholders["MAPS_API_KEY"] = mapsKey
+        // Screens hide the map rather than show blank tiles when no key is set.
+        buildConfigField("Boolean", "MAPS_ENABLED", if (mapsKey.isBlank()) "false" else "true")
     }
 
     buildFeatures {
@@ -38,9 +38,24 @@ android {
         buildConfig = true
     }
 
+    // The API address per build. Debug talks to the emulator's host (override with
+    // API_BASE_URL=... in local.properties to reach another port or a LAN backend);
+    // release needs a real server: -PreleaseApiBaseUrl=https://… or RELEASE_API_BASE_URL in
+    // local.properties. A release used to ship pointing at 10.0.2.2.
+    val localProps = Properties().apply {
+        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+    }
+    val debugApi = localProps.getProperty("API_BASE_URL") ?: "http://10.0.2.2:8080/"
+    val releaseApi = (project.findProperty("releaseApiBaseUrl") as String?)
+        ?: localProps.getProperty("RELEASE_API_BASE_URL") ?: "https://api.boondh.in/"
+
     buildTypes {
-        debug { isMinifyEnabled = false }
+        debug {
+            isMinifyEnabled = false
+            buildConfigField("String", "API_BASE_URL", "\"$debugApi\"")
+        }
         release {
+            buildConfigField("String", "API_BASE_URL", "\"$releaseApi\"")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

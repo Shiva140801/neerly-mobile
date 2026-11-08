@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,13 +35,13 @@ fun AdminTotpScreen(
             .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x5)
     ) {
         Text(
-            "Verify with authenticator",
+            stringResource(R.string.cust_totp_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = NeerlyColors.Ink900
         )
         Spacer(Modifier.height(NeerlySpacing.x2))
-        Text("Enter the 6-digit code from your authenticator app.", fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Text(stringResource(R.string.cust_totp_body), fontSize = 14.sp, color = NeerlyColors.Ink600)
 
         Spacer(Modifier.height(NeerlySpacing.x8))
 
@@ -67,7 +69,7 @@ fun AdminTotpScreen(
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.AdminPrimary)
         ) {
-            Text(if (verifying) "Verifying…" else "Verify", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(if (verifying) stringResource(R.string.cust_verifying) else stringResource(R.string.cust_verify), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(Modifier.height(16.dp))
@@ -76,7 +78,7 @@ fun AdminTotpScreen(
             onClick = onBack,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Back", color = NeerlyColors.Ink600)
+            Text(stringResource(R.string.cust_back), color = NeerlyColors.Ink600)
         }
     }
 }

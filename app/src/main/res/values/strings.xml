@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Neerly</string>
+    <string name="app_name">Boondh</string>
+    <string name="tagline">Every drop, on time</string>
+    <string name="offline_title">No internet right now</string>
+    <string name="retry">Retry</string>
 </resources>

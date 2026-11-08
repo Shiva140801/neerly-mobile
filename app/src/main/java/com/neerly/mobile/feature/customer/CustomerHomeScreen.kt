@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.customer
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -49,10 +51,21 @@ fun CustomerHomeScreen(
     onOpenProfile: () -> Unit = {},
     onOpenSearch: () -> Unit = {},
     onSelectTab: (CustomerTab) -> Unit = {},
+    onOpenCart: () -> Unit = {},
+    onSubscription: (String) -> Unit = {},
+    onAddAddress: () -> Unit = {},
     vm: CustomerHomeViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
     val online by vm.isOnline.collectAsState()
+    // Back from adding the first address: reload so shops for that pincode show up.
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(owner) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME && !vm.state.value.loading && vm.state.value.primaryAddress == null) vm.refresh()
+        }
+        owner.lifecycle.addObserver(obs); onDispose { owner.lifecycle.removeObserver(obs) }
+    }
 
     // Cold start with nothing to show and no connection: the full-screen
     // offline state, not a spinner that will never resolve.
@@ -68,232 +81,85 @@ fun CustomerHomeScreen(
         return
     }
 
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            Column {
-                if (!online) OfflineBanner(onRetry = vm::refresh)
-                HomeHeader(state, onOpenProfile, onOpenSearch)
-            }
-        },
-        bottomBar = { CustomerBottomBar(current = CustomerTab.Home, onSelect = onSelectTab) }
-    ) { padding ->
-        if (state.loading) {
-            Box(Modifier.fillMaxSize().padding(padding)) { HomeSkeleton() }
-            return@Scaffold
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x4)
+    val hour = java.time.LocalTime.now(java.time.ZoneId.of("Asia/Kolkata")).hour
+    val first = state.name?.substringBefore(' ')
+    val greeting = when {
+        hour < 12 -> if (first != null) stringResource(R.string.cust_home_morning_name, first) else stringResource(R.string.cust_home_morning)
+        hour < 17 -> if (first != null) stringResource(R.string.cust_home_afternoon_name, first) else stringResource(R.string.cust_home_afternoon)
+        else -> if (first != null) stringResource(R.string.cust_home_evening_name, first) else stringResource(R.string.cust_home_evening)
+    }
+    Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
+        if (!online) OfflineBanner(onRetry = vm::refresh)
+        com.neerly.mobile.core.design.BoondhPage(
+            title = greeting,
+            subtitle = state.primaryAddress?.let { stringResource(R.string.cust_home_delivering_to, com.neerly.mobile.feature.address.addressLabel(it.label), it.street) } ?: stringResource(R.string.cust_home_set_address),
+            bottomBar = { CustomerBottomBar(current = CustomerTab.Home, onSelect = onSelectTab) }
         ) {
-            when {
-                state.error != null -> {
-                    Surface(
-                        color = NeerlyColors.ErrSoft,
-                        shape = RoundedCornerShape(NeerlyRadius.md),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(Modifier.padding(NeerlySpacing.x4)) {
-                            Text(
-                                "Couldn't load home",
-                                fontWeight = FontWeight.SemiBold,
-                                color = NeerlyColors.Err
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                state.error ?: "",
-                                color = NeerlyColors.Ink700,
-                                fontSize = 13.sp
-                            )
-                            Spacer(Modifier.height(NeerlySpacing.x2))
-                            Button(
-                                onClick = { vm.refresh() },
-                                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-                            ) { Text("Retry") }
+            if (state.loading) { item { HomeSkeleton() }; return@BoondhPage }
+            if (state.error != null) { item { com.neerly.mobile.core.design.LoadState(false, state.error, vm::refresh) }; return@BoondhPage }
+            if (state.primaryAddress == null) item {
+                com.neerly.mobile.core.design.BoondhCard {
+                    Text(stringResource(R.string.cust_home_where_deliver), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    Text(stringResource(R.string.cust_home_add_address_body), fontSize = 14.sp, color = NeerlyColors.Ink600)
+                    com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_add_address), onAddAddress)
+                }
+            }
+            state.activeOrders.forEach { o -> item {
+                com.neerly.mobile.core.design.BoondhCard(onClick = { onOrderClick(o.id) }) {
+                    com.neerly.mobile.core.design.Pill(when (o.status) {
+                        "DISPATCHED", "ARRIVING" -> stringResource(R.string.cust_home_on_the_way); "VENDOR_ACCEPTED", "PREPARING" -> stringResource(R.string.cust_home_being_packed); else -> stringResource(R.string.cust_home_finding_shop)
+                    }, com.neerly.mobile.core.design.Tone.Info)
+                    com.neerly.mobile.core.design.InfoRow(o.vendorName ?: o.orderNumber, stringResource(R.string.cust_home_tap_track, o.totalAmount.asRupees()))
+                }
+            } }
+            state.usual?.let { u -> item {
+                Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark, RoundedCornerShape(16.dp)).padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.cust_home_usual), fontSize = 13.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy)
+                    Text(u.items.map { stringResource(R.string.cust_qty_item, it.quantity, it.productName) }.joinToString(", "), fontSize = 20.sp,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, color = NeerlyColors.Paper)
+                    Text(stringResource(R.string.cust_home_last_ordered, u.vendorName ?: stringResource(R.string.cust_your_shop), com.neerly.mobile.core.design.shortDay(u.placedAt)),
+                        fontSize = 13.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy)
+                    com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_home_order_again, u.subtotal.asRupees()),
+                        { if (vm.orderUsual()) onOpenCart() }, color = com.neerly.mobile.core.design.Boondh.Amber, contentColor = NeerlyColors.Ink900)
+                }
+            } }
+            state.nextSubscription?.let { sub -> item {
+                com.neerly.mobile.core.design.BoondhCard(onClick = { onSubscription(sub.id) }) {
+                    com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_home_sub_when, com.neerly.mobile.core.design.shortDay(sub.nextDeliveryDate),
+                        com.neerly.mobile.core.design.timeWindow(sub.slotStart, sub.slotEnd)),
+                        stringResource(R.string.cust_home_sub_line, stringResource(R.string.cust_qty_item, sub.quantity, sub.productName ?: stringResource(R.string.cust_jar))))
+                }
+            } }
+            item {
+                OutlinedButton(onClick = onOpenSearch, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(14.dp), border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink200),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = NeerlyColors.Paper)) {
+                    Text(stringResource(R.string.cust_home_search), Modifier.weight(1f), color = NeerlyColors.Ink600, fontSize = 15.sp)
+                }
+            }
+            item { com.neerly.mobile.core.design.SectionLabel(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_home_suppliers_open, state.vendors.size, state.vendors.size)) }
+            if (state.vendors.isEmpty()) item {
+                com.neerly.mobile.core.design.LoadState(false, null, vm::refresh, stringResource(R.string.cust_home_no_suppliers),
+                    stringResource(R.string.cust_home_no_suppliers_body))
+            }
+            items(state.vendors, key = { it.id }) { v ->
+                com.neerly.mobile.core.design.BoondhCard(onClick = { onVendorClick(v.id) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(Modifier.size(44.dp).background(NeerlyColors.CustomerSoft, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                            Text(v.businessName.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(),
+                                fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text(v.businessName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                            Text(listOfNotNull(v.avgRating?.let { stringResource(R.string.cust_rating_stars, it.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) },
+                                androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, v.totalOrders.toInt(), v.totalOrders.toInt()),
+                                if (v.fssaiNumber != null) stringResource(R.string.cust_fssai_verified) else null).joinToString(" · "),
+                                fontSize = 13.sp, color = NeerlyColors.Ink600)
                         }
                     }
                 }
-                else -> {
-                    if (state.activeOrders.isNotEmpty()) {
-                        Text(
-                            "Active orders",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = NeerlyColors.Ink700
-                        )
-                        Spacer(Modifier.height(NeerlySpacing.x2))
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            items(state.activeOrders, key = { it.id }) { o ->
-                                ActiveOrderCard(o, onClick = { onOrderClick(o.id) })
-                            }
-                        }
-                        Spacer(Modifier.height(NeerlySpacing.x5))
-                    }
-                    Text(
-                        "Vendors near you",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = NeerlyColors.Ink900
-                    )
-                    Spacer(Modifier.height(NeerlySpacing.x3))
-                    if (state.vendors.isEmpty()) {
-                        Text(
-                            "No vendors live in your pincode yet. Join the waitlist from Profile.",
-                            color = NeerlyColors.Ink500,
-                            fontSize = 13.sp
-                        )
-                    } else {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            items(state.vendors, key = { it.id }) { v ->
-                                VendorRow(v, onClick = { onVendorClick(v.id) })
-                            }
-                        }
-                    }
-                }
             }
-        }
-    }
-}
-
-@Composable
-private fun HomeHeader(
-    state: HomeUiState,
-    onOpenProfile: () -> Unit,
-    onOpenSearch: () -> Unit = {}
-) {
-    Surface(color = NeerlyColors.Paper, shadowElevation = 1.dp) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                state.primaryAddress?.label?.let { "Deliver to · $it" } ?: "Welcome",
-                fontSize = 12.sp,
-                color = NeerlyColors.Ink500,
-                fontWeight = FontWeight.SemiBold
-            )
-            val subtitle = state.primaryAddress?.let { "${it.street} · ${it.pincode}" } ?: "Set your address"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    subtitle,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = NeerlyColors.Ink900,
-                    modifier = Modifier.weight(1f)
-                )
-                state.wallet?.let {
-                    Surface(
-                        color = NeerlyColors.CustomerSofter,
-                        shape = RoundedCornerShape(NeerlyRadius.pill)
-                    ) {
-                        Text(
-                            it.availableAmount.asRupees(),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            color = NeerlyColors.CustomerDark,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-                IconButton(onClick = onOpenProfile) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Profile",
-                        tint = NeerlyColors.CustomerPrimary
-                    )
-                }
-            }
-            Spacer(Modifier.height(NeerlySpacing.x3))
-            // Entry point into S-CUST-SEA-01. A read-only pill rather than a
-            // live field: search owns its own screen, with its own recents.
-            Surface(
-                color = NeerlyColors.Ink50,
-                shape = RoundedCornerShape(NeerlyRadius.pill),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(NeerlyRadius.pill))
-                    .clickable(onClick = onOpenSearch)
-            ) {
-                Row(
-                    Modifier.padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null,
-                        tint = NeerlyColors.Ink400,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(NeerlySpacing.x2))
-                    Text("Search water", fontSize = 14.sp, color = NeerlyColors.Ink400)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActiveOrderCard(order: OrderResponse, onClick: () -> Unit) {
-    Surface(
-        color = NeerlyColors.CustomerSofter,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        shadowElevation = 1.dp,
-        modifier = Modifier
-            .widthIn(min = 220.dp)
-            .clickable(onClick = onClick)
-    ) {
-        Column(Modifier.padding(NeerlySpacing.x4)) {
-            Text(order.status, fontSize = 11.sp, color = NeerlyColors.CustomerDark, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Order #${order.orderNumber}",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = NeerlyColors.Ink900
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(order.totalAmount.asRupees(), fontSize = 12.sp, color = NeerlyColors.Ink700)
-        }
-    }
-}
-
-@Composable
-private fun VendorRow(vendor: VendorCardResponse, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        color = NeerlyColors.Paper,
-        shadowElevation = 1.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(NeerlyColors.CustomerSofter),
-                contentAlignment = Alignment.Center
-            ) { Text("💧", fontSize = 22.sp) }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    vendor.businessName,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = NeerlyColors.Ink900
-                )
-                Spacer(Modifier.height(2.dp))
-                val rating = vendor.avgRating?.toPlainString() ?: "—"
-                val tierLabel = vendor.tier.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
-                Text(
-                    "$rating ★  ·  $tierLabel  ·  ${vendor.businessPincode}",
-                    fontSize = 12.sp,
-                    color = NeerlyColors.Ink500
-                )
-            }
-            Text(">", fontSize = 20.sp, color = NeerlyColors.Ink400)
         }
     }
 }

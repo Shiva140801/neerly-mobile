@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +28,7 @@ import com.neerly.mobile.core.design.InstrumentSerif
 import com.neerly.mobile.core.design.NeerlyColors
 import kotlinx.coroutines.delay
 
-/** S-COMMON-SPLASH — neerly logo on blue gradient, matches design-reference/flows-customer.jsx */
+/** S-COMMON-SPLASH — Boondh wordmark on blue gradient, matches design-reference/flows-customer.jsx */
 @Composable
 fun SplashScreen(onDone: () -> Unit) {
     LaunchedEffect(Unit) { delay(1400); onDone() }
@@ -55,7 +57,7 @@ fun SplashScreen(onDone: () -> Unit) {
                 Text("💧", fontSize = 54.sp)
             }
             Text(
-                "neerly",
+                "boondh",
                 fontFamily = InstrumentSerif,
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Normal,
@@ -63,7 +65,7 @@ fun SplashScreen(onDone: () -> Unit) {
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
-                "Water, sorted.",
+                stringResource(R.string.cust_splash_tagline),
                 color = Color.White.copy(alpha = 0.85f),
                 fontSize = 15.sp,
                 modifier = Modifier.padding(top = 10.dp)

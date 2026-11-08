@@ -41,7 +41,7 @@ class WalletViewModelTest {
             WalletTransaction("t1", "TOPUP", BigDecimal("500"),
                 BigDecimal("500"), "UPI", "2026-04-25T09:00:00Z")
         )
-        val vm = WalletViewModel(repo, gateway)
+        val vm = WalletViewModel(repo, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertEquals(BigDecimal("500"), vm.state.value.balance?.availableAmount)
@@ -54,7 +54,7 @@ class WalletViewModelTest {
             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
         coEvery { repo.walletTransactions() } returns emptyList()
 
-        val vm = WalletViewModel(repo, gateway)
+        val vm = WalletViewModel(repo, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.topup(activity, BigDecimal.ZERO)
         advanceUntilIdle()
@@ -73,7 +73,7 @@ class WalletViewModelTest {
         coEvery { gateway.pay(activity, init, any(), any(), any()) } returns
             com.neerly.mobile.feature.checkout.PaymentOutcome.Captured
 
-        val vm = WalletViewModel(repo, gateway)
+        val vm = WalletViewModel(repo, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.topup(activity, BigDecimal("500"))
         advanceUntilIdle()
@@ -91,7 +91,7 @@ class WalletViewModelTest {
         coEvery { gateway.pay(any(), any(), any(), any(), any()) } returns
             com.neerly.mobile.feature.checkout.PaymentOutcome.Declined("Payment cancelled. Nothing was taken.")
 
-        val vm = WalletViewModel(repo, gateway)
+        val vm = WalletViewModel(repo, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.topup(activity, BigDecimal("500"))
         advanceUntilIdle()
@@ -104,7 +104,7 @@ class WalletViewModelTest {
         coEvery { repo.wallet() } throws
             RuntimeException("Unable to create converter for WalletResponse")
 
-        val vm = WalletViewModel(repo, gateway)
+        val vm = WalletViewModel(repo, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         // The screen keys "did the load succeed?" off `balance`, so a failed load

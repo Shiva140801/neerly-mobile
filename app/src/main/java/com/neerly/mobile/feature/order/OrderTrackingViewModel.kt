@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.order
 
+import com.neerly.mobile.R
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,7 +34,8 @@ class OrderTrackingViewModel @Inject constructor(
     private val repo: CustomerRepository,
     private val connectivity: ConnectivityObserver,
     private val orderStore: OrderLocalStore,
-    savedState: SavedStateHandle
+    savedState: SavedStateHandle,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     val isOnline: StateFlow<Boolean> = connectivity.isOnline
@@ -64,7 +66,7 @@ class OrderTrackingViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         codeRequesting = false,
-                        codeError = it.userMessage(context = "delivery code", fallback = "Couldn't get a code. Try again.")
+                        codeError = it.userMessage(context = "delivery code", fallback = strings.get(R.string.cust_tr_code_fail))
                     )
                 }
         }
@@ -85,7 +87,7 @@ class OrderTrackingViewModel @Inject constructor(
                         _state.value = _state.value.copy(
                             error = it.userMessage(
                                 context = "order tracking",
-                                fallback = "Couldn't refresh this order. Please try again."
+                                fallback = strings.get(R.string.cust_tr_refresh_fail)
                             ),
                             loading = false
                         )

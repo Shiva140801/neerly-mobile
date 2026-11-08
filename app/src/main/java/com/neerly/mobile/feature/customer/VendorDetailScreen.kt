@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.customer
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +20,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +53,7 @@ fun VendorDetailScreen(
     vendorId: String,
     onBack: () -> Unit,
     onAddToCart: (productId: String) -> Unit,
+    onViewCart: () -> Unit = {},
     vm: VendorDetailViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -62,83 +67,96 @@ fun VendorDetailScreen(
         scope.launch { sheetState.hide() }.invokeOnCompletion { sheetProduct = null }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NeerlyColors.Paper)
-    ) {
+    val cartNow by vm.cartState.collectAsState()
+    val reviews by vm.reviews.collectAsState()
+    var tab by remember { mutableStateOf(0) }
+    val cfg = com.neerly.mobile.data.config.LocalAppConfig.current
+    Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
         if (!online) OfflineBanner(onRetry = vm::refresh)
-
         when {
             state.loading -> VendorDetailSkeleton()
-
-            state.error != null -> VendorDetailError(
-                message = state.error!!,
-                onRetry = vm::refresh,
-                onBack = onBack
-            )
-
-            else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Surface(color = NeerlyColors.CustomerPrimary) {
-                    Column(modifier = Modifier.padding(NeerlySpacing.x4).fillMaxWidth()) {
-                        Text(
-                            "← Back", color = Color.White, fontSize = 13.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(Modifier.height(NeerlySpacing.x3))
-                        val name = state.vendor?.businessName ?: "Vendor #${vendorId.take(8)}"
-                        Text(
-                            name, color = Color.White,
-                            fontSize = 22.sp, fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        state.vendor?.let { v ->
-                            val rating = v.avgRating?.toPlainString() ?: "—"
-                            Text(
-                                "$rating ★  ·  ${v.businessCity} · ${v.businessPincode}" +
-                                    (if (!v.fssaiNumber.isNullOrBlank()) "  ·  FSSAI ✓" else ""),
-                                color = Color.White.copy(alpha = 0.9f),
-                                fontSize = 13.sp
-                            )
+            state.error != null -> VendorDetailError(message = state.error!!, onRetry = vm::refresh, onBack = onBack)
+            else -> {
+                val v = state.vendor
+                val name = v?.businessName ?: stringResource(R.string.cust_shop)
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    // Board 10 header
+                    Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark).padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 44.dp)) {
+                            Text(stringResource(R.string.cust_back_arrow), color = NeerlyColors.Paper, fontSize = 15.sp) }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Box(Modifier.size(52.dp).background(com.neerly.mobile.core.design.Boondh.Amber, RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                                Text(name.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(), fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, fontSize = 18.sp)
+                            }
+                            Text(name, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 26.sp, color = NeerlyColors.Paper)
+                        }
+                        v?.let { Text(listOfNotNull(it.avgRating?.let { r -> stringResource(R.string.cust_rating_stars, r.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) },
+                            androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, it.totalOrders.toInt(), it.totalOrders.toInt()), it.businessCity).joinToString(" · "), fontSize = 14.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy) }
+                        v?.fssaiNumber?.let { Text(stringResource(R.string.cust_shop_verified_fssai, it), fontSize = 13.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy) }
+                    }
+                    TabRow(selectedTabIndex = tab, containerColor = NeerlyColors.Paper, contentColor = NeerlyColors.CustomerPrimary) {
+                        listOf(stringResource(R.string.cust_shop_tab_water), stringResource(R.string.cust_shop_tab_reviews), stringResource(R.string.cust_shop_tab_about)).forEachIndexed { i, label ->
+                            Tab(selected = tab == i, onClick = { tab = i; if (i == 1) vm.loadReviews() },
+                                text = { Text(label, fontWeight = FontWeight.SemiBold) }, modifier = Modifier.heightIn(min = 48.dp))
+                        }
+                    }
+                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        when (tab) {
+                            0 -> if (state.products.isEmpty()) {
+                                com.neerly.mobile.core.design.LoadState(false, null, vm::refresh, stringResource(R.string.cust_shop_nothing_listed),
+                                    stringResource(R.string.cust_shop_nothing_listed_body))
+                            } else state.products.forEach { p ->
+                                val soldOut = p.status != "AVAILABLE"
+                                com.neerly.mobile.core.design.BoondhCard(onClick = if (soldOut) null else ({ sheetProduct = p })) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(listOfNotNull(p.brand, p.name).joinToString(" "), fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                                                color = if (soldOut) NeerlyColors.Ink600 else NeerlyColors.Ink900)
+                                            Text(when {
+                                                soldOut -> stringResource(R.string.cust_shop_sold_out)
+                                                p.allowTransferAndReturn -> stringResource(R.string.cust_shop_swap)
+                                                p.depositAmount != null -> stringResource(R.string.cust_shop_deposit, p.depositAmount.asRupees())
+                                                else -> p.description ?: ""
+                                            }, fontSize = 13.sp, color = if (soldOut) NeerlyColors.Warn else NeerlyColors.Ink600)
+                                        }
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(p.price.asRupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                                            val inCart = vm.quantityInCart(p.id)
+                                            if (!soldOut) TextButton(onClick = { sheetProduct = p }, modifier = Modifier.heightIn(min = 44.dp)) {
+                                                Text(if (inCart > 0) stringResource(R.string.cust_shop_in_cart, inCart) else stringResource(R.string.cust_add), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
+                                        }
+                                    }
+                                }
+                            }
+                            1 -> when {
+                                reviews == null -> com.neerly.mobile.core.design.LoadState(true, null, {})
+                                reviews!!.isEmpty() -> com.neerly.mobile.core.design.LoadState(false, null, {}, stringResource(R.string.cust_shop_no_reviews), stringResource(R.string.cust_shop_no_reviews_body))
+                                else -> reviews!!.forEach { r ->
+                                    val starsCd = stringResource(R.string.cust_stars_cd, r.rating)
+                                    com.neerly.mobile.core.design.BoondhCard {
+                                        Text("★".repeat(r.rating) + "☆".repeat(5 - r.rating), color = com.neerly.mobile.core.design.Boondh.Amber, fontSize = 16.sp,
+                                            modifier = Modifier.semantics { contentDescription = starsCd })
+                                        r.text?.let { Text(it, fontSize = 15.sp, lineHeight = 21.sp, color = NeerlyColors.Ink900) }
+                                        Text(com.neerly.mobile.core.design.shortDay(r.createdAt), fontSize = 12.sp, color = NeerlyColors.Ink600)
+                                        r.vendorResponse?.let { Text(stringResource(R.string.cust_shop_replied, name, it.text), fontSize = 14.sp, color = NeerlyColors.Ink700) }
+                                    }
+                                }
+                            }
+                            else -> com.neerly.mobile.core.design.BoondhCard {
+                                com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_where), "${v?.businessCity ?: ""} ${v?.businessPincode ?: ""}".trim())
+                                v?.fssaiNumber?.let { com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_fssai), it) }
+                                com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_delivery), stringResource(R.string.cust_shop_delivery_line, cfg.deliveryFeeNear.asRupees(), cfg.freeDeliveryAbove.asRupees()))
+                                com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_jars), stringResource(R.string.cust_shop_jars_line))
+                            }
                         }
                     }
                 }
-
-                Spacer(Modifier.height(NeerlySpacing.x4))
-
-                if (state.products.isEmpty()) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(NeerlySpacing.x6),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("💧", fontSize = 40.sp)
-                        Spacer(Modifier.height(NeerlySpacing.x3))
-                        Text(
-                            "No products listed yet",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = NeerlyColors.Ink900
-                        )
-                        Spacer(Modifier.height(NeerlySpacing.x2))
-                        Text(
-                            "This vendor hasn't published a catalogue. Try another vendor near you.",
-                            fontSize = 13.sp,
-                            color = NeerlyColors.Ink500
-                        )
-                    }
-                } else {
-                    Text(
-                        "Products",
-                        fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
-                        modifier = Modifier.padding(horizontal = NeerlySpacing.x4)
-                    )
-                    Spacer(Modifier.height(NeerlySpacing.x2))
-                    state.products.forEach { product ->
-                        ProductRow(product, onOpen = { sheetProduct = product })
+                if (!cartNow.isEmpty && cartNow.vendorId == vendorId) {
+                    Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper).padding(horizontal = 20.dp, vertical = 12.dp)) {
+                        com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_shop_view_cart, cartNow.totalQuantity, cartNow.subtotal.asRupees()), onViewCart)
                     }
                 }
-
-                Spacer(Modifier.height(NeerlySpacing.x6))
             }
         }
     }
@@ -174,11 +192,10 @@ fun VendorDetailScreen(
     pendingSwitch?.let { selection ->
         AlertDialog(
             onDismissRequest = { pendingSwitch = null },
-            title = { Text("Switch vendor?") },
+            title = { Text(stringResource(R.string.cust_shop_switch_title)) },
             text = {
                 Text(
-                    "You already have items from another vendor in your cart. Replace them with " +
-                        "items from ${state.vendor?.businessName ?: "this vendor"}?"
+                    stringResource(R.string.cust_shop_switch_body, state.vendor?.businessName ?: stringResource(R.string.cust_this_shop))
                 )
             },
             confirmButton = {
@@ -187,11 +204,11 @@ fun VendorDetailScreen(
                     pendingSwitch = null
                     onAddToCart(selection.product.id)
                 }) {
-                    Text("Replace", color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.cust_replace), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { pendingSwitch = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingSwitch = null }) { Text(stringResource(R.string.cust_cancel)) }
             }
         )
     }
@@ -205,7 +222,7 @@ private fun VendorDetailError(message: String, onRetry: () -> Unit, onBack: () -
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Couldn't load this vendor",
+            stringResource(R.string.cust_shop_load_failed_title),
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             color = NeerlyColors.Ink900
@@ -217,70 +234,7 @@ private fun VendorDetailError(message: String, onRetry: () -> Unit, onBack: () -
             onClick = onRetry,
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-        ) { Text("Try again") }
-        TextButton(onClick = onBack) { Text("Go back", color = NeerlyColors.Ink500) }
-    }
-}
-
-/**
- * A catalogue row. The deposit is no longer whispered in 11sp grey here either
- * — it's a chip, and the row opens the sheet where the full breakdown lives.
- */
-@Composable
-private fun ProductRow(product: ProductResponse, onOpen: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpen)
-            .padding(horizontal = NeerlySpacing.x4, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(NeerlyRadius.sm))
-                .background(NeerlyColors.Water50),
-            contentAlignment = Alignment.Center
-        ) { Text("💧", fontSize = 26.sp) }
-        Spacer(Modifier.width(NeerlySpacing.x3))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(product.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-            val sub = listOfNotNull(
-                product.brand?.takeIf { it.isNotBlank() },
-                product.template.sizeLabel?.takeIf { it.isNotBlank() }
-            ).joinToString(" · ").ifBlank { product.categoryCode }
-            Text(sub, fontSize = 12.sp, color = NeerlyColors.Ink500)
-            Spacer(Modifier.height(4.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x2)
-            ) {
-                Text(
-                    product.price.asRupees(),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = NeerlyColors.Ink900
-                )
-                product.depositAmount?.takeIf { it.signum() > 0 }?.let { deposit ->
-                    Surface(
-                        color = NeerlyColors.CustomerSoft,
-                        shape = RoundedCornerShape(NeerlyRadius.pill)
-                    ) {
-                        Text(
-                            "+ ${deposit.asRupees()} deposit",
-                            modifier = Modifier.padding(horizontal = NeerlySpacing.x2, vertical = 3.dp),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = NeerlyColors.CustomerDark
-                        )
-                    }
-                }
-            }
-        }
-        Icon(
-            Icons.Filled.ChevronRight,
-            contentDescription = "Choose options",
-            tint = NeerlyColors.Ink400
-        )
+        ) { Text(stringResource(R.string.cust_try_again)) }
+        TextButton(onClick = onBack) { Text(stringResource(R.string.cust_go_back), color = NeerlyColors.Ink500) }
     }
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Door photos the driver takes before handing over jars (cache only; uploaded then discarded). -->
+<paths>
+    <cache-path name="delivery_photos" path="delivery-photos/" />
+</paths>

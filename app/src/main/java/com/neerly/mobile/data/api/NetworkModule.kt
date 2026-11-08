@@ -24,7 +24,8 @@ object NetworkModule {
      * Emulator → host loopback. Device builds should override this via a
      * flavor or build-config field.
      */
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    /** Per build type (app/build.gradle.kts): emulator host in debug, the real API in release. */
+    private val BASE_URL: String = com.neerly.mobile.BuildConfig.API_BASE_URL
 
     @Provides @Singleton
     fun provideMoshi(): Moshi = Moshi.Builder()
@@ -38,9 +39,16 @@ object NetworkModule {
     @Provides @Singleton
     fun provideOkHttp(
         authInterceptor: AuthInterceptor,
-        tokenAuthenticator: TokenAuthenticator
+        tokenAuthenticator: TokenAuthenticator,
+        @dagger.hilt.android.qualifiers.ApplicationContext appContext: android.content.Context
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
+        // Server copy (error messages, notices) in the app's language — the backend's
+        // AcceptHeaderLocaleResolver picks messages_te / messages_hi.
+        .addInterceptor { chain ->
+            chain.proceed(chain.request().newBuilder()
+                .header("Accept-Language", com.neerly.mobile.core.util.AppLocale.current(appContext)).build())
+        }
         .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
         .authenticator(tokenAuthenticator)
         .connectTimeout(15, TimeUnit.SECONDS)

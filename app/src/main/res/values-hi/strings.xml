@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">बूँद</string>
+    <string name="tagline">हर बूँद, वक़्त पर</string>
+    <string name="offline_title">अभी इंटरनेट नहीं है</string>
+    <string name="retry">फिर से कोशिश करें</string>
+</resources>

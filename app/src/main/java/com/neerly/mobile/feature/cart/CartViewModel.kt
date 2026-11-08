@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.cart
 
+import com.neerly.mobile.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.api.NeerlyApi
@@ -24,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CartViewModel @Inject constructor(
     private val store: CartStore,
-    private val api: NeerlyApi
+    private val api: NeerlyApi,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     val cart: StateFlow<Cart> = store.state
@@ -52,7 +54,7 @@ class CartViewModel @Inject constructor(
     fun quotePromo(code: String, isFirstOrder: Boolean) {
         val subtotal = store.snapshot.subtotal
         if (subtotal.signum() <= 0) {
-            _promo.value = PromoState(error = "Add items before applying a code")
+            _promo.value = PromoState(error = strings.get(R.string.cust_cart_add_items_first))
             return
         }
         _promo.value = _promo.value.copy(quoting = true, error = null, code = code, isFirstOrder = isFirstOrder)
@@ -69,13 +71,13 @@ class CartViewModel @Inject constructor(
                         store.clearPromo()
                         _promo.value = PromoState(
                             code = code, applied = false,
-                            error = q.reason ?: "Not eligible", isFirstOrder = isFirstOrder
+                            error = q.reason ?: strings.get(R.string.cust_promo_not_eligible), isFirstOrder = isFirstOrder
                         )
                     }
                 }
                 .onFailure { err ->
                     store.clearPromo()
-                    _promo.value = PromoState(code = code, error = err.message ?: "Quote failed", isFirstOrder = isFirstOrder)
+                    _promo.value = PromoState(code = code, error = strings.get(R.string.cust_promo_quote_failed), isFirstOrder = isFirstOrder)
                 }
         }
     }

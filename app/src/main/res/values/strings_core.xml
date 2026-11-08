@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the i18n table: English / Telugu / Hindi kept side by side. -->
+<resources>
+    <string name="core_back">Back</string>
+    <string name="core_try_again">Try again</string>
+    <string name="core_retry">Retry</string>
+    <string name="core_tab_home">Home</string>
+    <string name="core_tab_orders">Orders</string>
+    <string name="core_tab_subs">Subs</string>
+    <string name="core_tab_wallet">Wallet</string>
+    <string name="core_tab_profile">Profile</string>
+    <string name="core_tab_tasks">Tasks</string>
+    <string name="core_tab_round">Round</string>
+    <string name="core_tab_money">Money</string>
+    <string name="core_tab_me">Me</string>
+    <string name="core_tab_today">Today</string>
+    <string name="core_tab_jars">Jars</string>
+    <string name="core_tab_earnings">Earnings</string>
+    <string name="core_tab_shop">Shop</string>
+    <string name="core_tab_task_waiting">%1$s, new task waiting</string>
+    <string name="core_tab_badge_waiting">%1$s, %2$d waiting</string>
+    <string name="core_offline_title">You\'re offline</string>
+    <string name="core_offline_body">Boondh needs a connection to load this. Check your Wi-Fi or mobile data and try again.</string>
+    <string name="core_offline_banner_sub">Tracking stays on screen · payments paused</string>
+    <string name="core_offline_lost">Connection lost</string>
+    <string name="core_offline_works">Works offline</string>
+    <string name="core_offline_needs">Needs internet</string>
+    <string name="core_offline_works_status">The order status you already have on screen</string>
+    <string name="core_offline_works_loaded">Everything you\'ve already loaded this session</string>
+    <string name="core_offline_needs_order">Placing a new order</string>
+    <string name="core_offline_needs_payments">Payments and wallet top-ups</string>
+    <string name="core_offline_needs_live">Live status updates and new deliveries</string>
+    <string name="core_stale_stamp">Last updated %1$s · showing the status we already had</string>
+    <string name="core_loading_home">Loading home</string>
+    <string name="core_loading_shop">Loading shop</string>
+    <string name="core_loading_cart">Loading cart</string>
+    <string name="core_loading_tracking">Loading tracking</string>
+    <string name="core_loading_wallet">Loading wallet</string>
+    <string name="core_err_generic">Something went wrong. Please try again.</string>
+    <string name="core_err_offline">Can\'t reach Boondh right now. Check your connection and try again.</string>
+    <string name="core_err_session">Your session expired. Please sign in again.</string>
+    <string name="core_err_server">Boondh is having trouble right now. Please try again in a moment.</string>
+</resources>

@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.customer
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -173,22 +175,22 @@ fun ProductSheetContent(
         TitleRow(product, vendorName)
 
         if (bothModes) {
-            SectionLabel("Container mode", Modifier.padding(top = NeerlySpacing.x4, bottom = NeerlySpacing.x2))
+            SectionLabel(stringResource(R.string.cust_ps_mode), Modifier.padding(top = NeerlySpacing.x4, bottom = NeerlySpacing.x2))
             ModeCard(
-                title = "Keep container",
+                title = stringResource(R.string.cust_ps_keep),
                 subtitle = if (hasDeposit) {
-                    "${deposit.asRupees()} refundable deposit · return anytime"
+                    stringResource(R.string.cust_ps_keep_deposit, deposit.asRupees())
                 } else {
-                    "Keep the jar until you're done with it"
+                    stringResource(R.string.cust_ps_keep_free)
                 },
                 selected = mode == ContainerMode.KEEP,
                 onClick = { mode = ContainerMode.KEEP }
             )
             Spacer(Modifier.height(NeerlySpacing.x2))
             ModeCard(
-                title = "Transfer-return · swap at door",
-                subtitle = "Give your empty jar to the driver · no deposit",
-                highlightSubtitle = "no deposit",
+                title = stringResource(R.string.cust_ps_swap),
+                subtitle = stringResource(R.string.cust_ps_swap_lead) + " · " + stringResource(R.string.cust_ps_no_deposit),
+                highlightSubtitle = stringResource(R.string.cust_ps_no_deposit),
                 selected = mode == ContainerMode.TRANSFER_AND_RETURN,
                 onClick = { mode = ContainerMode.TRANSFER_AND_RETURN }
             )
@@ -236,11 +238,11 @@ fun ProductSheetContent(
                 shape = RoundedCornerShape(NeerlyRadius.pill),
                 colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
             ) {
-                val verb = if (alreadyInCart) "Update" else "Add"
-                val label = if (depositTotal.signum() > 0) {
-                    "$verb $qty · ${payToday.asRupees()} today"
-                } else {
-                    "$verb $qty · ${payToday.asRupees()}"
+                val label = when {
+                    alreadyInCart && depositTotal.signum() > 0 -> stringResource(R.string.cust_ps_update_today, qty, payToday.asRupees())
+                    alreadyInCart -> stringResource(R.string.cust_ps_update, qty, payToday.asRupees())
+                    depositTotal.signum() > 0 -> stringResource(R.string.cust_ps_add_today, qty, payToday.asRupees())
+                    else -> stringResource(R.string.cust_ps_add, qty, payToday.asRupees())
                 }
                 Text(label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
@@ -411,14 +413,10 @@ private fun RadioDot(selected: Boolean) {
 /** `S-CUST-VEN-PROD-01C` — the explainer shown when only one mode is offered. */
 @Composable
 private fun SingleModeNotice(keepOnly: Boolean, hasDeposit: Boolean) {
-    val text = if (keepOnly) {
-        buildString {
-            append("This vendor only offers keep-container for this product — no swap option.")
-            if (hasDeposit) append(" The deposit is fully refunded when you return the container.")
-        }
-    } else {
-        "This vendor only offers transfer-and-return for this product — hand your empty jar to " +
-            "the driver at the door. No deposit is charged."
+    val text = when {
+        keepOnly && hasDeposit -> stringResource(R.string.cust_ps_keep_only_deposit)
+        keepOnly -> stringResource(R.string.cust_ps_keep_only)
+        else -> stringResource(R.string.cust_ps_swap_only)
     }
     Surface(
         color = NeerlyColors.CustomerSofter,
@@ -465,7 +463,7 @@ private fun DepositHighlight(deposit: BigDecimal, retentionHours: Int?) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Refundable deposit",
+                    stringResource(R.string.cust_ps_refundable_deposit),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = NeerlyColors.CustomerDark
@@ -491,7 +489,7 @@ private fun DepositHighlight(deposit: BigDecimal, retentionHours: Int?) {
                         modifier = Modifier.size(15.dp)
                     )
                     Text(
-                        "Return within $retentionHours hours · money back to your wallet",
+                        androidx.compose.ui.res.pluralStringResource(R.plurals.cust_ps_return_within, retentionHours, retentionHours),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = NeerlyColors.Ink700
@@ -500,7 +498,7 @@ private fun DepositHighlight(deposit: BigDecimal, retentionHours: Int?) {
             }
             Spacer(Modifier.height(NeerlySpacing.x1))
             Text(
-                "The deposit can be bigger than the water — that's normal for jars, and you get it back.",
+                stringResource(R.string.cust_ps_deposit_bigger),
                 fontSize = 11.5.sp,
                 color = NeerlyColors.Ink500,
                 lineHeight = 16.sp
@@ -527,11 +525,11 @@ private fun PayTodayPanel(
             .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(NeerlyRadius.md))
     ) {
         Column(Modifier.padding(NeerlySpacing.x4)) {
-            SectionLabel("You pay today")
+            SectionLabel(stringResource(R.string.cust_ps_pay_today))
             Spacer(Modifier.height(NeerlySpacing.x2))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    "Water · $quantity ${if (quantity == 1) "jar" else "jars"}",
+                    androidx.compose.ui.res.pluralStringResource(R.plurals.cust_ps_water_jars, quantity, quantity),
                     fontSize = 14.sp,
                     color = NeerlyColors.Ink700
                 )
@@ -553,7 +551,7 @@ private fun PayTodayPanel(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x2)
                     ) {
-                        Text("Deposit", fontSize = 14.sp, color = NeerlyColors.Ink700)
+                        Text(stringResource(R.string.cust_ps_deposit), fontSize = 14.sp, color = NeerlyColors.Ink700)
                         if (keepingContainer) RefundablePill()
                     }
                     if (keepingContainer) {
@@ -565,7 +563,7 @@ private fun PayTodayPanel(
                         )
                     } else {
                         Text(
-                            "₹0 — you swap jars",
+                            stringResource(R.string.cust_ps_zero_swap),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = NeerlyColors.Ok
@@ -577,7 +575,7 @@ private fun PayTodayPanel(
             HorizontalDivider(color = NeerlyColors.Ink200)
             Spacer(Modifier.height(NeerlySpacing.x2))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                Text(stringResource(R.string.cust_total), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
                 Text(
                     payToday.asRupees(),
                     fontSize = 17.sp,
@@ -588,7 +586,7 @@ private fun PayTodayPanel(
             if (keepingContainer && depositTotal.signum() > 0) {
                 Spacer(Modifier.height(NeerlySpacing.x1))
                 Text(
-                    "${depositTotal.asRupees()} of this comes back when the container does.",
+                    stringResource(R.string.cust_ps_comes_back, depositTotal.asRupees()),
                     fontSize = 11.5.sp,
                     color = NeerlyColors.Ink500
                 )
@@ -601,7 +599,7 @@ private fun PayTodayPanel(
 private fun RefundablePill() {
     Surface(color = NeerlyColors.CustomerSoft, shape = RoundedCornerShape(NeerlyRadius.pill)) {
         Text(
-            "REFUNDABLE",
+            stringResource(R.string.cust_ps_refundable_pill),
             modifier = Modifier.padding(horizontal = NeerlySpacing.x2, vertical = 2.dp),
             fontSize = 10.sp,
             letterSpacing = 0.6.sp,
@@ -624,7 +622,7 @@ private fun QuantityStepper(quantity: Int, onDecrease: () -> Unit, onIncrease: (
         ) {
             StepperButton(
                 icon = Icons.Filled.Remove,
-                description = "Decrease quantity",
+                description = stringResource(R.string.cust_ps_decrease),
                 enabled = quantity > 1,
                 filled = false,
                 onClick = onDecrease
@@ -639,7 +637,7 @@ private fun QuantityStepper(quantity: Int, onDecrease: () -> Unit, onIncrease: (
             )
             StepperButton(
                 icon = Icons.Filled.Add,
-                description = "Increase quantity",
+                description = stringResource(R.string.cust_ps_increase),
                 enabled = quantity < MAX_QTY,
                 filled = true,
                 onClick = onIncrease

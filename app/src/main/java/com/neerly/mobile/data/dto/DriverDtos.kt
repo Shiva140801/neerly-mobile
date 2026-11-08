@@ -64,7 +64,13 @@ data class DriverAssignment(
     val deliveryOtp: String?,             // always null — the customer holds the code
     val notes: String?,
     val emptiesExpected: Int = 0,
-    val depositHeld: BigDecimal = BigDecimal.ZERO
+    val depositHeld: BigDecimal = BigDecimal.ZERO,
+    // Phase 5: the shop this drop is picked up from, so "back to the shop" works after a restart.
+    val vendorId: String? = null,
+    val shopName: String? = null,
+    val pickupAddress: String? = null,
+    val pickupLat: Double? = null,
+    val pickupLng: Double? = null
 )
 
 /** Mirrors backend `DriverOfferResponse` — a run offered to this driver with a countdown. */
@@ -92,7 +98,14 @@ data class DriverTaskCard(
     val paymentMethod: String,
     val codAmount: BigDecimal? = null,
     val emptiesExpected: Int,
-    val customerFirstName: String
+    val customerFirstName: String,
+    // Present on the live response (verified on :8081) — used by pickup/navigate (D04/D05/D33).
+    val vendorId: String? = null,
+    val pickupLat: Double? = null,
+    val pickupLng: Double? = null,
+    val dropLat: Double? = null,
+    val dropLng: Double? = null,
+    val customerPhoneMask: String? = null
 )
 
 @JsonClass(generateAdapter = true)

@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.address
 
+import com.neerly.mobile.R
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.neerly.mobile.core.util.userMessage
 import javax.inject.Inject
 
 /**
@@ -29,7 +31,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AddressFormViewModel @Inject constructor(
     private val repo: CustomerRepository,
-    saved: SavedStateHandle
+    private val locator: AddressLocator,
+    saved: SavedStateHandle,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val editingId: String? = saved["addressId"]
@@ -46,7 +50,7 @@ class AddressFormViewModel @Inject constructor(
             runCatching { repo.addresses().firstOrNull { it.id == id } }
                 .onSuccess { row ->
                     if (row == null) {
-                        _state.value = _state.value.copy(error = "Address not found", loading = false)
+                        _state.value = _state.value.copy(error = strings.get(R.string.cust_addr_not_found), loading = false)
                         return@onSuccess
                     }
                     _state.value = _state.value.copy(
@@ -58,7 +62,7 @@ class AddressFormViewModel @Inject constructor(
                         landmark = row.landmark.orEmpty(),
                         city = row.city,
                         pincode = row.pincode,
-                        latitude = row.latitude, longitude = row.longitude,
+                        latitude = row.latitude, longitude = row.longitude, locationCaptured = true,
                         deliveryInstructions = row.deliveryInstructions.orEmpty(),
                         hasLift = row.hasLift,
                         floorNumber = row.floorNumber?.toString().orEmpty(),
@@ -81,18 +85,47 @@ class AddressFormViewModel @Inject constructor(
      * Stub: in V1 we accept the user-typed address and stamp it with a Hyderabad
      * centroid. Replace with Maps SDK reverse-geocode in the next sprint.
      */
+    /** Real GPS fix, then fill whatever the customer hasn't typed from the reverse geocode. */
     fun useCurrentLocation() {
-        _state.value = _state.value.copy(
-            latitude = HYDERABAD_LAT,
-            longitude = HYDERABAD_LNG,
-            locationCaptured = true
-        )
+        _state.value = _state.value.copy(locating = true, locationError = null)
+        viewModelScope.launch {
+            val fix = locator.currentFix()
+            if (fix == null) {
+                _state.value = _state.value.copy(locating = false,
+                    locationError = strings.get(R.string.cust_addr_no_location))
+                return@launch
+            }
+            // Same bounds the server enforces — say it here, not as a failed save.
+            if (fix.first !in 6.0..37.5 || fix.second !in 68.0..97.5) {
+                _state.value = _state.value.copy(locating = false, locationCaptured = false,
+                    locationError = strings.get(R.string.cust_addr_outside_india))
+                return@launch
+            }
+            val place = locator.reverse(fix.first, fix.second)
+            val cur = _state.value
+            // A field the customer typed stays; one the last fix filled follows the new fix.
+            fun pick(typed: String, lastAuto: String?, found: String?) =
+                if (typed.isBlank() || typed == lastAuto) found ?: typed else typed
+            _state.value = cur.copy(
+                locating = false, locationCaptured = true, latitude = fix.first, longitude = fix.second,
+                street = pick(cur.street, cur.autoStreet, place?.street),
+                pincode = pick(cur.pincode, cur.autoPincode, place?.pincode),
+                city = pick(cur.city, cur.autoCity ?: "Hyderabad", place?.city),
+                autoStreet = place?.street, autoPincode = place?.pincode, autoCity = place?.city,
+                foundAt = place?.line
+            )
+        }
+    }
+
+    fun locationDenied() {
+        _state.value = _state.value.copy(locationError = strings.get(R.string.cust_addr_location_denied))
     }
 
     fun save(onDone: () -> Unit) {
         val s = _state.value
         if (!s.isValid()) {
-            _state.value = s.copy(error = "Fill label, flat, building, street, pincode")
+            _state.value = s.copy(error = if (!s.locationCaptured) strings.get(R.string.cust_addr_need_pin)
+                else strings.get(R.string.cust_addr_fill_fields))
             return
         }
         _state.value = s.copy(saving = true, error = null)
@@ -147,7 +180,8 @@ class AddressFormViewModel @Inject constructor(
                     onDone()
                 }
                 .onFailure {
-                    _state.value = _state.value.copy(saving = false, error = it.message ?: "Save failed")
+                    _state.value = _state.value.copy(saving = false,
+                        error = it.userMessage(context = "save address", fallback = strings.get(R.string.cust_addr_save_failed)))
                 }
         }
     }
@@ -165,6 +199,12 @@ data class AddressFormUiState(
     val saving: Boolean = false,
     val error: String? = null,
     val locationCaptured: Boolean = false,
+    val locating: Boolean = false,
+    val locationError: String? = null,
+    val foundAt: String? = null,
+    val autoStreet: String? = null,
+    val autoPincode: String? = null,
+    val autoCity: String? = null,
 
     val label: String = "Home",
     val flatNumber: String = "",
@@ -183,7 +223,8 @@ data class AddressFormUiState(
     val setAsPrimary: Boolean = false
 ) {
     fun isValid(): Boolean =
-        label.isNotBlank() &&
+        locationCaptured &&
+            label.isNotBlank() &&
             flatNumber.isNotBlank() &&
             buildingName.isNotBlank() &&
             street.isNotBlank() &&

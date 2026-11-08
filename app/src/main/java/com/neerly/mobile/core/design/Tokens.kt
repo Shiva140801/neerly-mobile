@@ -4,57 +4,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * Neerly design tokens — ported 1:1 from design-reference/design.css.
- * Don't invent new colors here without updating neerly-backend/docs/DESIGN_SYSTEM.md first.
+ * Boondh design tokens — the redesign canvas ("new flows/Boondh Redesign") uses one brand
+ * palette for all three apps: navy on warm cream paper, ink text, amber/green/red signals.
+ * The role names are kept so every screen picks up the brand without a rewrite; they all
+ * resolve to the same navy now (the old blue/teal/orange split is gone in the redesign).
  */
 object NeerlyColors {
-    // Role: Customer
-    val CustomerPrimary = Color(0xFF2E75B6)
-    val CustomerDark    = Color(0xFF1E5A92)
-    val CustomerSoft    = Color(0xFFE5F0F9)
-    val CustomerSofter  = Color(0xFFF1F7FC)
+    private val Navy     = Color(0xFF233580)
+    private val NavyDark = Color(0xFF1F2C66)
+    private val NavySoft = Color(0xFFE6E9F4)
+    private val NavySofter = Color(0xFFF2F4FA)
 
-    // Role: Vendor
-    val VendorPrimary   = Color(0xFF17A2B8)
-    val VendorDark      = Color(0xFF0B7C8E)
-    val VendorSoft      = Color(0xFFE3F5F8)
-    val VendorSofter    = Color(0xFFF0FAFB)
+    // Role primaries — one brand
+    val CustomerPrimary = Navy;  val CustomerDark = NavyDark;  val CustomerSoft = NavySoft;  val CustomerSofter = NavySofter
+    val VendorPrimary   = Navy;  val VendorDark   = NavyDark;  val VendorSoft   = NavySoft;  val VendorSofter   = NavySofter
+    val DriverPrimary   = Navy;  val DriverDark   = NavyDark;  val DriverSoft   = NavySoft;  val DriverSofter   = NavySofter
+    val AdminPrimary    = Navy;  val AdminDark    = NavyDark;  val AdminSoft    = NavySoft;  val AdminSofter    = NavySofter
 
-    // Role: Driver
-    val DriverPrimary   = Color(0xFFF07820)
-    val DriverDark      = Color(0xFFC5611A)
-    val DriverSoft      = Color(0xFFFDECDF)
-    val DriverSofter    = Color(0xFFFEF5EC)
-
-    // Role: Admin
-    val AdminPrimary    = Color(0xFF7B2CBF)
-    val AdminDark       = Color(0xFF5E1F96)
-    val AdminSoft       = Color(0xFFEFE5F8)
-    val AdminSofter    = Color(0xFFF6F0FB)
-
-    // Neutrals (ink scale)
-    val Ink900 = Color(0xFF0E1A24)
-    val Ink800 = Color(0xFF17252F)
-    val Ink700 = Color(0xFF2B3A46)
-    val Ink600 = Color(0xFF4B5A66)
-    val Ink500 = Color(0xFF6B7B88)
-    val Ink400 = Color(0xFF9AA8B3)
-    val Ink300 = Color(0xFFC4CDD5)
-    val Ink200 = Color(0xFFE1E7EC)
-    val Ink100 = Color(0xFFEEF2F5)
-    val Ink50  = Color(0xFFF6F8FA)
-    val Paper  = Color(0xFFFFFFFF)
-    val Canvas = Color(0xFFF0EEE8)
+    // Neutrals — ink on cream
+    val Ink900 = Color(0xFF1A2238)
+    val Ink800 = Color(0xFF242C44)
+    val Ink700 = Color(0xFF353D55)
+    val Ink600 = Color(0xFF4F566B)   // body-secondary: ~7:1 on cream
+    val Ink500 = Color(0xFF5E6478)   // smallest grey text still ≥4.5:1 on cream
+    val Ink400 = Color(0xFF8E93A3)
+    val Ink300 = Color(0xFFC9C3B4)
+    val Ink200 = Color(0xFFE4DCCB)   // hairline
+    val Ink100 = Color(0xFFEFE9DC)
+    val Ink50  = Color(0xFFF8F4EC)
+    val Paper  = Color(0xFFFFFCF6)
+    val Canvas = Color(0xFFF6F1E7)   // cream
 
     // Semantic
-    val Ok      = Color(0xFF1E9E6A); val OkSoft   = Color(0xFFE1F3EA)
-    val Warn    = Color(0xFFD98E1B); val WarnSoft = Color(0xFFFBEED7)
-    val Err     = Color(0xFFD73F3F); val ErrSoft  = Color(0xFFFAE3E3)
+    val Ok      = Color(0xFF2E6E4B); val OkSoft   = Color(0xFFE3EFE7)
+    val Warn    = Color(0xFF9A6A0B); val WarnSoft = Color(0xFFFBEFD2)   // amber ink; #E6A321 is the fill
+    val Err     = Color(0xFFB23A2B); val ErrSoft  = Color(0xFFF7E3DF)
 
-    // Water hero tint
-    val Water50  = Color(0xFFEBF6FA)
-    val Water100 = Color(0xFFD5EDF3)
-    val Water500 = Color(0xFF2EA3C6)
+    // Water accent
+    val Water50  = Color(0xFFEEF1F8)
+    val Water100 = Color(0xFFDDE3F2)
+    val Water500 = Color(0xFF3B57B8)
 }
 
 object NeerlyRadius {

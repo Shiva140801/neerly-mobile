@@ -80,7 +80,19 @@ data class SearchProductGroup(
     val displayName: String,
     val sizeLabel: String?,
     val vendorCount: Int,
-    val fromPrice: BigDecimal
+    val fromPrice: BigDecimal,
+    /** Each live shop's cheapest matching listing, cheapest first (max 5). */
+    val offers: List<SearchOffer> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class SearchOffer(
+    val vendorId: String,
+    val vendorName: String,
+    val productId: String? = null,
+    val price: BigDecimal,
+    val rating: BigDecimal? = null,
+    val distanceKm: BigDecimal? = null       // straight line; only when the app sent lat/lng
 )
 
 @JsonClass(generateAdapter = true)

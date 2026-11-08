@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -34,13 +36,14 @@ fun OtpScreen(
 
     AuthPageScaffold {
         Text(
-            "Enter OTP",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            stringResource(R.string.cust_otp_title),
+            fontSize = 32.sp,
+            lineHeight = 38.sp,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
             color = NeerlyColors.Ink900
         )
         Spacer(Modifier.height(NeerlySpacing.x2))
-        Text("Sent to $phone · Change", fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Text(stringResource(R.string.cust_otp_sent_to, phone), fontSize = 14.sp, color = NeerlyColors.Ink600)
 
         Spacer(Modifier.height(NeerlySpacing.x8))
 
@@ -75,7 +78,7 @@ fun OtpScreen(
             value = code,
             onValueChange = { if (it.length <= 6 && it.all(Char::isDigit)) code = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Tap keypad or auto-detect") },
+            placeholder = { Text(stringResource(R.string.cust_otp_placeholder)) },
             singleLine = true
         )
 
@@ -83,7 +86,7 @@ fun OtpScreen(
         if (BuildConfig.DEBUG) {
             Spacer(Modifier.height(NeerlySpacing.x3))
             Text(
-                "Dev mode: 123456 always works (or check the backend log).",
+                stringResource(R.string.cust_otp_dev_hint),
                 fontSize = 12.sp,
                 color = NeerlyColors.Ink500,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -105,7 +108,7 @@ fun OtpScreen(
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
         ) {
-            Text(if (state.verifying) "Verifying…" else "Verify",
+            Text(if (state.verifying) stringResource(R.string.cust_verifying) else stringResource(R.string.cust_verify),
                 fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }

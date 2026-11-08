@@ -1,5 +1,9 @@
 package com.neerly.mobile.feature.complaint
 
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import com.neerly.mobile.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,14 +30,14 @@ import com.neerly.mobile.core.design.NeerlySpacing
  * this screen just collects the S3 keys once upload completes.
  */
 private val CATEGORIES = listOf(
-    "LATE_DELIVERY" to "Late delivery",
-    "WRONG_PRODUCT" to "Wrong product",
-    "DAMAGED_CONTAINER" to "Damaged container",
-    "WATER_QUALITY" to "Water quality",
-    "DRIVER_BEHAVIOUR" to "Driver behaviour",
-    "SHORT_QUANTITY" to "Short quantity",
-    "OVERCHARGED" to "Overcharged",
-    "OTHER" to "Other"
+    "LATE_DELIVERY" to R.string.acct_cmp_cat_late,
+    "WRONG_PRODUCT" to R.string.acct_cmp_cat_wrong,
+    "DAMAGED_CONTAINER" to R.string.acct_cmp_cat_damaged,
+    "WATER_QUALITY" to R.string.acct_cmp_cat_quality,
+    "DRIVER_BEHAVIOUR" to R.string.acct_cmp_cat_driver,
+    "SHORT_QUANTITY" to R.string.acct_cmp_cat_short,
+    "OVERCHARGED" to R.string.acct_cmp_cat_overcharged,
+    "OTHER" to R.string.acct_cmp_cat_other
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,9 +56,9 @@ fun ComplaintFileScreen(
         containerColor = NeerlyColors.Canvas,
         topBar = {
             TopAppBar(
-                title = { Text("Report an issue", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
+                title = { Text(stringResource(R.string.acct_cmp_report), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
+                    TextButton(onClick = onBack) { Text(stringResource(R.string.core_back), color = NeerlyColors.CustomerPrimary) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
             )
@@ -68,12 +72,12 @@ fun ComplaintFileScreen(
         ) {
             if (orderId != null) {
                 Text(
-                    "Order #${orderId.take(8)}",
+                    stringResource(R.string.acct_cmp_order_no, orderId.take(8)),
                     fontSize = 13.sp, color = NeerlyColors.Ink500
                 )
                 Spacer(Modifier.height(NeerlySpacing.x2))
             }
-            Text("What happened?", fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.acct_cmp_what), fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(NeerlySpacing.x3))
 
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -87,34 +91,34 @@ fun ComplaintFileScreen(
                             .background(bg)
                             .clickable { selectedCategory = code }
                             .padding(horizontal = 14.dp, vertical = 8.dp)
-                    ) { Text(label, fontSize = 13.sp, color = fg, fontWeight = FontWeight.SemiBold) }
+                    ) { Text(stringResource(label), fontSize = 13.sp, color = fg, fontWeight = FontWeight.SemiBold) }
                 }
             }
 
             Spacer(Modifier.height(NeerlySpacing.x5))
-            Text("Subject", fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.acct_cmp_subject), fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(NeerlySpacing.x2))
             OutlinedTextField(
                 value = subject,
                 onValueChange = { if (it.length <= 200) subject = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Short summary", color = NeerlyColors.Ink400) }
+                placeholder = { Text(stringResource(R.string.acct_cmp_subject_hint), color = NeerlyColors.Ink400) }
             )
 
             Spacer(Modifier.height(NeerlySpacing.x4))
-            Text("Details", fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.acct_cmp_details), fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(NeerlySpacing.x2))
             OutlinedTextField(
                 value = description,
                 onValueChange = { if (it.length <= 2000) description = it },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),
-                placeholder = { Text("Tell us what happened…", color = NeerlyColors.Ink400) },
+                placeholder = { Text(stringResource(R.string.acct_cmp_details_hint), color = NeerlyColors.Ink400) },
                 supportingText = { Text("${description.length} / 2000", color = NeerlyColors.Ink500, fontSize = 12.sp) }
             )
 
             Spacer(Modifier.height(NeerlySpacing.x4))
             Text(
-                "Our team responds within 24 hours (L1 SLA). You'll see status updates in Notifications.",
+                com.neerly.mobile.data.config.LocalAppConfig.current.complaintFirstReplyHours.let { pluralStringResource(R.plurals.acct_cmp_reply_within, it, it) },
                 fontSize = 12.sp, color = NeerlyColors.Ink500
             )
 
@@ -128,7 +132,7 @@ fun ComplaintFileScreen(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
             ) {
-                Text(if (submitting) "Filing…" else "File complaint",
+                Text(if (submitting) stringResource(R.string.acct_cmp_filing) else stringResource(R.string.acct_cmp_file),
                     fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(NeerlySpacing.x3))

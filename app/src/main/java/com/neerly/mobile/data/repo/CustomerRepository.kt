@@ -54,8 +54,8 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun search(q: String): List<ProductResponse> = api.search(q)
 
     /** Grouped hits for the search screen: product templates and vendors, separately. */
-    suspend fun searchGrouped(q: String, pincode: String? = null): GroupedSearchResponse =
-        api.searchGrouped(q, pincode)
+    suspend fun searchGrouped(q: String, pincode: String? = null, lat: Double? = null, lng: Double? = null): GroupedSearchResponse =
+        api.searchGrouped(q, pincode, lat = lat, lng = lng)
 
     // Favourites
     suspend fun favouriteIds(): List<String> = api.favouriteIds()
@@ -89,6 +89,10 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     // Deposits / Returns
     suspend fun deposits(status: String? = null): List<DepositResponse> = api.myDeposits(status).content
     suspend fun scheduleReturn(req: ReturnRequest): ReturnResponse = api.scheduleReturn(req)
+    suspend fun openReturns(): List<ReturnResponse> = api.myReturns(openOnly = true)
+    suspend fun closeComplaint(id: String) = api.closeComplaint(id)
+    suspend fun withdraw(amount: java.math.BigDecimal, upiId: String) =
+        api.walletWithdraw(com.neerly.mobile.data.dto.WithdrawRequest(amount, upiId))
 
     // Complaints
     suspend fun complaint(id: String): ComplaintResponse = api.complaint(id)

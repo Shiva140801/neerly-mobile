@@ -1,5 +1,8 @@
 package com.neerly.mobile.core.design
 
+import androidx.compose.ui.res.stringResource
+import com.neerly.mobile.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +37,7 @@ fun HomeSkeleton(modifier: Modifier = Modifier) {
         base = NeerlyColors.CustomerSoft,
         highlight = NeerlyColors.CustomerSofter
     )
-    Column(modifier.fillMaxSize().loadingSemantics("Loading home")) {
+    Column(modifier.fillMaxSize().loadingSemantics(stringResource(R.string.core_loading_home))) {
         // Hero — greeting, address line, search pill.
         Column(
             Modifier
@@ -78,7 +81,7 @@ fun VendorDetailSkeleton(modifier: Modifier = Modifier) {
         base = NeerlyColors.CustomerSoft,
         highlight = NeerlyColors.CustomerSofter
     )
-    Column(modifier.fillMaxSize().loadingSemantics("Loading vendor")) {
+    Column(modifier.fillMaxSize().loadingSemantics(stringResource(R.string.core_loading_shop))) {
         Box(Modifier.fillMaxWidth().height(196.dp).background(heroBrush))
         Row(
             Modifier.fillMaxWidth().padding(vertical = NeerlySpacing.x4),
@@ -114,7 +117,7 @@ fun VendorDetailSkeleton(modifier: Modifier = Modifier) {
 fun CartSkeleton(modifier: Modifier = Modifier) {
     val brush = rememberShimmerBrush()
     val ctaBrush = rememberShimmerBrush(base = NeerlyColors.Ink200, highlight = NeerlyColors.Ink100)
-    Column(modifier.fillMaxSize().loadingSemantics("Loading cart")) {
+    Column(modifier.fillMaxSize().loadingSemantics(stringResource(R.string.core_loading_cart))) {
         Column(
             Modifier
                 .weight(1f)
@@ -151,7 +154,7 @@ fun OrderTrackingSkeleton(modifier: Modifier = Modifier) {
         highlight = NeerlyColors.CustomerSofter
     )
     val mapBrush = rememberShimmerBrush(base = NeerlyColors.OkSoft, highlight = NeerlyColors.Ink50)
-    Column(modifier.fillMaxSize().loadingSemantics("Loading tracking")) {
+    Column(modifier.fillMaxSize().loadingSemantics(stringResource(R.string.core_loading_tracking))) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x5),
             horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3),
@@ -189,7 +192,7 @@ fun WalletSkeleton(modifier: Modifier = Modifier) {
         modifier
             .fillMaxSize()
             .padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3)
-            .loadingSemantics("Loading wallet"),
+            .loadingSemantics(stringResource(R.string.core_loading_wallet)),
         verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
     ) {
         SkeletonBlock(

@@ -1,229 +1,145 @@
 package com.neerly.mobile.feature.vendor.settings
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neerly.mobile.core.design.NeerlyColors
-import com.neerly.mobile.core.design.NeerlyRadius
-import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.*
 import com.neerly.mobile.data.dto.VendorHoursRow
-
-private val DAY_LABELS = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
- * Vendor business config — business hours per day, holidays, and emergency
- * close. Single screen so the vendor sees their full availability picture
- * at once. Each section saves independently; we don't have a "save all" CTA.
+ * Board V30 (holidays & closures) and the hours half of V06. Closing days skips the
+ * subscription jars due then and tells those customers; opening a day again brings those jars
+ * back and tells them. The emergency close in Settings also skips jars on days it fully covers.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VendorBusinessConfigScreen(
-    onBack: () -> Unit,
-    vm: VendorBusinessConfigViewModel = hiltViewModel()
-) {
+fun VendorBusinessConfigScreen(onBack: () -> Unit, vm: VendorBusinessConfigViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
+    var picking by remember { mutableStateOf(false) }
+    var label by remember { mutableStateOf("") }
+    var range by remember { mutableStateOf<Pair<LocalDate, LocalDate>?>(null) }
+    val today = LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))
 
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Business config", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.VendorPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
+    BoondhPage(stringResource(R.string.vend_holidays_hours), onBack = onBack,
+        subtitle = stringResource(R.string.vend_holidays_sub)) {
+        if (s.loading && s.hours.isEmpty() && s.holidays.isEmpty()) { item { LoadState(true, null, vm::refresh) }; return@BoondhPage }
+        s.error?.let { item { Notice(it, Tone.Bad) } }
+        s.saved?.let { item { Notice(it, Tone.Ok) } }
+        s.status?.takeIf { !it.isOpen }?.let { st -> item {
+            BoondhCard {
+                Pill(stringResource(R.string.vend_closed_orders), Tone.Warn)
+                Text(listOfNotNull(st.pausedUntil?.let { stringResource(R.string.vend_until_day, shortDay(it)) }, st.pausedReason).joinToString(" · ")
+                    .ifBlank { stringResource(R.string.vend_until_reopen) },
+                    fontSize = 14.sp, color = NeerlyColors.Ink700)
+                PrimaryButton(stringResource(R.string.vend_open_again), vm::reopen)
+            }
+        } }
+
+        item { SectionLabel(stringResource(R.string.vend_closed_days)) }
+        val upcoming = s.holidays.filter { it.date >= today.toString() }.sortedBy { it.date }
+        item {
+            BoondhCard {
+                if (upcoming.isEmpty()) Text(stringResource(R.string.vend_no_closures_dot), fontSize = 15.sp, color = NeerlyColors.Ink600)
+                upcoming.forEachIndexed { i, h ->
+                    if (i > 0) HorizontalDivider(color = NeerlyColors.Ink200)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                            Text(shortDay(h.date), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                            h.label?.let { Text(it, fontSize = 13.sp, color = NeerlyColors.Ink600) }
+                        }
+                        TextButton(onClick = { vm.removeHoliday(h.date) }, modifier = Modifier.heightIn(min = 44.dp)) {
+                            Text(stringResource(R.string.vend_open_this_day), color = NeerlyColors.CustomerPrimary) }
+                    }
+                }
+            }
         }
-    ) { padding ->
-        Column(
-            Modifier.padding(padding).fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(NeerlySpacing.x4)
+        item {
+            BoondhCard {
+                Text(stringResource(R.string.vend_close_some_days), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                val loc = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+                SecondaryButton(range?.let { (a, b) -> if (a == b) shortDate(a, loc) else stringResource(R.string.vend_date_range, shortDate(a, loc), shortDate(b, loc)) }
+                    ?: stringResource(R.string.vend_pick_days),
+                    { picking = true })
+                OutlinedTextField(value = label, onValueChange = { label = it.take(120) }, modifier = Modifier.fillMaxWidth(),
+                    singleLine = true, label = { Text(stringResource(R.string.vend_reason_customers)) }, placeholder = { Text(stringResource(R.string.vend_reason_placeholder)) })
+                Text(stringResource(R.string.vend_closure_note), fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
+                PrimaryButton(stringResource(if (s.saving) R.string.vend_saving else R.string.vend_save_tell_subs), {
+                    range?.let { (a, b) -> vm.addClosure(a, b, label); range = null; label = "" }
+                }, enabled = range != null && !s.saving)
+            }
+        }
+
+        item { SectionLabel(stringResource(R.string.vend_opening_hours)) }
+        item { HoursEditor(s.hours, s.saving, vm::saveHours) }
+    }
+
+    if (picking) {
+        val state = rememberDateRangePickerState(
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long) =
+                    !Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate().isBefore(today)
+            })
+        DatePickerDialog(
+            onDismissRequest = { picking = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val a = state.selectedStartDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
+                    val b = state.selectedEndDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() } ?: a
+                    if (a != null && b != null) range = a to b
+                    picking = false
+                }, enabled = state.selectedStartDateMillis != null) { Text(stringResource(R.string.vend_done)) }
+            },
+            dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(R.string.vend_cancel)) } }
         ) {
-            if (s.loading) {
-                Text("Loading…", color = NeerlyColors.Ink500)
-                return@Column
-            }
-
-            // ---- Status banner ----
-            val st = s.status
-            val open = st?.isOpen ?: true
-            Surface(
-                color = if (open) NeerlyColors.OkSoft else NeerlyColors.WarnSoft,
-                shape = RoundedCornerShape(NeerlyRadius.md),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(Modifier.padding(NeerlySpacing.x4)) {
-                    Text(
-                        if (open) "Open for orders" else "Closed for new orders",
-                        fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                        color = if (open) NeerlyColors.Ok else NeerlyColors.Warn
-                    )
-                    if (!open) {
-                        Text(
-                            "Until ${st?.pausedUntil ?: "—"}" +
-                                (st?.pausedReason?.let { " — $it" } ?: ""),
-                            fontSize = 12.sp, color = NeerlyColors.Ink700
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Button(onClick = vm::reopen,
-                            colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.Ok)) {
-                            Text("Reopen now")
-                        }
-                    } else {
-                        Spacer(Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { vm.emergencyClose(24, "Family emergency") }) {
-                                Text("Close 24h")
-                            }
-                            OutlinedButton(onClick = { vm.emergencyClose(72, "Vacation") }) {
-                                Text("Close 3 days")
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(NeerlySpacing.x4))
-
-            // ---- Hours editor ----
-            Text("Weekly hours", fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-            Text("Times in 24h format (e.g. 06:00, 22:00). Leave blank to mark closed.",
-                fontSize = 11.sp, color = NeerlyColors.Ink500)
-            Spacer(Modifier.height(8.dp))
-
-            // Local editable copy keyed off s.hours; rebuilds when refreshed.
-            val openTimes = remember(s.hours) {
-                mutableStateMapOf<Int, String>().apply {
-                    DAY_LABELS.indices.forEach { i ->
-                        val dow = i + 1
-                        put(dow, s.hours.firstOrNull { it.dayOfWeek == dow }?.openTime ?: "")
-                    }
-                }
-            }
-            val closeTimes = remember(s.hours) {
-                mutableStateMapOf<Int, String>().apply {
-                    DAY_LABELS.indices.forEach { i ->
-                        val dow = i + 1
-                        put(dow, s.hours.firstOrNull { it.dayOfWeek == dow }?.closeTime ?: "")
-                    }
-                }
-            }
-            DAY_LABELS.forEachIndexed { idx, label ->
-                val dow = idx + 1
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 4.dp)) {
-                    Text(label, modifier = Modifier.width(40.dp),
-                        fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                        color = NeerlyColors.Ink700)
-                    OutlinedTextField(
-                        value = openTimes[dow] ?: "",
-                        onValueChange = { openTimes[dow] = it.take(8) },
-                        placeholder = { Text("06:00", fontSize = 12.sp) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
-                    )
-                    OutlinedTextField(
-                        value = closeTimes[dow] ?: "",
-                        onValueChange = { closeTimes[dow] = it.take(8) },
-                        placeholder = { Text("22:00", fontSize = 12.sp) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
-                    )
-                }
-            }
-            Button(
-                onClick = {
-                    val rows = (1..7).mapNotNull { dow ->
-                        val o = openTimes[dow]?.trim().orEmpty()
-                        val c = closeTimes[dow]?.trim().orEmpty()
-                        if (o.isBlank() || c.isBlank()) null
-                        else VendorHoursRow(dow, paddedTime(o), paddedTime(c))
-                    }
-                    vm.saveHours(rows)
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                shape = RoundedCornerShape(NeerlyRadius.pill),
-                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.VendorPrimary)
-            ) { Text("Save hours") }
-
-            Spacer(Modifier.height(NeerlySpacing.x5))
-
-            // ---- Holidays ----
-            Text("Holidays", fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-            Spacer(Modifier.height(8.dp))
-            s.holidays.forEach { h ->
-                Surface(
-                    color = NeerlyColors.Paper, shape = RoundedCornerShape(NeerlyRadius.md),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Row(Modifier.padding(NeerlySpacing.x3),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(h.date, fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                            h.label?.let {
-                                Text(it, fontSize = 11.sp, color = NeerlyColors.Ink500)
-                            }
-                        }
-                        TextButton(onClick = { vm.removeHoliday(h.date) }) {
-                            Text("Remove", color = NeerlyColors.Err)
-                        }
-                    }
-                }
-            }
-            var newHolidayDate by remember { mutableStateOf("") }
-            var newHolidayLabel by remember { mutableStateOf("") }
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = newHolidayDate,
-                onValueChange = { newHolidayDate = it.take(10) },
-                placeholder = { Text("YYYY-MM-DD", fontSize = 12.sp) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = newHolidayLabel,
-                onValueChange = { newHolidayLabel = it.take(120) },
-                placeholder = { Text("Label (optional)", fontSize = 12.sp) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
-            )
-            Button(
-                onClick = {
-                    if (newHolidayDate.isNotBlank()) {
-                        vm.addHoliday(newHolidayDate, newHolidayLabel.trim().ifBlank { null })
-                        newHolidayDate = ""; newHolidayLabel = ""
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                shape = RoundedCornerShape(NeerlyRadius.pill),
-                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.VendorPrimary)
-            ) { Text("Add holiday") }
-
-            if (s.error != null) {
-                Spacer(Modifier.height(NeerlySpacing.x3))
-                Text(s.error!!, color = NeerlyColors.Err, fontSize = 13.sp)
-            }
+            DateRangePicker(state = state, modifier = Modifier.weight(1f),
+                title = { Text(stringResource(R.string.vend_days_closed), Modifier.padding(16.dp)) })
         }
     }
 }
 
-/** Coerce "6", "06", "06:0", "6:00" → "06:00:00" so the backend's @JsonFormat parses cleanly. */
-private fun paddedTime(input: String): String {
-    val parts = input.split(":")
-    val h = parts.getOrNull(0)?.padStart(2, '0') ?: "00"
-    val m = parts.getOrNull(1)?.padStart(2, '0') ?: "00"
+@Composable
+private fun HoursEditor(hours: List<VendorHoursRow>, saving: Boolean, onSave: (List<VendorHoursRow>) -> Unit) {
+    val open = remember(hours) { mutableStateMapOf<Int, String>().apply { (1..7).forEach { d -> put(d, hours.firstOrNull { it.dayOfWeek == d }?.openTime?.take(5).orEmpty()) } } }
+    val close = remember(hours) { mutableStateMapOf<Int, String>().apply { (1..7).forEach { d -> put(d, hours.firstOrNull { it.dayOfWeek == d }?.closeTime?.take(5).orEmpty()) } } }
+    val loc = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    BoondhCard {
+        Text(stringResource(R.string.vend_hours_hint), fontSize = 13.sp, color = NeerlyColors.Ink600)
+        (1..7).forEach { d ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(dayName(d, loc, java.time.format.TextStyle.SHORT), Modifier.width(44.dp), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                OutlinedTextField(value = open[d].orEmpty(), onValueChange = { open[d] = it.take(5) }, modifier = Modifier.weight(1f),
+                    singleLine = true, placeholder = { Text("06:00") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                Text("–")
+                OutlinedTextField(value = close[d].orEmpty(), onValueChange = { close[d] = it.take(5) }, modifier = Modifier.weight(1f),
+                    singleLine = true, placeholder = { Text("21:00") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+            }
+        }
+        PrimaryButton(stringResource(if (saving) R.string.vend_saving else R.string.vend_save_hours), {
+            onSave((1..7).mapNotNull { d ->
+                val o = open[d]?.trim().orEmpty(); val c = close[d]?.trim().orEmpty()
+                if (o.isBlank() || c.isBlank()) null else VendorHoursRow(d, padTime(o), padTime(c))
+            })
+        }, enabled = !saving)
+    }
+}
+
+/** "6" / "6:0" / "06:00" → "06:00:00", which the backend parses. */
+internal fun padTime(input: String): String {
+    val parts = input.replace('.', ':').split(":")
+    val h = parts.getOrNull(0)?.filter(Char::isDigit)?.padStart(2, '0')?.take(2) ?: "00"
+    val m = parts.getOrNull(1)?.filter(Char::isDigit)?.padEnd(2, '0')?.take(2) ?: "00"
     return "$h:$m:00"
 }

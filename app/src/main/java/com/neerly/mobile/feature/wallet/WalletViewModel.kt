@@ -27,7 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val repo: CustomerRepository,
-    private val gateway: com.neerly.mobile.feature.checkout.GatewayPayments
+    private val gateway: com.neerly.mobile.feature.checkout.GatewayPayments,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WalletUiState())
@@ -41,18 +42,20 @@ class WalletViewModel @Inject constructor(
             runCatching {
                 val balance = repo.wallet()
                 val txns = runCatching { repo.walletTransactions() }.getOrDefault(emptyList())
-                balance to txns
+                // The jar card: deposits the customer has parked against jars at home.
+                val held = runCatching { repo.deposits() }.getOrDefault(emptyList())
+                    .filter { it.status == "HELD" || it.status == "LATE" }
+                Triple(balance, txns, held)
             }
-                .onSuccess { (b, t) ->
-                    _state.value = WalletUiState(loading = false, balance = b, transactions = t)
+                .onSuccess { (b, t, held) ->
+                    _state.value = WalletUiState(loading = false, balance = b, transactions = t,
+                        jarsOut = held.sumOf { it.containerCount },
+                        depositHeld = held.fold(BigDecimal.ZERO) { acc, d -> acc + d.amount })
                 }
                 .onFailure {
                     _state.value = WalletUiState(
                         loading = false,
-                        error = it.userMessage(
-                            context = "wallet balance",
-                            fallback = "Couldn't load your balance. Please try again."
-                        )
+                        error = it.userMessage("wallet balance", com.neerly.mobile.R.string.acct_wallet_load_failed, strings)
                     )
                 }
         }
@@ -65,7 +68,7 @@ class WalletViewModel @Inject constructor(
      */
     fun topup(activity: android.app.Activity, amount: BigDecimal) {
         if (amount.signum() <= 0) {
-            _state.value = _state.value.copy(error = "Enter a valid amount")
+            _state.value = _state.value.copy(error = strings.get(com.neerly.mobile.R.string.acct_wallet_invalid_amount))
             return
         }
         _state.value = _state.value.copy(toppingUp = true, error = null, notice = null)
@@ -73,14 +76,13 @@ class WalletViewModel @Inject constructor(
             val outcome = runCatching {
                 val init = repo.walletTopup(WalletTopupRequest(amount, method = "UPI"))
                 gateway.pay(activity, init, customerName = "", customerContact = null,
-                    description = "Add ₹$amount to wallet")
+                    description = strings.get(com.neerly.mobile.R.string.acct_wallet_topup_desc, amount.toPlainString()))
             }.getOrElse {
-                com.neerly.mobile.feature.checkout.PaymentOutcome.Declined(it.userMessage(
-                    context = "wallet top-up", fallback = "Couldn't start the top-up. Nothing was taken."))
+                com.neerly.mobile.feature.checkout.PaymentOutcome.Declined(it.userMessage("wallet top-up", com.neerly.mobile.R.string.acct_wallet_topup_failed, strings))
             }
             when (outcome) {
                 com.neerly.mobile.feature.checkout.PaymentOutcome.Captured -> {
-                    _state.value = _state.value.copy(toppingUp = false, notice = "₹$amount added to your wallet")
+                    _state.value = _state.value.copy(toppingUp = false, notice = strings.get(com.neerly.mobile.R.string.acct_wallet_topup_done, amount.toPlainString()))
                     refresh()
                 }
                 is com.neerly.mobile.feature.checkout.PaymentOutcome.Unconfirmed ->
@@ -98,6 +100,8 @@ data class WalletUiState(
     val notice: String? = null,
     val toppingUp: Boolean = false,
     val balance: WalletResponse? = null,
+    val jarsOut: Int = 0,
+    val depositHeld: BigDecimal = BigDecimal.ZERO,
     val transactions: List<WalletTransaction> = emptyList(),
     val error: String? = null
 )

@@ -60,7 +60,7 @@ class CustomerSearchViewModelTest {
         vendors: List<SearchVendorHit> = emptyList()
     ) = GroupedSearchResponse(products, vendors)
 
-    private fun vm() = CustomerSearchViewModel(repo, recents, connectivity)
+    private fun vm() = CustomerSearchViewModel(repo, recents, connectivity, com.neerly.mobile.support.TestStrings)
 
     @Test
     fun oneCharacter_neverHitsTheNetwork() = runTest(dispatcher) {
@@ -192,5 +192,15 @@ class CustomerSearchViewModelTest {
 
         // No orders, no chips — the screen shows nothing rather than filler.
         assertTrue(search.state.value.reorderSuggestions.isEmpty())
+    }
+
+    @Test
+    fun clearRecents_removesEveryStoredTerm() = runTest(dispatcher) {
+        every { recents.recents } returns flowOf(listOf("20L", "tanker"))
+        val search = vm()
+        advanceUntilIdle()
+        search.clearRecents()
+        advanceUntilIdle()
+        io.mockk.coVerify { recents.remove("20L"); recents.remove("tanker") }
     }
 }

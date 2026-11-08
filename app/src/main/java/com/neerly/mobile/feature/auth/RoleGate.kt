@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -45,7 +47,8 @@ object PortalRole {
 @HiltViewModel
 class RoleGateViewModel @Inject constructor(
     private val repo: AuthRepository,
-    private val tokens: TokenStore
+    private val tokens: TokenStore,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _error = MutableStateFlow<String?>(null)
@@ -69,7 +72,7 @@ class RoleGateViewModel @Inject constructor(
                     started = false
                     _error.value = it.userMessage(
                         context = "switch role",
-                        fallback = "Couldn't switch to that role. Check your connection and try again."
+                        fallback = strings.get(R.string.cust_role_switch_failed)
                     )
                 }
         }
@@ -118,12 +121,12 @@ fun RoleGateScreen(
         if (error == null) {
             CircularProgressIndicator(color = NeerlyColors.CustomerPrimary)
             Spacer(Modifier.height(NeerlySpacing.x4))
-            Text("Switching…", fontSize = 14.sp, color = NeerlyColors.Ink600)
+            Text(stringResource(R.string.cust_role_switching), fontSize = 14.sp, color = NeerlyColors.Ink600)
         } else {
             Text(error!!, fontSize = 14.sp, color = NeerlyColors.Err, textAlign = TextAlign.Center)
             Spacer(Modifier.height(NeerlySpacing.x4))
-            Button(onClick = { vm.enter(role, remember, onReady) }) { Text("Try again") }
-            TextButton(onClick = onBack) { Text("Go back") }
+            Button(onClick = { vm.enter(role, remember, onReady) }) { Text(stringResource(R.string.cust_try_again)) }
+            TextButton(onClick = onBack) { Text(stringResource(R.string.cust_go_back)) }
         }
     }
 }

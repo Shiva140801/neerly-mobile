@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.order
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -35,144 +37,80 @@ fun OrderTrackingScreen(
     onBack: () -> Unit,
     onRateOrder: (orderId: String, orderNumber: String) -> Unit,
     onFileComplaint: (String) -> Unit,
+    onCancel: (String) -> Unit = {},
     vm: OrderTrackingViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
     val online by vm.isOnline.collectAsState()
-
-    // Coming back from the review screen: re-read so "Rate your order" does not linger.
-    val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current.lifecycle
-    androidx.compose.runtime.DisposableEffect(lifecycle) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, e ->
-            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.refresh()
-        }
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
+    val order = state.order
+    val t = state.tracking
+    // Board 15: the heading is the one thing the customer wants to know right now.
+    val cantShow = stringResource(R.string.cust_tr_cant_show)
+    val headline = when (order?.status) {
+        null -> stringResource(R.string.cust_tr_your_order)
+        "PLACED", "VENDOR_ASSIGNED", "VENDOR_REJECTED" -> stringResource(R.string.cust_home_finding_shop)
+        "VENDOR_ACCEPTED", "PREPARING" -> stringResource(R.string.cust_tr_getting_ready)
+        "DISPATCHED", "ARRIVING" -> t?.driverName?.let { stringResource(R.string.cust_tr_driver_on_way, it.substringBefore(' ')) } ?: stringResource(R.string.cust_home_on_the_way)
+        "DELIVERED" -> stringResource(R.string.cust_tr_delivered)
+        "CANCELLED" -> stringResource(R.string.cust_tr_cancelled)
+        else -> stringResource(R.string.cust_tr_failed)
     }
-
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Tracking", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
-                },
-                actions = {
-                    TextButton(onClick = vm::refresh) { Text("Refresh", color = NeerlyColors.CustomerPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
-        }
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-        // Non-blocking: whatever already loaded stays on screen and readable.
+    Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
         if (!online) OfflineBanner(onRetry = vm::refresh)
-        when {
-            state.loading && state.order == null -> OrderTrackingSkeleton()
-            state.order == null ->
-                Column(
-                    Modifier.fillMaxSize().padding(NeerlySpacing.x6),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "We can't show this order",
-                        fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900
-                    )
-                    Spacer(Modifier.height(NeerlySpacing.x2))
-                    Text(
-                        state.error ?: "This order isn't available right now.",
-                        fontSize = 13.sp, color = NeerlyColors.Ink500
-                    )
-                    Spacer(Modifier.height(NeerlySpacing.x5))
-                    Button(
-                        onClick = vm::refresh,
-                        colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-                    ) { Text("Try again") }
-                }
-            else -> {
-                val order = state.order!!
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
-                        .padding(NeerlySpacing.x5),
-                    verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x4)
-                ) {
-                    Text("Order #${order.orderNumber}",
-                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                    Text("Total ${order.totalAmount.asRupees()}",
-                        fontSize = 14.sp, color = NeerlyColors.Ink500)
-                    // Only stamped when we actually have a fetch time to quote.
-                    if (!online) {
-                        state.lastUpdatedLabel?.let { StaleDataStamp(it) }
-                    }
-
-                    if (order.status !in OrderTrackingViewModel.TERMINAL) {
-                        DeliveryCodeCard(
-                            code = state.deliveryCode,
-                            requesting = state.codeRequesting,
-                            error = state.codeError,
-                            onRequest = vm::requestNewDeliveryCode
-                        )
-                    }
-
-                    // Live map while the driver is on the road. Gated on the order
-                    // status so a finished/early order shows the plain timeline.
-                    if (order.status in OrderTrackingViewModel.IN_FLIGHT) {
-                        state.tracking?.let { t ->
-                            OrderLiveMap(t)
-                            if (t.driverName != null || t.vehicle != null) {
-                                Text(
-                                    listOfNotNull(t.driverName, t.vehicle, t.driverPhoneMask)
-                                        .joinToString("  ·  "),
-                                    fontSize = 13.sp, color = NeerlyColors.Ink700,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-                    }
-
-                    Surface(
-                        color = NeerlyColors.Paper,
-                        shape = RoundedCornerShape(NeerlyRadius.md),
-                        shadowElevation = 1.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(Modifier.padding(NeerlySpacing.x5)) {
-                            StatusTimeline(order.status)
-                        }
-                    }
-
-                    when (order.status) {
-                        "DELIVERED" -> if (state.reviewed) {
-                            Text(
-                                "Thanks — you've rated this order.",
-                                fontSize = 13.sp, color = NeerlyColors.Ink500,
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            )
-                        } else {
-                            Button(
-                                onClick = { onRateOrder(order.id, order.orderNumber) },
-                                modifier = Modifier.fillMaxWidth().height(50.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-                            ) { Text("Rate your order", fontWeight = FontWeight.SemiBold) }
-                        }
-                        "FAILED", "CANCELLED" -> EndedCard(order.status, order.paymentMethod)
-                    }
-
-                    if (!online) OfflineCapabilityCard(Modifier.fillMaxWidth())
-
-                    TextButton(
-                        onClick = { onFileComplaint(order.id) },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Text("Report an issue", color = NeerlyColors.Ink500)
-                    }
+        com.neerly.mobile.core.design.BoondhPage(
+            title = headline, onBack = onBack, backLabel = stringResource(R.string.cust_tr_back_orders),
+            subtitle = order?.let { stringResource(R.string.cust_tr_subtitle, it.orderNumber, it.totalAmount.asRupees()) }
+        ) {
+            if (state.loading && order == null) { item { OrderTrackingSkeleton() }; return@BoondhPage }
+            if (order == null) { item { com.neerly.mobile.core.design.LoadState(false, state.error ?: cantShow, vm::refresh) }; return@BoondhPage }
+            if (!online) state.lastUpdatedLabel?.let { l -> item { StaleDataStamp(l) } }
+            if (order.status !in OrderTrackingViewModel.TERMINAL) item {
+                DeliveryCodeCard(state.deliveryCode, state.codeRequesting, state.codeError, vm::requestNewDeliveryCode)
+            }
+            if (order.status in OrderTrackingViewModel.IN_FLIGHT && t != null && com.neerly.mobile.BuildConfig.MAPS_ENABLED) item { OrderLiveMap(t) }
+            item { StatusSteps(order.status) }
+            if (t?.driverName != null) item {
+                com.neerly.mobile.core.design.BoondhCard {
+                    com.neerly.mobile.core.design.InfoRow(t.driverName!!, listOfNotNull(t.vehicle, t.driverPhoneMask).joinToString(" · "))
                 }
             }
+            when (order.status) {
+                "DELIVERED" -> item {
+                    if (state.reviewed) Text(stringResource(R.string.cust_tr_rated), fontSize = 14.sp, color = NeerlyColors.Ink600)
+                    else com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_tr_rate), { onRateOrder(order.id, order.orderNumber) })
+                }
+                "FAILED", "CANCELLED" -> item { EndedCard(order.status, order.paymentMethod) }
+            }
+            if (order.status !in OrderTrackingViewModel.TERMINAL && order.status != "DELIVERED") item {
+                com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_tr_cancel), { onCancel(order.id) }, color = NeerlyColors.Err)
+            }
+            if (!online) item { OfflineCapabilityCard(Modifier.fillMaxWidth()) }
+            item { TextButton(onClick = { onFileComplaint(order.id) }, modifier = Modifier.heightIn(min = 44.dp)) {
+                Text(stringResource(R.string.cust_tr_need_help), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) } }
         }
+    }
+}
+
+/** Confirmed → Packed → On the way → At your door, as on the board. */
+@Composable
+private fun StatusSteps(current: String) {
+    val steps = listOf(stringResource(R.string.cust_tr_step_confirmed), stringResource(R.string.cust_tr_step_packed), stringResource(R.string.cust_tr_step_on_way), stringResource(R.string.cust_tr_step_door))
+    val idx = when (current) {
+        "PLACED", "VENDOR_ASSIGNED", "VENDOR_REJECTED" -> -1
+        "VENDOR_ACCEPTED" -> 0
+        "PREPARING" -> 1
+        "DISPATCHED" -> 2
+        "ARRIVING", "DELIVERED" -> 3
+        else -> -1
+    }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        steps.forEachIndexed { i, label ->
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp))
+                    .background(if (i <= idx) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200))
+                Text(label, fontSize = 12.sp, fontWeight = if (i == idx) FontWeight.Bold else FontWeight.Normal,
+                    color = if (i <= idx) NeerlyColors.Ink900 else NeerlyColors.Ink600)
+            }
         }
     }
 }
@@ -185,22 +123,22 @@ private fun DeliveryCodeCard(code: String?, requesting: Boolean, error: String?,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(NeerlySpacing.x4)) {
-            Text("DELIVERY CODE", fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
-                color = NeerlyColors.CustomerDark, letterSpacing = 1.sp)
+            Text(stringResource(R.string.cust_tr_code_label), fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                color = NeerlyColors.Ink600, letterSpacing = 0.8.sp)
             if (code != null) {
                 Text(
-                    code.chunked(3).joinToString(" "),
-                    fontSize = 28.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
-                    letterSpacing = 2.sp
+                    code.toCharArray().joinToString(" "),
+                    fontSize = 36.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
+                    letterSpacing = 4.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif
                 )
-                Text("Read this to your driver at the door — they can't complete the drop without it.",
-                    fontSize = 12.sp, color = NeerlyColors.Ink600)
+                Text(stringResource(R.string.cust_tr_code_tell),
+                    fontSize = 13.sp, color = NeerlyColors.Ink600)
             } else {
-                Text("This phone doesn't have the code for this order.",
+                Text(stringResource(R.string.cust_tr_code_missing),
                     fontSize = 13.sp, color = NeerlyColors.Ink700)
                 Spacer(Modifier.height(6.dp))
                 OutlinedButton(onClick = onRequest, enabled = !requesting) {
-                    Text(if (requesting) "Getting a code…" else "Get a delivery code",
+                    Text(if (requesting) stringResource(R.string.cust_tr_code_getting) else stringResource(R.string.cust_tr_code_get),
                         color = NeerlyColors.CustomerPrimary)
                 }
             }
@@ -212,12 +150,12 @@ private fun DeliveryCodeCard(code: String?, requesting: Boolean, error: String?,
 @Composable
 private fun EndedCard(status: String, paymentMethod: String?) {
     val (title, body) = if (status == "FAILED") {
-        "No vendor could take this order" to
-            if (paymentMethod == "COD") "Nothing was charged. Try again in a little while, or pick another vendor."
-            else "Any amount you paid is being refunded to your original payment method."
+        stringResource(R.string.cust_tr_failed_title) to
+            if (paymentMethod == "COD") stringResource(R.string.cust_tr_failed_cod)
+            else stringResource(R.string.cust_tr_failed_paid)
     } else {
-        "This order was cancelled" to
-            if (paymentMethod == "COD") "Nothing was charged." else "Any amount you paid is being refunded."
+        stringResource(R.string.cust_tr_cancelled_title) to
+            if (paymentMethod == "COD") stringResource(R.string.cust_tr_cancelled_cod) else stringResource(R.string.cust_tr_cancelled_paid)
     }
     Surface(
         color = NeerlyColors.ErrSoft,
@@ -228,55 +166,6 @@ private fun EndedCard(status: String, paymentMethod: String?) {
             Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Err)
             Spacer(Modifier.height(4.dp))
             Text(body, fontSize = 13.sp, color = NeerlyColors.Ink700)
-        }
-    }
-}
-
-@Composable
-private fun StatusTimeline(current: String) {
-    // Step keys are the backend's OrderStatus names — the old "OUT_FOR_DELIVERY"
-    // label was never a real status, so DISPATCHED orders under-highlighted.
-    val steps = listOf(
-        "PLACED"            to "Order placed",
-        "VENDOR_ACCEPTED"   to "Vendor confirmed",
-        "PREPARING"         to "Preparing",
-        "DISPATCHED"        to "Out for delivery",
-        "ARRIVING"          to "Arriving",
-        "DELIVERED"         to "Delivered"
-    )
-    // Waiting-on-a-vendor states sit between "placed" and "confirmed".
-    val effective = when (current) {
-        "VENDOR_ASSIGNED", "VENDOR_REJECTED" -> "PLACED"
-        else -> current
-    }
-    val currentIdx = steps.indexOfFirst { it.first == effective }.coerceAtLeast(0)
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        steps.forEachIndexed { idx, (_, label) ->
-            val done = idx <= currentIdx
-            val active = idx == currentIdx && current !in setOf("DELIVERED", "CANCELLED", "FAILED")
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.size(22.dp).clip(CircleShape)
-                        // Reached steps stay green on an ended order; painting every step red
-                        // read as "all of this failed". The ended card says what happened.
-                        .background(if (done) NeerlyColors.Ok else NeerlyColors.Ink200),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (done) Text("✓", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(
-                        label,
-                        fontSize = 14.sp,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
-                        color = if (done) NeerlyColors.Ink900 else NeerlyColors.Ink500
-                    )
-                    if (active) {
-                        Text("In progress", fontSize = 11.sp, color = NeerlyColors.CustomerDark)
-                    }
-                }
-            }
         }
     }
 }

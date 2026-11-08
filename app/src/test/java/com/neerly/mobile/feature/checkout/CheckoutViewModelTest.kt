@@ -76,7 +76,7 @@ class CheckoutViewModelTest {
     fun init_loadsAddresses_selectsPrimary() = runTest(dispatcher) {
         coEvery { repo.addresses() } returns listOf(primary)
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertEquals(1, vm.state.value.addresses.size)
@@ -88,7 +88,7 @@ class CheckoutViewModelTest {
     fun placeOrder_noAddress_surfacesError() = runTest(dispatcher) {
         coEvery { repo.addresses() } returns emptyList()
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         var captured: OrderResponse? = null
@@ -104,13 +104,13 @@ class CheckoutViewModelTest {
         coEvery { repo.addresses() } returns listOf(primary)
         cart.clear()
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         vm.placeOrder {}
         advanceUntilIdle()
 
-        assertEquals("Cart is empty", vm.state.value.error)
+        assertEquals("Your cart is empty", vm.state.value.error)
     }
 
     @Test
@@ -118,7 +118,7 @@ class CheckoutViewModelTest {
         coEvery { repo.addresses() } returns listOf(primary)
         coEvery { api.placeOrder(any(), any()) } returns sampleOrder
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         var captured: OrderResponse? = null
@@ -134,7 +134,7 @@ class CheckoutViewModelTest {
         coEvery { repo.addresses() } returns listOf(primary)
         coEvery { api.placeOrder(any(), any()) } throws RuntimeException("network 500")
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.placeOrder {}
         advanceUntilIdle()
@@ -152,7 +152,7 @@ class CheckoutViewModelTest {
             retrofit2.Response.error<Any>(422, body)
         )
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.placeOrder {}
         advanceUntilIdle()
@@ -167,7 +167,7 @@ class CheckoutViewModelTest {
         coEvery { api.placeOrder(any(), capture(ids)) } throws java.io.IOException("timeout") andThen
             sampleOrder.copy(otp = "482913")
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.placeOrder {}
         advanceUntilIdle()
@@ -185,7 +185,7 @@ class CheckoutViewModelTest {
         coEvery { repo.addresses() } returns listOf(primary)
         coEvery { api.placeOrder(any(), any()) } returns sampleOrder
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.selectPaymentMethod("COD")
         var done: OrderResponse? = null
@@ -204,7 +204,7 @@ class CheckoutViewModelTest {
         coEvery { api.initiatePayment(any()) } returns upiInit
         coEvery { gateway.pay(activity, upiInit, any(), any(), any()) } returns PaymentOutcome.Captured
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.selectPaymentMethod("UPI")
         var done: OrderResponse? = null
@@ -224,7 +224,7 @@ class CheckoutViewModelTest {
         coEvery { gateway.pay(any(), any(), any(), any(), any()) } returns
             PaymentOutcome.Declined("Payment cancelled. Nothing was taken.") andThen PaymentOutcome.Captured
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.selectPaymentMethod("UPI")
         var done: OrderResponse? = null
@@ -250,7 +250,7 @@ class CheckoutViewModelTest {
         coEvery { api.initiatePayment(any()) } returns upiInit
         coEvery { gateway.pay(any(), any(), any(), any(), any()) } returns PaymentOutcome.Unconfirmed("confirming")
 
-        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway)
+        val vm = CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         vm.selectPaymentMethod("UPI")
         var done: OrderResponse? = null

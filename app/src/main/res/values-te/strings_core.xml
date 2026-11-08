@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the i18n table: English / Telugu / Hindi kept side by side. -->
+<resources>
+    <string name="core_back">వెనక్కి</string>
+    <string name="core_try_again">మళ్ళీ ప్రయత్నించండి</string>
+    <string name="core_retry">మళ్ళీ</string>
+    <string name="core_tab_home">హోమ్</string>
+    <string name="core_tab_orders">ఆర్డర్లు</string>
+    <string name="core_tab_subs">ప్లాన్లు</string>
+    <string name="core_tab_wallet">వాలెట్</string>
+    <string name="core_tab_profile">ప్రొఫైల్</string>
+    <string name="core_tab_tasks">పనులు</string>
+    <string name="core_tab_round">రౌండ్</string>
+    <string name="core_tab_money">డబ్బు</string>
+    <string name="core_tab_me">నేను</string>
+    <string name="core_tab_today">ఈరోజు</string>
+    <string name="core_tab_jars">జార్లు</string>
+    <string name="core_tab_earnings">సంపాదన</string>
+    <string name="core_tab_shop">షాప్</string>
+    <string name="core_tab_task_waiting">%1$s, కొత్త పని వేచి ఉంది</string>
+    <string name="core_tab_badge_waiting">%1$s, %2$d వేచి ఉన్నాయి</string>
+    <string name="core_offline_title">ఇంటర్నెట్ లేదు</string>
+    <string name="core_offline_body">దీన్ని చూపించడానికి Boondh కి ఇంటర్నెట్ కావాలి. మీ Wi-Fi లేదా మొబైల్ డేటా చూసి మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="core_offline_banner_sub">ట్రాకింగ్ స్క్రీన్‌పైనే ఉంటుంది · చెల్లింపులు ఆగాయి</string>
+    <string name="core_offline_lost">కనెక్షన్ పోయింది</string>
+    <string name="core_offline_works">ఇంటర్నెట్ లేకున్నా పనిచేసేవి</string>
+    <string name="core_offline_needs">ఇంటర్నెట్ కావాల్సినవి</string>
+    <string name="core_offline_works_status">స్క్రీన్‌పై ఇప్పటికే ఉన్న ఆర్డర్ స్టేటస్</string>
+    <string name="core_offline_works_loaded">ఇప్పటికే తెరిచి చూసినవన్నీ</string>
+    <string name="core_offline_needs_order">కొత్త ఆర్డర్ పెట్టడం</string>
+    <string name="core_offline_needs_payments">చెల్లింపులు, వాలెట్‌లో డబ్బు వేయడం</string>
+    <string name="core_offline_needs_live">లైవ్ స్టేటస్, కొత్త డెలివరీలు</string>
+    <string name="core_stale_stamp">చివరిగా %1$s కి అప్‌డేట్ అయింది · అప్పటి స్టేటస్ చూపిస్తున్నాం</string>
+    <string name="core_loading_home">హోమ్ లోడ్ అవుతోంది</string>
+    <string name="core_loading_shop">షాప్ లోడ్ అవుతోంది</string>
+    <string name="core_loading_cart">కార్ట్ లోడ్ అవుతోంది</string>
+    <string name="core_loading_tracking">ట్రాకింగ్ లోడ్ అవుతోంది</string>
+    <string name="core_loading_wallet">వాలెట్ లోడ్ అవుతోంది</string>
+    <string name="core_err_generic">ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="core_err_offline">ఇప్పుడు Boondh కి కనెక్ట్ కాలేకపోతున్నాం. ఇంటర్నెట్ చూసి మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="core_err_session">మీ సెషన్ ముగిసింది. దయచేసి మళ్ళీ సైన్ ఇన్ చేయండి.</string>
+    <string name="core_err_server">Boondh లో ఇప్పుడు చిన్న సమస్య ఉంది. కాసేపట్లో మళ్ళీ ప్రయత్నించండి.</string>
+</resources>

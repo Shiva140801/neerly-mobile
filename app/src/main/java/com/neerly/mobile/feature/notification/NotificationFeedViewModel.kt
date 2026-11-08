@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.neerly.mobile.core.util.userMessage
 import javax.inject.Inject
 
 /**
@@ -19,7 +20,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class NotificationFeedViewModel @Inject constructor(
-    private val repo: TrustRepository
+    private val repo: TrustRepository,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NotificationFeedUiState())
@@ -39,7 +41,8 @@ class NotificationFeedViewModel @Inject constructor(
                 }
                 .onFailure {
                     _state.value = NotificationFeedUiState(
-                        loading = false, error = it.message
+                        loading = false,
+                        error = it.userMessage("notifications", com.neerly.mobile.R.string.acct_ntf_load_failed, strings)
                     )
                 }
         }
@@ -55,6 +58,17 @@ class NotificationFeedViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.markNotificationRead(id) }
                 .onFailure { /* swallow — next refresh will re-converge */ }
+        }
+    }
+
+    /** One call to `/notifications/mark-all-read`; on failure the rows go back to unread. */
+    fun markAllRead() {
+        val before = _state.value.items
+        if (before.none { !it.isRead }) return
+        _state.value = _state.value.copy(items = before.map { it.copy(isRead = true) })
+        viewModelScope.launch {
+            runCatching { repo.markAllNotificationsRead() }
+                .onFailure { _state.value = _state.value.copy(items = before) }
         }
     }
 

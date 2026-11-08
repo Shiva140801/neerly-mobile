@@ -118,6 +118,9 @@ interface NeerlyApi {
     @GET("api/v1/customer/me")
     suspend fun me(): UserSummary
 
+    @GET("api/v1/customer/profile/stats")
+    suspend fun profileStats(): com.neerly.mobile.data.dto.ProfileStats
+
     @PATCH("api/v1/customer/profile")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): UserSummary
 
@@ -172,7 +175,9 @@ interface NeerlyApi {
     suspend fun searchGrouped(
         @Query("q") q: String,
         @Query("pincode") pincode: String? = null,
-        @Query("size") size: Int = 20
+        @Query("size") size: Int = 20,
+        @Query("lat") lat: Double? = null,
+        @Query("lng") lng: Double? = null
     ): GroupedSearchResponse
 
     // ------------------------------ Preferences / Favourites ------------------------------
@@ -227,6 +232,15 @@ interface NeerlyApi {
 
     @POST("api/v1/customer/payments/{id}/capture")
     suspend fun capturePayment(@Path("id") id: String, @Body body: CapturePaymentRequest): PaymentSnapshot
+
+    @POST("api/v1/customer/wallet/withdraw")
+    suspend fun walletWithdraw(@Body body: com.neerly.mobile.data.dto.WithdrawRequest): com.neerly.mobile.data.dto.WithdrawalResponse
+
+    // ------------------------------ App config ------------------------------
+
+    /** Public: business values + update/maintenance gates. Read once at launch. */
+    @GET("api/v1/public/app-config")
+    suspend fun appConfig(): com.neerly.mobile.data.config.AppConfigResponse
 
     // ------------------------------ Wallet ------------------------------
 
@@ -289,6 +303,35 @@ interface NeerlyApi {
         @Body body: AppendComplaintMessageRequest
     ): ComplaintMessageDto
 
+    @POST("api/v1/customer/complaints/{id}/close")
+    suspend fun closeComplaint(@Path("id") id: String): ComplaintResponse
+
+    @GET("api/v1/customer/orders/{id}/cancel-quote")
+    suspend fun cancelQuote(@Path("id") id: String): com.neerly.mobile.data.dto.CancelQuote
+
+    @GET("api/v1/customer/refunds")
+    suspend fun myRefunds(@Query("page") page: Int = 0, @Query("size") size: Int = 30):
+        com.neerly.mobile.data.dto.PageResponse<com.neerly.mobile.data.dto.RefundResponse>
+
+    @GET("api/v1/customer/refunds/{id}")
+    suspend fun refund(@Path("id") id: String): com.neerly.mobile.data.dto.RefundResponse
+
+    @PATCH("api/v1/customer/profile/refund-destination")
+    suspend fun setRefundDestination(@Body body: com.neerly.mobile.data.dto.RefundDestinationRequest)
+
+    @POST("api/v1/customer/profile/change-phone/dev")
+    suspend fun changePhoneDev(@Body body: com.neerly.mobile.data.dto.DevChangePhoneRequest): com.neerly.mobile.data.dto.ChangePhoneResponse
+
+    @GET("api/v1/customer/promos/referrals")
+    suspend fun myReferrals(): List<com.neerly.mobile.data.dto.ReferralRow>
+
+    @GET("api/v1/customer/vendors/{id}/slots")
+    suspend fun vendorSlots(@Path("id") vendorId: String, @Query("date") date: String): List<com.neerly.mobile.data.dto.SlotRow>
+
+    /** HTML tax invoice for a delivered order. */
+    @GET("api/v1/customer/invoices/{orderId}")
+    suspend fun invoiceHtml(@Path("orderId") orderId: String): okhttp3.ResponseBody
+
     @POST("api/v1/customer/complaints/{id}/withdraw")
     suspend fun withdrawComplaint(@Path("id") id: String): ComplaintResponse
 
@@ -325,6 +368,14 @@ interface NeerlyApi {
     @POST("api/v1/customer/returns")
     suspend fun scheduleReturn(@Body body: ReturnRequest): ReturnResponse
 
+    /** Booked jar returns (requested / scheduled / on the way when [openOnly]). */
+    @GET("api/v1/customer/returns")
+    suspend fun myReturns(
+        @Query("openOnly") openOnly: Boolean = true,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 50
+    ): List<ReturnResponse>
+
     // ------------------------------ Event bookings ------------------------------
 
     @POST("api/v1/customer/events")
@@ -342,7 +393,10 @@ interface NeerlyApi {
     // ------------------------------ Referral ------------------------------
 
     @POST("api/v1/customer/referral")
-    suspend fun submitReferralCode(@Body body: ReferralEntryRequest)
+    suspend fun submitReferralCode(@Body body: ReferralEntryRequest): com.neerly.mobile.data.dto.ReferralPreview
+
+    @GET("api/v1/customer/referral/preview")
+    suspend fun previewReferral(@Query("code") code: String): com.neerly.mobile.data.dto.ReferralPreview
 
     // ============================== VENDOR APIs ==============================
 
@@ -519,6 +573,10 @@ interface NeerlyApi {
 
     @POST("api/v1/notifications/{id}/read")
     suspend fun markRead(@Path("id") id: String)
+
+    /** Clears every unread update in one call; returns `{"marked": N}`. */
+    @POST("api/v1/notifications/mark-all-read")
+    suspend fun markAllRead(): com.neerly.mobile.data.dto.MarkAllReadResponse
 
     // ------------------------------ Devices (FCM) ------------------------------
 

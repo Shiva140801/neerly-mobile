@@ -23,6 +23,7 @@ class SubscriptionListViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repo: CustomerRepository = mockk()
+    private val extras: SubscriptionExtrasApi = mockk()
 
     private fun sub(id: String = "s1", status: String = "ACTIVE") = SubscriptionResponse(
         id = id, customerId = "c1", vendorId = "v1", vendorName = "Sri Ganesh",
@@ -42,7 +43,7 @@ class SubscriptionListViewModelTest {
             sub("s1", "ACTIVE"), sub("s2", "PAUSED"),
             sub("s3", "PENDING_MANDATE"), sub("s4", "CANCELLED")
         )
-        val vm = SubscriptionListViewModel(repo)
+        val vm = SubscriptionListViewModel(repo, extras, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertEquals(1, vm.state.value.active.size)
@@ -54,10 +55,22 @@ class SubscriptionListViewModelTest {
     @Test
     fun load_failure_setsError() = runTest(dispatcher) {
         coEvery { repo.subscriptions() } throws RuntimeException("offline")
-        val vm = SubscriptionListViewModel(repo)
+        val vm = SubscriptionListViewModel(repo, extras, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         // Customer-facing copy, not `Throwable.message`.
         assertEquals("Couldn't load your subscriptions. Please try again.", vm.state.value.error)
         assertFalse(vm.state.value.error!!.contains("offline"))
+    }
+
+    @Test
+    fun resume_swapsInTheResumedPlan() = runTest(dispatcher) {
+        coEvery { repo.subscriptions() } returns listOf(sub("s2", "PAUSED"))
+        coEvery { extras.resume("s2") } returns sub("s2", "ACTIVE")
+        val vm = SubscriptionListViewModel(repo, extras, com.neerly.mobile.support.TestStrings)
+        advanceUntilIdle()
+        vm.resume("s2")
+        advanceUntilIdle()
+        assertEquals(1, vm.state.value.active.size)
+        assertEquals(null, vm.state.value.resuming)
     }
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the i18n table: English / Telugu / Hindi kept side by side. -->
+<resources>
+    <string name="core_back">वापस</string>
+    <string name="core_try_again">फिर से कोशिश करें</string>
+    <string name="core_retry">फिर से</string>
+    <string name="core_tab_home">होम</string>
+    <string name="core_tab_orders">ऑर्डर</string>
+    <string name="core_tab_subs">प्लान</string>
+    <string name="core_tab_wallet">वॉलेट</string>
+    <string name="core_tab_profile">प्रोफ़ाइल</string>
+    <string name="core_tab_tasks">काम</string>
+    <string name="core_tab_round">राउंड</string>
+    <string name="core_tab_money">पैसे</string>
+    <string name="core_tab_me">मैं</string>
+    <string name="core_tab_today">आज</string>
+    <string name="core_tab_jars">जार</string>
+    <string name="core_tab_earnings">कमाई</string>
+    <string name="core_tab_shop">दुकान</string>
+    <string name="core_tab_task_waiting">%1$s, नया काम इंतज़ार में</string>
+    <string name="core_tab_badge_waiting">%1$s, %2$d इंतज़ार में</string>
+    <string name="core_offline_title">इंटरनेट नहीं है</string>
+    <string name="core_offline_body">इसे दिखाने के लिए Boondh को इंटरनेट चाहिए। अपना Wi-Fi या मोबाइल डेटा जाँचें और फिर से कोशिश करें।</string>
+    <string name="core_offline_banner_sub">ट्रैकिंग स्क्रीन पर रहेगी · भुगतान रुके हैं</string>
+    <string name="core_offline_lost">कनेक्शन टूट गया</string>
+    <string name="core_offline_works">बिना इंटरनेट चलता है</string>
+    <string name="core_offline_needs">इंटरनेट चाहिए</string>
+    <string name="core_offline_works_status">स्क्रीन पर पहले से दिख रहा ऑर्डर स्टेटस</string>
+    <string name="core_offline_works_loaded">अब तक खोला हुआ सब कुछ</string>
+    <string name="core_offline_needs_order">नया ऑर्डर देना</string>
+    <string name="core_offline_needs_payments">भुगतान और वॉलेट में पैसे डालना</string>
+    <string name="core_offline_needs_live">लाइव स्टेटस और नई डिलीवरी</string>
+    <string name="core_stale_stamp">आख़िरी अपडेट %1$s · पहले वाला स्टेटस दिखा रहे हैं</string>
+    <string name="core_loading_home">होम लोड हो रहा है</string>
+    <string name="core_loading_shop">दुकान लोड हो रही है</string>
+    <string name="core_loading_cart">कार्ट लोड हो रहा है</string>
+    <string name="core_loading_tracking">ट्रैकिंग लोड हो रही है</string>
+    <string name="core_loading_wallet">वॉलेट लोड हो रहा है</string>
+    <string name="core_err_generic">कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।</string>
+    <string name="core_err_offline">अभी Boondh से जुड़ नहीं पा रहे। इंटरनेट जाँचें और फिर से कोशिश करें।</string>
+    <string name="core_err_session">आपका सेशन ख़त्म हो गया। कृपया फिर से साइन इन करें।</string>
+    <string name="core_err_server">Boondh में अभी दिक़्क़त है। थोड़ी देर में फिर से कोशिश करें।</string>
+</resources>

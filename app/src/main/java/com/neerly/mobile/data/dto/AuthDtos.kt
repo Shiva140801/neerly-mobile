@@ -36,7 +36,9 @@ data class UserSummary(
     val phoneMask: String,
     val email: String?,
     val preferredLanguage: String,
-    val status: String
+    val status: String,
+    val referralCode: String? = null,
+    val refundDestination: String? = null
 )
 
 @JsonClass(generateAdapter = true)

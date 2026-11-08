@@ -40,7 +40,7 @@ class OrderHistoryViewModelTest {
     @Test
     fun load_success_populatesOrders() = runTest(dispatcher) {
         coEvery { repo.myOrders(0, 50) } returns listOf(order(), order("o2", "PLACED"))
-        val vm = OrderHistoryViewModel(repo)
+        val vm = OrderHistoryViewModel(repo, com.neerly.mobile.data.cart.CartStore(), io.mockk.mockk(relaxed = true), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertEquals(2, vm.state.value.orders.size)
@@ -50,7 +50,7 @@ class OrderHistoryViewModelTest {
     @Test
     fun load_failure_setsErrorMessage() = runTest(dispatcher) {
         coEvery { repo.myOrders(0, 50) } throws RuntimeException("offline")
-        val vm = OrderHistoryViewModel(repo)
+        val vm = OrderHistoryViewModel(repo, com.neerly.mobile.data.cart.CartStore(), io.mockk.mockk(relaxed = true), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         // The raw `Throwable.message` must never reach the UI — the state
@@ -64,12 +64,29 @@ class OrderHistoryViewModelTest {
     fun load_manualRefresh_fetchesAgain() = runTest(dispatcher) {
         coEvery { repo.myOrders(0, 50) } returnsMany listOf(emptyList(), listOf(order()))
 
-        val vm = OrderHistoryViewModel(repo)
+        val vm = OrderHistoryViewModel(repo, com.neerly.mobile.data.cart.CartStore(), io.mockk.mockk(relaxed = true), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         assertTrue(vm.state.value.orders.isEmpty())
 
         vm.load()
         advanceUntilIdle()
         assertEquals(1, vm.state.value.orders.size)
+    }
+
+    @org.junit.Test
+    fun reorder_putsTheSameItemsInTheCart() {
+        val cart = com.neerly.mobile.data.cart.CartStore()
+        val vm = OrderHistoryViewModel(repo, cart, io.mockk.mockk(relaxed = true), com.neerly.mobile.support.TestStrings)
+        val order = com.neerly.mobile.data.dto.OrderResponse(
+            id = "o1", orderNumber = "BND-1", customerId = "c1", vendorId = "v1", driverId = null, status = "DELIVERED",
+            subtotal = java.math.BigDecimal("120"), deliveryFee = java.math.BigDecimal.ZERO, surgeSurcharge = null, taxes = null,
+            discount = null, depositTotal = null, totalAmount = java.math.BigDecimal("120"), placedAt = "2026-11-06T09:00:00Z",
+            vendorName = "Sri Balaji Water",
+            items = listOf(com.neerly.mobile.data.dto.OrderItemResponse("p1", "20L Plain", 2, java.math.BigDecimal("60"),
+                java.math.BigDecimal("120"), "TRANSFER_AND_RETURN"))
+        )
+        org.junit.Assert.assertTrue(vm.reorder(order))
+        org.junit.Assert.assertEquals("v1", cart.snapshot.vendorId)
+        org.junit.Assert.assertEquals(2, cart.snapshot.items.single().quantity)
     }
 }

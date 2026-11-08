@@ -49,6 +49,8 @@ data class OrderResponse(
     val placedAt: String,
     val paymentMethod: String? = null,
     val items: List<OrderItemResponse> = emptyList(),
+    val vendorName: String? = null,
+    val driverName: String? = null,
     /**
      * The delivery code — present only on the place-order response. The server keeps a
      * hash, so this is the one chance to keep it (see OrderLocalStore).

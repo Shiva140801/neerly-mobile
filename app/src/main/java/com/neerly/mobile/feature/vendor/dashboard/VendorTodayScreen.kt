@@ -1,301 +1,184 @@
 package com.neerly.mobile.feature.vendor.dashboard
 
-import androidx.compose.foundation.clickable
+import com.neerly.mobile.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neerly.mobile.core.design.NeerlyColors
-import com.neerly.mobile.core.util.asRupees
-import com.neerly.mobile.core.design.NeerlyRadius
-import com.neerly.mobile.core.design.NeerlySpacing
-import com.neerly.mobile.data.dto.VendorOrderResponse
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.neerly.mobile.core.design.*
+import com.neerly.mobile.feature.vendor.orders.AcceptClock
+import com.neerly.mobile.feature.vendor.orders.istClock
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
-/**
- * Vendor "Today" tab — top bar shows summary KPIs, then 3 segments: Pending,
- * Active, Completed. Pending orders show a 3-min countdown card with Accept /
- * Reject buttons; per Boondi vendor flow §8 acceptance window.
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Board V08 — Today. Counts, the pause pill, and "Needs you now". */
 @Composable
 fun VendorTodayScreen(
     onOpen: (String) -> Unit,
     onCatalog: () -> Unit,
     onEarnings: () -> Unit,
     onSettings: () -> Unit,
+    onNewOrder: (String) -> Unit = onOpen,
+    onSelectTab: (VendorTab) -> Unit = {},
+    onEvents: () -> Unit = {},
+    onCompliance: () -> Unit = {},
+    onRunSheet: () -> Unit = {},
+    onJars: () -> Unit = {},
     vm: VendorTodayViewModel = hiltViewModel()
 ) {
-    val state by vm.state.collectAsState()
-    var rejectTarget by remember { mutableStateOf<VendorOrderResponse?>(null) }
-    var rejectReason by remember { mutableStateOf("Out of stock") }
-
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Today", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
-                actions = {
-                    TextButton(onClick = onCatalog) { Text("Catalog", color = NeerlyColors.VendorPrimary) }
-                    TextButton(onClick = onEarnings) { Text("Earnings", color = NeerlyColors.VendorPrimary) }
-                    TextButton(onClick = onSettings) { Text("More", color = NeerlyColors.VendorPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
-        }
-    ) { padding ->
-        when {
-            // Only the first load blanks the screen; a refresh after Accept keeps the list.
-            state.loading && state.summary == null -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Text("Loading…", color = NeerlyColors.Ink500)
-            }
-            else -> LazyColumn(
-                contentPadding = PaddingValues(NeerlySpacing.x4),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize().padding(padding)
-            ) {
-                item { SummaryCard(state) }
-                state.error?.let {
-                    item {
-                        Surface(color = NeerlyColors.ErrSoft, shape = RoundedCornerShape(NeerlyRadius.md),
-                            modifier = Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(start = NeerlySpacing.x4), verticalAlignment = Alignment.CenterVertically) {
-                                Text(it, color = NeerlyColors.Err, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                                TextButton(onClick = vm::refresh) { Text("Retry", color = NeerlyColors.Err) }
-                            }
-                        }
-                    }
-                }
-                if (state.pending.isNotEmpty()) {
-                    item { Section("New orders — accept or reject", state.pending.size) }
-                    items(state.pending, key = { it.id }) { order ->
-                        PendingOrderCard(
-                            order = order,
-                            onAccept = { vm.acceptOrder(order.id) },
-                            onReject = { rejectTarget = order; rejectReason = "Out of stock" }
-                        )
-                    }
-                }
-                if (state.active.isNotEmpty()) {
-                    item { Section("Active", state.active.size) }
-                    items(state.active, key = { it.id }) { OrderRow(it, onOpen) }
-                }
-                if (state.completed.isNotEmpty()) {
-                    item { Section("Completed today", state.completed.size) }
-                    items(state.completed, key = { it.id }) { OrderRow(it, onOpen) }
-                }
-                if (state.error == null && state.pending.isEmpty() && state.active.isEmpty() && state.completed.isEmpty()) {
-                    item {
-                        Text(
-                            "Quiet so far. Orders show up here as customers place them.",
-                            fontSize = 13.sp, color = NeerlyColors.Ink500
-                        )
-                    }
-                }
+    val s by vm.state.collectAsState()
+    // Poll only while this screen is in front; the alert screen takes over when an offer lands.
+    val owner = LocalLifecycleOwner.current
+    DisposableEffect(owner) {
+        val obs = LifecycleEventObserver { _, e ->
+            when (e) {
+                Lifecycle.Event.ON_RESUME -> { vm.refresh(quiet = true); vm.startPolling() }
+                Lifecycle.Event.ON_PAUSE -> vm.stopPolling()
+                else -> Unit
             }
         }
+        owner.lifecycle.addObserver(obs); onDispose { owner.lifecycle.removeObserver(obs); vm.stopPolling() }
     }
+    LaunchedEffect(s.alertFor) { s.alertFor?.let { vm.alertShown(it); onNewOrder(it) } }
 
-    rejectTarget?.let { order ->
-        AlertDialog(
-            onDismissRequest = { rejectTarget = null },
-            title = { Text("Reject order #${order.orderNumber}?") },
-            text = {
-                Column {
-                    Text("Reason (shown to customer):", fontSize = 13.sp, color = NeerlyColors.Ink700)
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = rejectReason,
-                        onValueChange = { rejectReason = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+    val now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"))
+    val d = s.dashboard
+    BoondhPage(
+        title = d?.businessName ?: stringResource(R.string.vend_tab_today),
+        subtitle = now.format(DateTimeFormatter.ofPattern("EEE d MMM · h:mm a", androidx.compose.ui.platform.LocalConfiguration.current.locales[0])),
+        bottomBar = { VendorTabBar(VendorTab.Today, onSelectTab, ordersBadge = s.pending.size) }
+    ) {
+        if (d == null) { item { LoadState(s.loading, s.error, { vm.refresh() }) }; return@BoondhPage }
+        item { PausePill(s, vm::togglePause) }
+        s.error?.let { item { Notice(it, Tone.Bad) } }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Count("${d.ordersToday}", stringResource(R.string.vend_cnt_orders_today), Modifier.weight(1f))
+                Count("${d.deliveredToday}", stringResource(R.string.vend_cnt_delivered), Modifier.weight(1f))
+                Count(d.earningToday.rupeesWhole(), stringResource(R.string.vend_cnt_yours), Modifier.weight(1f), onEarnings)
+            }
+        }
+        if (d.jarsOut > 0) item {
+            Text(listOfNotNull(pluralStringResource(R.plurals.vend_jars_at_homes, d.jarsOut, d.jarsOut),
+                d.jarsLate.takeIf { it > 0 }?.let { stringResource(R.string.vend_n_late, it) }).joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink600)
+        }
+        val nothing = s.pending.isEmpty() && s.needDriver.isEmpty() && d.pendingEvents == 0 &&
+            s.subsWithoutDriver.isEmpty() && d.licencesToRenew == 0 && s.soldOut.isEmpty() && s.lateJars == 0
+        item { SectionLabel(stringResource(R.string.vend_needs_you_now)) }
+        if (nothing) item { Notice(stringResource(R.string.vend_all_caught_up), Tone.Ok) }
+        items(s.pending, key = { "p" + it.id }) { o ->
+            BoondhCard(onClick = { onNewOrder(o.id) }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.vend_new_order_from, o.customerFirstName), Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    AcceptClock(o.acceptDeadlineAt)
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    vm.rejectOrder(order.id, rejectReason)
-                    rejectTarget = null
-                }) { Text("Reject", color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold) }
-            },
-            dismissButton = { TextButton(onClick = { rejectTarget = null }) { Text("Cancel") } }
-        )
+                val km = o.distanceKm?.let { stringResource(R.string.vend_km, it.stripTrailingZeros().toPlainString()) }
+                Text(listOfNotNull(o.itemsLine.ifBlank { null }, km,
+                    stringResource(R.string.vend_you_earn_x, o.yourEarning.rupees())).joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink700)
+            }
+        }
+        if (d.pendingEvents > 0) item {
+            BoondhCard(onClick = onEvents) {
+                InfoRow(pluralStringResource(R.plurals.vend_events_to_answer, d.pendingEvents.toInt(), d.pendingEvents.toInt()),
+                    stringResource(R.string.vend_events_answer_sub))
+            }
+        }
+        items(s.needDriver, key = { "d" + it.id }) { o ->
+            BoondhCard(onClick = { onOpen(o.id) }) {
+                Pill(stringResource(if (o.status == "PREPARING") R.string.vend_status_packed_needs_driver else R.string.vend_accepted_pack), Tone.Bad)
+                InfoRow(stringResource(R.string.vend_name_order, o.customerFirstName, o.orderNumber), o.itemsLine)
+            }
+        }
+        if (s.subsWithoutDriver.isNotEmpty()) item {
+            BoondhCard(onClick = onRunSheet) {
+                InfoRow(pluralStringResource(R.plurals.vend_subs_no_driver, s.subsWithoutDriver.size, s.subsWithoutDriver.size),
+                    stringResource(R.string.vend_subs_no_driver_sub, s.subsWithoutDriver.sumOf { it.quantity }.let { q -> pluralStringResource(R.plurals.vend_n_jars, q, q) }))
+            }
+        }
+        if (s.lateJars > 0) item {
+            BoondhCard(onClick = onJars) {
+                InfoRow(pluralStringResource(R.plurals.vend_jars_late, s.lateJars, s.lateJars),
+                    stringResource(R.string.vend_jars_late_sub))
+            }
+        }
+        if (d.licencesToRenew > 0) item {
+            BoondhCard(onClick = onCompliance) {
+                InfoRow(pluralStringResource(R.plurals.vend_licences_renew, d.licencesToRenew.toInt(), d.licencesToRenew.toInt()),
+                    stringResource(R.string.vend_licences_renew_sub))
+            }
+        }
+        if (s.soldOut.isNotEmpty()) item {
+            BoondhCard(onClick = onCatalog) {
+                InfoRow(pluralStringResource(R.plurals.vend_products_off, s.soldOut.size, s.soldOut.joinToString { it.name }),
+                    pluralStringResource(R.plurals.vend_products_off_sub, s.soldOut.size))
+            }
+        }
+        if (s.active.isNotEmpty()) {
+            item { SectionLabel(stringResource(R.string.vend_on_the_go, s.active.size)) }
+            items(s.active.filter { it.driverId != null || it.status !in setOf("VENDOR_ACCEPTED", "PREPARING") }, key = { "a" + it.id }) { o ->
+                BoondhCard(onClick = { onOpen(o.id) }) {
+                    InfoRow(stringResource(R.string.vend_name_order, o.customerFirstName, o.orderNumber), "${statusWord(o.status)} · ${o.itemsLine}", o.orderValue.rupees())
+                }
+            }
+        }
+        item { TextButton(onClick = onSettings, modifier = Modifier.heightIn(min = 44.dp)) {
+            Text(stringResource(R.string.vend_shop_settings), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) } }
     }
 }
 
 @Composable
-private fun SummaryCard(state: VendorTodayUiState) {
-    val s = state.summary ?: return
-    Surface(
-        color = NeerlyColors.VendorPrimary,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(NeerlySpacing.x5)) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Column(Modifier.weight(1f)) {
-                    Text("Today", fontSize = 12.sp, color = NeerlyColors.Paper.copy(alpha = 0.85f),
-                        fontWeight = FontWeight.SemiBold)
-                    Text("₹${s.earningToday}", fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold, color = NeerlyColors.Paper)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("${s.deliveredToday} delivered",
-                        fontSize = 12.sp, color = NeerlyColors.Paper)
-                    Text("${s.activeOrders} active · ${s.pendingAccept} pending",
-                        fontSize = 11.sp, color = NeerlyColors.Paper.copy(alpha = 0.8f))
-                }
-            }
-            Spacer(Modifier.height(NeerlySpacing.x2))
-            Row {
-                s.avgRating?.let {
-                    Text("$it ★ avg",
-                        fontSize = 12.sp, color = NeerlyColors.Paper.copy(alpha = 0.85f))
-                }
-                if (s.strikesLast30d > 0) {
-                    Spacer(Modifier.width(8.dp))
-                    Text("⚠ ${s.strikesLast30d} strikes (30d)",
-                        fontSize = 12.sp, color = NeerlyColors.Paper)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Section(title: String, count: Int) {
-    Row(
-        Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, fontSize = 12.sp, color = NeerlyColors.Ink500,
-            fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-        Text("$count", fontSize = 12.sp, color = NeerlyColors.Ink500,
-            fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-private fun PendingOrderCard(
-    order: VendorOrderResponse,
-    onAccept: () -> Unit,
-    onReject: () -> Unit
-) {
-    Surface(
-        color = NeerlyColors.Paper,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        shadowElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(NeerlySpacing.x4)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("#${order.orderNumber}", fontSize = 12.sp, color = NeerlyColors.Ink500)
-                    Text(order.customerFirstName,
-                        fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                }
-                AcceptCountdown(order.acceptDeadlineAt)
-            }
-            Spacer(Modifier.height(NeerlySpacing.x2))
-            order.items.forEach {
-                Text("${it.quantity} × ${it.productName} @ ${it.unitPrice.asRupees()}",
-                    fontSize = 13.sp, color = NeerlyColors.Ink700)
-            }
-            Spacer(Modifier.height(NeerlySpacing.x2))
-            // deliveryAddress already ends in the pincode; appending it again doubled it.
-            Text(order.deliveryAddress.ifBlank { order.pincode } +
-                (order.distanceKm?.let { " · ${it} km" } ?: ""),
-                fontSize = 12.sp, color = NeerlyColors.Ink500)
-            Spacer(Modifier.height(NeerlySpacing.x2))
-            Row {
-                Text("${order.orderValue.asRupees()} order · you earn ${order.yourEarning.asRupees()}",
-                    fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                    color = NeerlyColors.VendorDark, modifier = Modifier.weight(1f))
-                Text(order.paymentStatus, fontSize = 11.sp, color = NeerlyColors.Ink500)
-            }
-            Spacer(Modifier.height(NeerlySpacing.x3))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = onReject,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NeerlyColors.Err)
-                ) { Text("Reject") }
-                Button(
-                    onClick = onAccept,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.Ok)
-                ) { Text("Accept", fontWeight = FontWeight.SemiBold) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OrderRow(order: VendorOrderResponse, onOpen: (String) -> Unit) {
-    Surface(
-        color = NeerlyColors.Paper,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        shadowElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth().clickable { onOpen(order.id) }
-    ) {
-        Row(Modifier.padding(NeerlySpacing.x4),
-            verticalAlignment = Alignment.CenterVertically) {
+private fun PausePill(s: VendorTodayUiState, onToggle: () -> Unit) {
+    val b = s.business
+    val open = b?.isOpen != false
+    val until = b?.pausedUntil?.let { runCatching { istClock(it) }.getOrNull() }
+    BoondhCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("#${order.orderNumber} · ${order.customerFirstName}",
-                    fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                Text(order.status.replace("_", " ").lowercase()
-                    .replaceFirstChar { it.uppercase() },
-                    fontSize = 11.sp, color = NeerlyColors.VendorDark)
-                Text(order.items.sumOf { it.quantity }.let { n -> if (n == 1) "1 item" else "$n items" } +
-                    " · ${order.pincode}",
-                    fontSize = 11.sp, color = NeerlyColors.Ink500)
+                Pill(when { open -> stringResource(R.string.vend_taking_orders); until != null -> stringResource(R.string.vend_paused_till, until)
+                    else -> stringResource(R.string.vend_paused_short) }, if (open) Tone.Ok else Tone.Warn)
+                if (!open) Text(until?.let { stringResource(R.string.vend_paused_body_until, it) } ?: stringResource(R.string.vend_paused_body),
+                    fontSize = 13.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(top = 6.dp))
             }
-            Text(order.yourEarning.asRupees(),
-                fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+            TextButton(onClick = onToggle, enabled = !s.working, modifier = Modifier.heightIn(min = 44.dp)) {
+                Text(stringResource(if (open) R.string.vend_pause_hour else R.string.vend_take_orders), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
 
-/**
- * Live accept timer from the server's deadline. It used to be the literal text
- * "3:00 to accept", frozen while the real window ran out underneath it.
- */
 @Composable
-private fun AcceptCountdown(deadlineIso: String?) {
-    val deadline = remember(deadlineIso) {
-        deadlineIso?.let { runCatching { java.time.Instant.parse(it) }.getOrNull() }
-    } ?: return
-    var now by remember { mutableStateOf(java.time.Instant.now()) }
-    LaunchedEffect(deadline) {
-        while (now.isBefore(deadline)) {
-            kotlinx.coroutines.delay(1_000)
-            now = java.time.Instant.now()
-        }
+private fun Count(value: String, label: String, modifier: Modifier, onClick: (() -> Unit)? = null) {
+    BoondhCard(modifier, onClick) {
+        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Text(label, fontSize = 13.sp, color = NeerlyColors.Ink600)
     }
-    val left = java.time.Duration.between(now, deadline).seconds.coerceAtLeast(0)
-    val urgent = left <= 30
-    Surface(
-        color = if (urgent) NeerlyColors.ErrSoft else NeerlyColors.WarnSoft,
-        shape = RoundedCornerShape(NeerlyRadius.pill)
-    ) {
-        Text(
-            if (left == 0L) "Expired" else "%d:%02d to accept".format(left / 60, left % 60),
-            Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            fontSize = 11.sp, color = if (urgent) NeerlyColors.Err else NeerlyColors.Warn,
-            fontWeight = FontWeight.Bold
-        )
-    }
+}
+
+/** An order status in the shop's own words (and language). */
+@Composable
+internal fun statusWord(status: String): String = when (status) {
+    "VENDOR_ASSIGNED" -> stringResource(R.string.vend_sw_new)
+    "VENDOR_ACCEPTED" -> stringResource(R.string.vend_sw_accepted)
+    "PREPARING" -> stringResource(R.string.vend_sw_packing)
+    "DISPATCHED" -> stringResource(R.string.vend_sw_on_way)
+    "ARRIVING" -> stringResource(R.string.vend_sw_door)
+    "DELIVERED" -> stringResource(R.string.vend_sw_delivered)
+    "CANCELLED" -> stringResource(R.string.vend_sw_cancelled)
+    "FAILED" -> stringResource(R.string.vend_sw_failed)
+    else -> status.lowercase().replace('_', ' ')
 }

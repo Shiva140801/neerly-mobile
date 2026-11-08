@@ -1,0 +1,29 @@
+{
+  "minSupportedAndroidVersion": "1.0.0",
+  "latestAndroidVersion": "1.0.0",
+  "maintenance": false,
+  "maintenanceMessage": null,
+  "maintenanceExpectedBack": null,
+  "settings": {
+    "delivery.fee_near": 25,
+    "delivery.fee_mid": 40,
+    "delivery.fee_far": 60,
+    "delivery.near_km": 3,
+    "delivery.far_km": 7,
+    "delivery.free_above": 400,
+    "orders.min_order_value": 0,
+    "orders.vendor_accept_window_sec": 180,
+    "subscriptions.change_cutoff": "21:00",
+    "deposits.forfeit_after_days": 7,
+    "support.complaint_first_response_hours": 24,
+    "support.opens": "06:00",
+    "support.closes": "22:00",
+    "support.refund_working_days_min": 3,
+    "support.refund_working_days_max": 5,
+    "referrals.referrer_reward": 100,
+    "referrals.referee_reward": 50,
+    "events.min_advance_hours": 72,
+    "wallet.topup_min": 10,
+    "wallet.topup_max": 9999
+  }
+}

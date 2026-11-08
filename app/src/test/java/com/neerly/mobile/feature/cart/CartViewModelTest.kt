@@ -33,7 +33,7 @@ class CartViewModelTest {
     @Before fun setUp() {
         Dispatchers.setMain(dispatcher)
         store = CartStore()
-        vm = CartViewModel(store, api)
+        vm = CartViewModel(store, api, com.neerly.mobile.support.TestStrings)
         store.addItem("v1", "Sri Ganesh",
             CartItem("p1", "20L Cool", BigDecimal("100"), 2, keepContainer = true))
     }

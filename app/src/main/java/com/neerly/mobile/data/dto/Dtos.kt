@@ -16,7 +16,17 @@ data class CreateReviewRequest(
 
 @JsonClass(generateAdapter = true)
 data class ReferralEntryRequest(
-    val referrerCode: String
+    // Backend `ClaimReferralRequest.code` — the old `referrerCode` name made every claim a 400.
+    val code: String
+)
+
+/** Backend `ReferralPreview` — whose code it is and what both people get. */
+@com.squareup.moshi.JsonClass(generateAdapter = true)
+data class ReferralPreview(
+    val valid: Boolean,
+    val referrerName: String,
+    val youGet: java.math.BigDecimal,
+    val theyGet: java.math.BigDecimal
 )
 
 @JsonClass(generateAdapter = true)
@@ -134,3 +144,7 @@ data class PromoQuoteResponse(
     val discount: BigDecimal,
     val finalTotal: BigDecimal
 )
+
+/** `POST /notifications/mark-all-read` → how many were marked. */
+@JsonClass(generateAdapter = true)
+data class MarkAllReadResponse(val marked: Int = 0)

@@ -47,6 +47,7 @@ class TrustRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun notifications(): List<NotificationResponse> = api.notifications()
 
     suspend fun markNotificationRead(id: String) = api.markRead(id)
+    suspend fun markAllNotificationsRead(): Int = api.markAllRead().marked
 
     suspend fun quotePromo(code: String, subtotal: BigDecimal, isFirstOrder: Boolean): PromoQuoteResponse =
         api.quotePromo(QuotePromoRequest(code, subtotal, isFirstOrder))

@@ -4,12 +4,12 @@
 
 ## What this is
 Android super-app for Neerly (customer + vendor + driver + admin-light in one APK).
-Kotlin 2.0, Jetpack Compose, min SDK 24, target SDK 34.
+Kotlin 2.0, Jetpack Compose, min SDK 26, target SDK 35 (compileSdk 37, AGP 8.13.2).
 
 Visual design: see [`design-reference/`](design-reference/) — the original Figma-style JSX mocks + `design.css`. All screens ported to Compose must match these tokens. The authoritative design-token mapping lives in the backend repo: [`neerly-backend/docs/DESIGN_SYSTEM.md`](../neerly-backend/docs/DESIGN_SYSTEM.md).
 
 ## Stack
-- Kotlin 2.0, AGP 8.5+, Gradle 8.x Kotlin DSL
+- Kotlin 2.0, AGP 8.13.2, Gradle 9.3 Kotlin DSL
 - Compose BOM 2024.09 (or latest stable)
 - Hilt for DI
 - Retrofit + Moshi for REST

@@ -33,12 +33,18 @@ data class SubscriptionResponse(
     val addressId: String? = null,
     val vendorName: String? = null,
     val productName: String? = null,
-    val unitPrice: BigDecimal? = null
+    val unitPrice: BigDecimal? = null,
+    /** Set when the customer ended the plan after the cut-off: this last delivery still comes. */
+    val finalDeliveryDate: String? = null,
+    val cancelledAt: String? = null
 ) {
     val quantity: Int get() = quantityPerDelivery
+    /** Ending after [finalDeliveryDate] — no more pause/skip/change. */
+    val ending: Boolean get() = finalDeliveryDate != null
 
     /** "6–9 AM" from "06:00:00" / "09:00:00". */
-    val deliverySlot: String get() = "${hour(slotStart)}–${hour(slotEnd)}"
+    /** "7–9 AM", in the app's language. */
+    val deliverySlot: String get() = com.neerly.mobile.core.design.timeWindow(slotStart, slotEnd)
 
     private fun hour(t: String): String {
         val h = t.substringBefore(':').toIntOrNull() ?: return t
@@ -86,7 +92,7 @@ data class CreateSubscriptionRequest(
 @JsonClass(generateAdapter = true)
 data class PauseSubscriptionRequest(
     val pausedFrom: String,                // yyyy-MM-dd (backend LocalDate — an instant was a 400)
-    val pausedUntil: String,
+    val pausedUntil: String? = null,       // null = until the customer resumes
     val reason: String? = null
 )
 
@@ -105,5 +111,8 @@ data class CancelSubscriptionRequest(
 data class ModifySubscriptionRequest(
     val quantityPerDelivery: Int? = null,
     val slotStart: String? = null,          // "HH:mm"
-    val slotEnd: String? = null
+    val slotEnd: String? = null,
+    val paymentMethod: String? = null,      // WALLET / COD — starts a plan stuck on PENDING_MANDATE
+    val frequency: String? = null,
+    val daysOfWeek: List<String>? = null
 )

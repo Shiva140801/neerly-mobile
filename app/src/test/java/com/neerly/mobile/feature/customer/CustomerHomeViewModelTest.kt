@@ -72,7 +72,7 @@ class CustomerHomeViewModelTest {
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal("340.00")
         )
 
-        val vm = CustomerHomeViewModel(repo, connectivity)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -93,7 +93,7 @@ class CustomerHomeViewModelTest {
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal.ZERO
         )
 
-        val vm = CustomerHomeViewModel(repo, connectivity)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertNull(vm.state.value.primaryAddress)
@@ -107,7 +107,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.activeOrders() } throws RuntimeException("orders service down")
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo, connectivity)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertEquals(false, vm.state.value.loading)
@@ -119,14 +119,14 @@ class CustomerHomeViewModelTest {
     fun load_addressesFailure_surfacesError() = runTest(dispatcher) {
         coEvery { repo.addresses() } throws RuntimeException("offline")
 
-        val vm = CustomerHomeViewModel(repo, connectivity)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         val s = vm.state.value
         assertEquals(false, s.loading)
         // Customers get actionable copy, never the raw Throwable message.
         assertEquals(
-            "Couldn't load vendors near you. Check your connection and try again.",
+            "Couldn't load shops near you. Check your connection and try again.",
             s.error
         )
     }
@@ -136,11 +136,11 @@ class CustomerHomeViewModelTest {
         coEvery { repo.addresses() } throws
             java.io.IOException("Unable to create converter for java.util.List<VendorCardResponse>")
 
-        val vm = CustomerHomeViewModel(repo, connectivity)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         val s = vm.state.value
-        assertEquals("Can't reach Neerly right now. Check your connection and try again.", s.error)
+        assertEquals("Can't reach Boondh right now. Check your connection and try again.", s.error)
     }
 
     @Test
@@ -150,7 +150,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.activeOrders() } returns listOf(activeOrder)
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo, connectivity)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
 
         assertEquals("OUT_FOR_DELIVERY", vm.state.value.activeOrders.single().status)

@@ -38,8 +38,12 @@ class DriverRepository @Inject constructor(private val api: NeerlyApi) {
 
     suspend fun startShift(): DriverShiftResponse = api.driverStartShift(StartShiftRequest())
 
-    suspend fun endShift(shiftId: String, codHandedOver: BigDecimal? = null) =
-        api.driverEndShift(shiftId, EndShiftRequest(codCollected = codHandedOver))
+    /**
+     * The server already totals the cash collected on the shift from each delivery. The old
+     * call sent the "handed over" figure as `codCollected`, overwriting what was collected
+     * with what was given to the shop — handing over goes through cod-reconcile instead.
+     */
+    suspend fun endShift(shiftId: String) = api.driverEndShift(shiftId, EndShiftRequest())
 
     suspend fun assignments(): List<DriverAssignment> = api.driverAssignments()
 

@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.core.util.userMessage
@@ -21,7 +22,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val repo: AuthRepository
+    private val repo: AuthRepository,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthUiState())
@@ -29,7 +31,7 @@ class AuthViewModel @Inject constructor(
 
     fun sendOtp(phone10digits: String, role: String = "CUSTOMER", onSent: (phoneE164: String, hint: String) -> Unit) {
         if (!phone10digits.matches(Regex("^[6-9]\\d{9}$"))) {
-            _state.value = _state.value.copy(error = "Enter a valid 10-digit number starting 6-9")
+            _state.value = _state.value.copy(error = strings.get(R.string.cust_auth_bad_phone))
             return
         }
         val phone = "+91$phone10digits"
@@ -42,8 +44,7 @@ class AuthViewModel @Inject constructor(
             } else {
                 _state.value = _state.value.copy(
                     sending = false,
-                    error = "Dev OTP endpoint not available (release build?). " +
-                        "Wire Firebase Phone Auth here."
+                    error = strings.get(R.string.cust_auth_otp_unavailable)
                 )
             }
         }
@@ -51,7 +52,7 @@ class AuthViewModel @Inject constructor(
 
     fun verifyOtp(phoneE164: String, otp: String, onSuccess: (isNewUser: Boolean, roles: List<String>) -> Unit) {
         if (otp.length != 6 || !otp.all(Char::isDigit)) {
-            _state.value = _state.value.copy(error = "OTP must be 6 digits")
+            _state.value = _state.value.copy(error = strings.get(R.string.cust_auth_otp_six))
             return
         }
         val role = _state.value.roleIntent ?: "CUSTOMER"
@@ -65,8 +66,7 @@ class AuthViewModel @Inject constructor(
             } else {
                 _state.value = _state.value.copy(
                     verifying = false,
-                    error = "OTP verification failed. " +
-                        "Try the default 123456 or the OTP printed in the backend log."
+                    error = strings.get(R.string.cust_auth_otp_failed)
                 )
             }
         }
@@ -80,7 +80,7 @@ class AuthViewModel @Inject constructor(
     fun saveDisplayName(name: String, onSaved: () -> Unit) {
         val trimmed = name.trim()
         if (trimmed.length !in 2..50) {
-            _state.value = _state.value.copy(error = "Enter a name between 2 and 50 characters")
+            _state.value = _state.value.copy(error = strings.get(R.string.cust_auth_name_length))
             return
         }
         _state.value = _state.value.copy(savingName = true, error = null)
@@ -95,7 +95,7 @@ class AuthViewModel @Inject constructor(
                         savingName = false,
                         error = it.userMessage(
                             context = "save display name",
-                            fallback = "Couldn't save your name. Please try again."
+                            fallback = strings.get(R.string.cust_auth_name_save_failed)
                         )
                     )
                 }

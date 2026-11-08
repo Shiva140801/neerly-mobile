@@ -14,7 +14,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubscriptionListViewModel @Inject constructor(
-    private val repo: CustomerRepository
+    private val repo: CustomerRepository,
+    private val extras: SubscriptionExtrasApi,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SubscriptionListUiState())
@@ -23,6 +25,18 @@ class SubscriptionListViewModel @Inject constructor(
     init { load() }
 
     fun refresh() = load()
+
+    /** "Resume now" on a paused card (board 17). */
+    fun resume(id: String) {
+        _state.value = _state.value.copy(resuming = id, error = null)
+        viewModelScope.launch {
+            runCatching { extras.resume(id) }
+                .onSuccess { r -> _state.value = _state.value.copy(resuming = null,
+                    subscriptions = _state.value.subscriptions.map { if (it.id == r.id) r else it }) }
+                .onFailure { _state.value = _state.value.copy(resuming = null,
+                    error = it.userMessage("resume subscription", com.neerly.mobile.R.string.acct_sub_resume_failed, strings)) }
+        }
+    }
 
     fun load() {
         _state.value = _state.value.copy(loading = true, error = null)
@@ -33,7 +47,7 @@ class SubscriptionListViewModel @Inject constructor(
                     // `it.message` here was Retrofit/Moshi internals; never the customer's problem.
                     _state.value = SubscriptionListUiState(
                         loading = false,
-                        error = it.userMessage(context = "subscription list", fallback = "Couldn't load your subscriptions. Please try again.")
+                        error = it.userMessage("subscription list", com.neerly.mobile.R.string.acct_sub_load_failed, strings)
                     )
                 }
         }
@@ -43,6 +57,7 @@ class SubscriptionListViewModel @Inject constructor(
 data class SubscriptionListUiState(
     val loading: Boolean = true,
     val subscriptions: List<SubscriptionResponse> = emptyList(),
+    val resuming: String? = null,
     val error: String? = null
 ) {
     val active   : List<SubscriptionResponse> get() = subscriptions.filter { it.status == "ACTIVE" }

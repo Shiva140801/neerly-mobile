@@ -1,28 +1,30 @@
 package com.neerly.mobile.feature.deposit
 
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import com.neerly.mobile.R
+
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neerly.mobile.core.design.NeerlyColors
-import com.neerly.mobile.core.design.NeerlyRadius
-import com.neerly.mobile.core.design.NeerlySpacing
+import com.neerly.mobile.core.design.*
+import com.neerly.mobile.data.config.LocalAppConfig
 import com.neerly.mobile.data.dto.DepositResponse
-import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 
+private val IST = ZoneId.of("Asia/Kolkata")
+
+/** Boards 22 (jars at your place) and 23 (return a jar). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DepositsScreen(
@@ -30,135 +32,132 @@ fun DepositsScreen(
     vm: DepositsViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
-    var pickupTarget by remember { mutableStateOf<DepositResponse?>(null) }
+    com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    var returning by remember { mutableStateOf<DepositResponse?>(null) }
+    val cfg = LocalAppConfig.current
 
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Returns & Deposits", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
+    BoondhPage(
+        title = stringResource(R.string.acct_dep_title), onBack = onBack,
+        subtitle = stringResource(R.string.acct_dep_sub, stringResource(state.refundWhere))
+    ) {
+        if (state.loading && state.deposits.isEmpty() || state.error != null && state.deposits.isEmpty()) {
+            item { LoadState(state.loading, state.error, vm::refresh) }; return@BoondhPage
         }
-    ) { padding ->
-        when {
-            state.loading -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Text("Loading…", color = NeerlyColors.Ink500)
+        state.error?.let { e -> item { Notice(e, Tone.Bad) } }
+        if (state.held.isEmpty()) {
+            item { LoadState(false, null, vm::refresh, stringResource(R.string.acct_dep_empty),
+                stringResource(R.string.acct_dep_empty_body)) }
+        } else {
+            item { BoondhCard { InfoRow(stringResource(R.string.acct_dep_held), state.held.sumOf { it.containerCount }.let { pluralStringResource(R.plurals.acct_dep_jars, it, it) }, state.heldTotal.rupees()) } }
+            items(state.held.size, key = { state.held[it].id }) { i ->
+                val d = state.held[i]
+                JarCard(d, state.requested[d.id]) { returning = d }
             }
-            state.deposits.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("No deposits held",
-                        fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
-                    Spacer(Modifier.height(6.dp))
-                    Text("Containers you keep show up here with their return deadline.",
-                        fontSize = 13.sp, color = NeerlyColors.Ink500)
-                }
+            item {
+                Text(if (cfg.depositForfeitDays > 0) pluralStringResource(R.plurals.acct_dep_late_rule_days, cfg.depositForfeitDays, cfg.depositForfeitDays)
+                    else stringResource(R.string.acct_dep_late_rule), fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
             }
-            else -> LazyColumn(
-                contentPadding = PaddingValues(NeerlySpacing.x4),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize().padding(padding)
-            ) {
-                if (state.held.isNotEmpty()) {
-                    item { Section("Active deposits", state.held.sumOf { it.amount }) }
-                    items(state.held, key = { it.id }) { d ->
-                        Row(d, primary = true, onPickup = { pickupTarget = d })
-                    }
-                }
-                if (state.returned.isNotEmpty()) {
-                    item { Section("Returned", state.returned.sumOf { it.amount }) }
-                    items(state.returned, key = { it.id }) { Row(it, primary = false) }
-                }
-                if (state.forfeited.isNotEmpty()) {
-                    item { Section("Forfeited", state.forfeited.sumOf { it.amount }) }
-                    items(state.forfeited, key = { it.id }) { Row(it, primary = false, forfeited = true) }
+        }
+        val past = state.returned + state.forfeited
+        if (past.isNotEmpty()) {
+            item { SectionLabel(stringResource(R.string.acct_dep_returned)) }
+            items(past.size, key = { past[it].id }) { i ->
+                val d = past[i]
+                BoondhCard {
+                    InfoRow(jarTitle(d), when (d.status) {
+                        "RETURNED" -> d.returnedAt?.let { stringResource(R.string.acct_dep_returned_on, shortDay(it)) } ?: stringResource(R.string.acct_dep_returned_refunded)
+                        else -> stringResource(R.string.acct_dep_forfeited)
+                    }, (d.refundableAmount ?: d.amount).rupees())
                 }
             }
         }
     }
 
-    pickupTarget?.let { d ->
-        AlertDialog(
-            onDismissRequest = { pickupTarget = null },
-            title = { Text("Schedule return") },
-            text = {
-                Text(
-                    "How would you like to return ${d.productName ?: "this container"}? " +
-                        "Pickup is at your address; drop-off is at the vendor's shop."
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    vm.scheduleReturn(d.id, mode = "SCHEDULED_PICKUP")
-                    pickupTarget = null
-                }) { Text("Schedule pickup", color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    vm.scheduleReturn(d.id, mode = "DROPOFF")
-                    pickupTarget = null
-                }) { Text("I'll drop off", color = NeerlyColors.Ink700) }
+    returning?.let { d ->
+        ModalBottomSheet(onDismissRequest = { returning = null }, containerColor = NeerlyColors.Paper) {
+            ReturnSheet(d, submitting = state.submitting, refundWhere = stringResource(state.refundWhere)) { mode, slot ->
+                vm.scheduleReturn(d.id, mode, slot); returning = null
             }
+        }
+    }
+}
+
+@Composable
+private fun JarCard(d: DepositResponse, requestedMode: String?, onReturn: () -> Unit) {
+    val due = d.returnDeadline?.let { runCatching { Instant.parse(it).atZone(IST).toLocalDate() }.getOrNull() }
+    val today = LocalDate.now(IST)
+    val late = d.status == "LATE" || (due != null && due.isBefore(today))
+    BoondhCard {
+        Text(jarTitle(d), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        d.heldAt?.let { Text(stringResource(R.string.acct_dep_since, shortDay(it)), fontSize = 13.sp, color = NeerlyColors.Ink600) }
+        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {
+                when {
+                    requestedMode != null -> Pill(if (requestedMode == "DROPOFF") stringResource(R.string.acct_dep_pill_dropoff) else stringResource(R.string.acct_dep_pill_pickup), Tone.Info)
+                    late -> Pill(stringResource(R.string.acct_dep_pill_overdue), Tone.Bad)
+                    due == today -> Pill(stringResource(R.string.acct_dep_pill_today, fmt(due)), Tone.Warn)
+                    due != null -> Pill(stringResource(R.string.acct_dep_pill_by, fmt(due)), Tone.Neutral)
+                }
+            }
+            Text((d.refundableAmount ?: d.amount).rupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        }
+        if (d.lateFeeAccrued.signum() > 0) Text(stringResource(R.string.acct_dep_late_fee, d.lateFeeAccrued.rupees()), fontSize = 13.sp, color = NeerlyColors.Err)
+        if (requestedMode == null) SecondaryButton(stringResource(R.string.acct_dep_return), onReturn)
+    }
+}
+
+/** Board 23 — when and how; the money follows the customer's refund setting. */
+@Composable
+private fun ReturnSheet(d: DepositResponse, submitting: Boolean, refundWhere: String = stringResource(R.string.acct_dep_where_wallet), onConfirm: (mode: String, slotIso: String?) -> Unit) {
+    var mode by remember { mutableStateOf("SCHEDULED_PICKUP") }
+    val days = remember { (0..2).map { LocalDate.now(IST).plusDays(it.toLong()) } }
+    var day by remember { mutableStateOf(days[1]) }
+    val hourFmt = DateTimeFormatter.ofPattern("h a", com.neerly.mobile.core.util.AppLocale.locale)
+    fun h(x: Int) = java.time.LocalTime.of(x, 0).format(hourFmt)
+    val windows = listOf(9 to "${h(9)} – ${h(12)}", 12 to "${h(12)} – ${h(15)}", 15 to "${h(15)} – ${h(18)}")
+    val nowHour = java.time.LocalTime.now(IST).hour
+    var window by remember { mutableStateOf(windows[0].first) }
+    val windowOk = day.isAfter(LocalDate.now(IST)) || window > nowHour
+    Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.acct_dep_sheet_title, jarTitle(d), (d.refundableAmount ?: d.amount).rupees()), fontSize = 20.sp,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, color = NeerlyColors.Ink900)
+        SectionLabel(stringResource(R.string.acct_dep_when))
+        listOf("SCHEDULED_PICKUP" to (stringResource(R.string.acct_dep_mode_pickup) to stringResource(R.string.acct_dep_mode_pickup_sub)),
+               "DROPOFF" to (stringResource(R.string.acct_dep_mode_drop) to stringResource(R.string.acct_dep_mode_drop_sub, d.vendorName ?: stringResource(R.string.acct_dep_the_shop)))).forEach { (m, t) ->
+            BoondhCard(onClick = { mode = m }) {
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    RadioButton(selected = mode == m, onClick = null)
+                    Spacer(Modifier.width(8.dp))
+                    Column { Text(t.first, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                        Text(t.second, fontSize = 13.sp, color = NeerlyColors.Ink600) }
+                }
+            }
+        }
+        if (mode == "SCHEDULED_PICKUP") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                days.forEach { dd -> FilterChip(selected = day == dd, onClick = { day = dd }, label = { Text(fmt(dd)) }, modifier = Modifier.heightIn(min = 44.dp)) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                windows.forEach { (h, l) -> FilterChip(selected = window == h, onClick = { window = h }, label = { Text(l, fontSize = 13.sp) }, modifier = Modifier.heightIn(min = 44.dp)) }
+            }
+            if (!windowOk) Notice(stringResource(R.string.acct_dep_window_started), Tone.Warn)
+        }
+        Text(stringResource(R.string.acct_dep_rinse, refundWhere),
+            fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
+        PrimaryButton(
+            when { submitting -> stringResource(R.string.acct_dep_booking); mode == "DROPOFF" -> stringResource(R.string.acct_dep_drop_cta); else -> stringResource(R.string.acct_dep_book_cta, fmt(day)) },
+            {
+                val slot = if (mode == "SCHEDULED_PICKUP") day.atTime(window, 0).atZone(IST).toInstant().truncatedTo(ChronoUnit.SECONDS).toString() else null
+                onConfirm(mode, slot)
+            },
+            enabled = !submitting && (mode == "DROPOFF" || windowOk)
         )
     }
 }
 
 @Composable
-private fun Section(label: String, total: BigDecimal) {
-    androidx.compose.foundation.layout.Row(
-        Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, fontSize = 11.sp, color = NeerlyColors.Ink500, fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.weight(1f))
-        Text("₹$total", fontSize = 11.sp, color = NeerlyColors.Ink500, fontWeight = FontWeight.SemiBold)
-    }
-}
+private fun jarTitle(d: DepositResponse) =
+    listOfNotNull(if (d.containerCount > 1) pluralStringResource(R.plurals.acct_dep_jars, d.containerCount, d.containerCount)
+        else (d.productName ?: stringResource(R.string.acct_dep_jar)), d.vendorName).joinToString(" · ")
 
-@Composable
-private fun Row(
-    deposit: DepositResponse,
-    primary: Boolean,
-    forfeited: Boolean = false,
-    onPickup: (() -> Unit)? = null
-) {
-    Surface(
-        color = NeerlyColors.Paper,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        shadowElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        androidx.compose.foundation.layout.Row(
-            Modifier.padding(NeerlySpacing.x4),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(
-                    deposit.productName ?: "Container",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (forfeited) NeerlyColors.Err else NeerlyColors.Ink900
-                )
-                Text(deposit.vendorName ?: "—", fontSize = 12.sp, color = NeerlyColors.Ink500)
-                deposit.returnDeadline?.let {
-                    Text("Return by ${it.take(10)}", fontSize = 11.sp, color = NeerlyColors.CustomerDark)
-                }
-                if (deposit.lateFeeAccrued.signum() > 0) {
-                    Text("Late fee: ₹${deposit.lateFeeAccrued}",
-                        fontSize = 11.sp, color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold)
-                }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text("₹${deposit.amount}",
-                    fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                if (primary && onPickup != null) {
-                    Spacer(Modifier.height(6.dp))
-                    OutlinedButton(onClick = onPickup) { Text("Return", fontSize = 12.sp) }
-                }
-            }
-        }
-    }
-}
+private fun fmt(d: LocalDate) = d.format(DateTimeFormatter.ofPattern("EEE d MMM", com.neerly.mobile.core.util.AppLocale.locale))

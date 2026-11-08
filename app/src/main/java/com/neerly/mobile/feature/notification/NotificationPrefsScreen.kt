@@ -1,5 +1,9 @@
 package com.neerly.mobile.feature.notification
 
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import com.neerly.mobile.R
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,69 +25,32 @@ import com.neerly.mobile.core.design.NeerlySpacing
  * Notification preferences screen — channel × category matrix of switches.
  * Optimistic updates with auto-rollback on backend error (handled by VM).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Board NotifPrefs — "What we tell you about": each topic, each channel. */
 @Composable
 fun NotificationPrefsScreen(
     onBack: () -> Unit,
     vm: NotificationPrefsViewModel = hiltViewModel()
 ) {
     val s by vm.state.collectAsState()
-
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Notifications", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
-        }
-    ) { padding ->
-        Column(
-            Modifier.padding(padding).fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(NeerlySpacing.x4)
-        ) {
-            Text(
-                "Choose how you'd like to hear from us. We'll always show critical " +
-                    "delivery updates in the in-app feed.",
-                fontSize = 13.sp, color = NeerlyColors.Ink600
-            )
-            Spacer(Modifier.height(NeerlySpacing.x4))
-
-            if (s.loading) {
-                Text("Loading…", color = NeerlyColors.Ink500)
-                return@Column
-            }
-
-            vm.categories.forEach { (key, label) ->
-                Surface(
-                    color = NeerlyColors.Paper,
-                    shape = RoundedCornerShape(NeerlyRadius.md),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
-                ) {
-                    Column(Modifier.padding(NeerlySpacing.x4)) {
-                        Text(label, fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                        Spacer(Modifier.height(8.dp))
-                        vm.channels.forEach { ch ->
-                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                Text(ch, Modifier.weight(1f),
-                                    fontSize = 13.sp, color = NeerlyColors.Ink800)
-                                Switch(
-                                    checked = vm.isEnabled(ch, key),
-                                    onCheckedChange = { vm.toggle(ch, key, it) }
-                                )
-                            }
+    val channelNames = mapOf("PUSH" to stringResource(R.string.acct_ntf_ch_push), "SMS" to "SMS", "EMAIL" to stringResource(R.string.acct_ntf_ch_email), "WHATSAPP" to "WhatsApp")
+    com.neerly.mobile.core.design.BoondhPage(
+        title = stringResource(R.string.acct_ntf_prefs_title),
+        onBack = onBack,
+        subtitle = stringResource(R.string.acct_ntf_prefs_sub)
+    ) {
+        if (s.loading) { item { com.neerly.mobile.core.design.LoadState(true, null, vm::refresh) }; return@BoondhPage }
+        s.error?.let { e -> item { com.neerly.mobile.core.design.Notice(e, com.neerly.mobile.core.design.Tone.Bad) } }
+        vm.categories.forEach { (key, label) ->
+            item {
+                com.neerly.mobile.core.design.BoondhCard {
+                    Text(stringResource(label), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    vm.channels.forEach { ch ->
+                        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text(channelNames[ch] ?: ch, Modifier.weight(1f), fontSize = 15.sp, color = NeerlyColors.Ink800)
+                            Switch(checked = vm.isEnabled(ch, key), onCheckedChange = { vm.toggle(ch, key, it) })
                         }
                     }
                 }
-            }
-
-            if (s.error != null) {
-                Text(s.error!!, color = NeerlyColors.Err, fontSize = 13.sp)
             }
         }
     }

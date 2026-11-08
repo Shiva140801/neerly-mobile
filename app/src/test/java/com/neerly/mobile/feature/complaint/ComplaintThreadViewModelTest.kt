@@ -38,7 +38,7 @@ class ComplaintThreadViewModelTest {
     @Before fun setUp() { Dispatchers.setMain(dispatcher) }
     @After  fun tearDown() { Dispatchers.resetMain() }
 
-    private fun vm() = ComplaintThreadViewModel(repo, SavedStateHandle(mapOf("complaintId" to "c1")))
+    private fun vm() = ComplaintThreadViewModel(repo, SavedStateHandle(mapOf("complaintId" to "c1")), com.neerly.mobile.support.TestStrings)
 
     @Test
     fun load_populatesComplaint() = runTest(dispatcher) {

@@ -105,5 +105,5 @@ fun SkeletonBlock(
  * Wraps a screen's skeleton so assistive tech announces "Loading" once instead
  * of reading out a dozen anonymous boxes.
  */
-fun Modifier.loadingSemantics(label: String = "Loading"): Modifier =
+fun Modifier.loadingSemantics(label: String): Modifier =
     this.semantics { contentDescription = label }

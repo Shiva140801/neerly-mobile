@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.search
 
+import com.neerly.mobile.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.core.util.ConnectivityObserver
@@ -34,7 +35,8 @@ import javax.inject.Inject
 class CustomerSearchViewModel @Inject constructor(
     private val repo: CustomerRepository,
     private val recentStore: RecentSearchStore,
-    connectivity: ConnectivityObserver
+    connectivity: ConnectivityObserver,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SearchUiState())
@@ -92,9 +94,24 @@ class CustomerSearchViewModel @Inject constructor(
         viewModelScope.launch { recentStore.remove(term) }
     }
 
+    /** "Clear" on board 38 — the store has no bulk call, so remove each. */
+    fun clearRecents() {
+        val terms = _state.value.recents
+        viewModelScope.launch { terms.forEach { recentStore.remove(it) } }
+    }
+
+    /** Where the customer is, for per-shop distance — the primary address, looked up once. */
+    private var home: com.neerly.mobile.data.dto.AddressResponse? = null
+    private var homeLoaded = false
+
     private suspend fun runSearch(query: String) {
         _state.value = _state.value.copy(results = SearchResults.Loading)
-        runCatching { repo.searchGrouped(query) }
+        if (!homeLoaded) {
+            home = runCatching { repo.addresses() }.getOrNull()?.let { a -> a.firstOrNull { it.isPrimary } ?: a.firstOrNull() }
+            homeLoaded = true
+        }
+        val h = home
+        runCatching { repo.searchGrouped(query, h?.pincode, h?.latitude, h?.longitude) }
             .onSuccess { grouped ->
                 recentStore.record(query)
                 _state.value = _state.value.copy(
@@ -110,7 +127,7 @@ class CustomerSearchViewModel @Inject constructor(
                     results = SearchResults.Error(
                         it.userMessage(
                             context = "customer search",
-                            fallback = "Couldn't search right now. Please try again."
+                            fallback = strings.get(R.string.cust_search_failed)
                         )
                     )
                 )

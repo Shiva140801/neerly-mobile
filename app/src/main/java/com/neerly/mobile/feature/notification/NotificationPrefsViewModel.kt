@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.notification
 
+import com.neerly.mobile.core.util.userMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.dto.NotificationPrefDto
@@ -23,16 +25,17 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class NotificationPrefsViewModel @Inject constructor(
-    private val repo: CustomerRepository
+    private val repo: CustomerRepository,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     val channels = listOf("PUSH", "SMS", "EMAIL", "WHATSAPP")
     val categories = listOf(
-        "ORDER_UPDATES" to "Order updates",
-        "DELIVERY_STATUS" to "Driver / delivery status",
-        "BILLING" to "Payment + receipts",
-        "PROMOTIONS" to "Promotions + offers",
-        "NEWS" to "Product news"
+        "ORDER_UPDATES" to com.neerly.mobile.R.string.acct_ntf_cat_orders,
+        "DELIVERY_STATUS" to com.neerly.mobile.R.string.acct_ntf_cat_delivery,
+        "BILLING" to com.neerly.mobile.R.string.acct_ntf_cat_billing,
+        "PROMOTIONS" to com.neerly.mobile.R.string.acct_ntf_cat_promos,
+        "NEWS" to com.neerly.mobile.R.string.acct_ntf_cat_news
     )
 
     private val _state = MutableStateFlow(NotificationPrefsUiState())
@@ -45,7 +48,7 @@ class NotificationPrefsViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.notificationPrefs() }
                 .onSuccess { rows -> _state.value = _state.value.copy(loading = false, rows = rows) }
-                .onFailure { _state.value = _state.value.copy(loading = false, error = it.message) }
+                .onFailure { _state.value = _state.value.copy(loading = false, error = it.userMessage("notification prefs", com.neerly.mobile.R.string.acct_ntf_prefs_load_failed, strings)) }
         }
     }
 
@@ -70,7 +73,7 @@ class NotificationPrefsViewModel @Inject constructor(
             runCatching { repo.setNotificationPref(channel, category, enabled) }
                 .onFailure {
                     // Rollback on failure
-                    _state.value = _state.value.copy(error = it.message ?: "Save failed")
+                    _state.value = _state.value.copy(error = it.userMessage("notification prefs save", com.neerly.mobile.R.string.acct_save_failed, strings))
                     refresh()
                 }
         }

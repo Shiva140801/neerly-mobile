@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,12 +24,13 @@ data class Language(val code: String, val label: String, val native: String)
 private val LANGUAGES = listOf(
     Language("en", "English", "English"),
     Language("te", "Telugu", "తెలుగు"),
-    Language("hi", "Hindi (V1.1)", "हिंदी")
+    Language("hi", "Hindi", "हिंदी")
 )
 
 @Composable
-fun LanguageScreen(onPicked: (String) -> Unit) {
-    var selected by remember { mutableStateOf("en") }
+fun LanguageScreen(onPicked: (String) -> Unit, languageSync: com.neerly.mobile.core.util.LanguageSync? = null) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var selected by remember { mutableStateOf(com.neerly.mobile.core.util.AppLocale.current(context)) }
 
     Column(
         modifier = Modifier
@@ -35,9 +38,9 @@ fun LanguageScreen(onPicked: (String) -> Unit) {
             .background(NeerlyColors.Paper)
             .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x5)
     ) {
-        Text("Choose your language", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Text(stringResource(R.string.cust_language_title), fontSize = 32.sp, lineHeight = 38.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, color = NeerlyColors.Ink900)
         Spacer(Modifier.height(NeerlySpacing.x2))
-        Text("You can change this later in Settings.", fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Text(stringResource(R.string.cust_language_body), fontSize = 14.sp, color = NeerlyColors.Ink600)
         Spacer(Modifier.height(NeerlySpacing.x6))
 
         LANGUAGES.forEach { lang ->
@@ -72,12 +75,17 @@ fun LanguageScreen(onPicked: (String) -> Unit) {
         Spacer(Modifier.weight(1f))
 
         Button(
-            onClick = { onPicked(selected) },
+            // Kept and applied — the choice used to be dropped on the floor.
+            onClick = {
+                com.neerly.mobile.core.util.AppLocale.set(context, selected)
+                languageSync?.push()
+                onPicked(selected)
+            },
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
         ) {
-            Text("Continue", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.cust_continue), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

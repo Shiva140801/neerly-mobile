@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.checkout
 
+import com.neerly.mobile.R
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -52,7 +53,8 @@ sealed interface PaymentOutcome {
 class GatewayPayments @Inject constructor(
     private val launcher: PaymentLauncher,
     private val results: GatewayResults,
-    private val api: NeerlyApi
+    private val api: NeerlyApi,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) {
     suspend fun pay(
         activity: Activity,
@@ -64,7 +66,7 @@ class GatewayPayments @Inject constructor(
         val keyId = init.keyId
         val rzpOrderId = init.razorpayOrderId
         if (keyId.isNullOrBlank() || rzpOrderId.isNullOrBlank()) {
-            return PaymentOutcome.Declined("Online payment isn't available right now. Try again in a moment.")
+            return PaymentOutcome.Declined(strings.get(R.string.cust_pay_unavailable))
         }
         launcher.launch(
             activity = activity, keyId = keyId, razorpayOrderId = rzpOrderId,
@@ -75,12 +77,12 @@ class GatewayPayments @Inject constructor(
             is GatewayResult.NotPaid -> PaymentOutcome.Declined(declineCopy(r))
             is GatewayResult.Paid -> {
                 val signature = r.signature
-                    ?: return PaymentOutcome.Unconfirmed("Payment received. We're confirming it with your bank.")
+                    ?: return PaymentOutcome.Unconfirmed(strings.get(R.string.cust_pay_received_confirming))
                 runCatching {
                     api.capturePayment(init.paymentId, CapturePaymentRequest(r.razorpayPaymentId, signature))
                 }.fold(
                     onSuccess = { PaymentOutcome.Captured },
-                    onFailure = { PaymentOutcome.Unconfirmed("Payment received. We're confirming it — this can take a minute.") }
+                    onFailure = { PaymentOutcome.Unconfirmed(strings.get(R.string.cust_pay_received_wait)) }
                 )
             }
         }
@@ -88,11 +90,11 @@ class GatewayPayments @Inject constructor(
 
     private fun declineCopy(r: GatewayResult.NotPaid): String = when (r.code) {
         // Checkout.PAYMENT_CANCELED
-        0 -> "Payment cancelled. Nothing was taken."
+        0 -> strings.get(R.string.cust_pay_cancelled)
         // Checkout.NETWORK_ERROR
-        2 -> "No internet while paying. Nothing was taken — try again."
+        2 -> strings.get(R.string.cust_pay_no_internet)
         else -> r.description?.takeIf { it.isNotBlank() && !it.trimStart().startsWith("{") }
-            ?: "The payment didn't go through. Nothing was taken."
+            ?: strings.get(R.string.cust_pay_failed)
     }
 }
 

@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,14 +35,14 @@ fun PhoneScreen(
 
     AuthPageScaffold {
         Text(
-            "Enter your mobile number",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            stringResource(R.string.cust_phone_title),
+            fontSize = 32.sp,
+            lineHeight = 38.sp,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
             color = NeerlyColors.Ink900,
-            lineHeight = 34.sp
         )
         Spacer(Modifier.height(NeerlySpacing.x2))
-        Text("We'll send you a one-time password.", fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Text(stringResource(R.string.cust_phone_body), fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600)
 
         Spacer(Modifier.height(NeerlySpacing.x8))
 
@@ -90,7 +92,7 @@ fun PhoneScreen(
             )
         ) {
             Text(
-                if (state.sending) "Sending…" else "Send OTP",
+                if (state.sending) stringResource(R.string.cust_phone_sending) else stringResource(R.string.cust_phone_send_code),
                 fontSize = 15.sp, fontWeight = FontWeight.SemiBold
             )
         }
@@ -99,7 +101,7 @@ fun PhoneScreen(
         if (BuildConfig.DEBUG) {
             Spacer(Modifier.height(NeerlySpacing.x3))
             Text(
-                "Dev mode: default OTP 123456 always works (or check backend logs).",
+                stringResource(R.string.cust_phone_dev_hint),
                 fontSize = 12.sp,
                 color = NeerlyColors.Ink500,
                 modifier = Modifier.align(Alignment.CenterHorizontally)

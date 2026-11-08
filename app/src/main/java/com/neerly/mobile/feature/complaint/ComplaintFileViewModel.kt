@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.complaint
 
+import com.neerly.mobile.core.util.userMessage
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.repo.TrustRepository
@@ -17,7 +19,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ComplaintFileViewModel @Inject constructor(
-    private val repo: TrustRepository
+    private val repo: TrustRepository,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ComplaintFileUiState())
@@ -33,7 +36,7 @@ class ComplaintFileViewModel @Inject constructor(
     ) {
         if (_state.value.submitting) return
         if (subject.isBlank() || description.isBlank()) {
-            _state.value = _state.value.copy(error = "Subject and description are required")
+            _state.value = _state.value.copy(error = strings.get(com.neerly.mobile.R.string.acct_cmp_required))
             return
         }
         _state.value = ComplaintFileUiState(submitting = true)
@@ -54,7 +57,7 @@ class ComplaintFileViewModel @Inject constructor(
                 .onFailure {
                     _state.value = ComplaintFileUiState(
                         submitting = false,
-                        error = it.message ?: "Could not file complaint"
+                        error = it.userMessage("file complaint", com.neerly.mobile.R.string.acct_cmp_file_failed, strings)
                     )
                 }
         }

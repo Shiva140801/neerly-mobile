@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">బూంద్</string>
+    <string name="tagline">ప్రతి చుక్క, సమయానికి</string>
+    <string name="offline_title">ఇప్పుడు ఇంటర్నెట్ లేదు</string>
+    <string name="retry">మళ్ళీ ప్రయత్నించండి</string>
+</resources>

@@ -84,7 +84,7 @@ class ContractShapeTest {
         val sub: com.neerly.mobile.data.dto.SubscriptionResponse =
             parse("subscription.json", com.neerly.mobile.data.dto.SubscriptionResponse::class.java)
         assertEquals(2, sub.quantity)
-        assertEquals("6 AM–9 AM", sub.deliverySlot)
+        assertEquals("6–9 AM", sub.deliverySlot)
         assertTrue("card shows a vendor and product name", sub.vendorName != null && sub.productName != null)
         val list: List<com.neerly.mobile.data.dto.SubscriptionResponse> = parse("subscriptions.json",
             Types.newParameterizedType(List::class.java, com.neerly.mobile.data.dto.SubscriptionResponse::class.java))

@@ -18,7 +18,28 @@ data class WalletResponse(
     @Json(name = "holdAmount") val heldAmount: BigDecimal,
     @Json(name = "available") val availableAmount: BigDecimal,
     val currency: String = "INR",
-    val status: String? = null
+    val status: String? = null,
+    /** Referral / promo credit inside the balance: spendable, not withdrawable. */
+    val promoBalance: BigDecimal = BigDecimal.ZERO,
+    /** What can go back to the customer's bank. */
+    val withdrawable: BigDecimal = BigDecimal.ZERO
+)
+
+/** POST /customer/wallet/withdraw */
+@JsonClass(generateAdapter = true)
+data class WithdrawRequest(val amount: BigDecimal, val upiId: String)
+
+/** Backend `WithdrawalView`. */
+@JsonClass(generateAdapter = true)
+data class WithdrawalResponse(
+    val id: String,
+    val amount: BigDecimal,
+    val upiId: String,
+    val status: String,          // REQUESTED / PAID / FAILED
+    val requestedAt: String,
+    val processedAt: String? = null,
+    val utr: String? = null,
+    val failureReason: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -55,14 +76,17 @@ data class RegisterDeviceRequest(
 
 @JsonClass(generateAdapter = true)
 data class PresignRequest(
-    val purpose: String,            // compliance / evidence / avatar / damage
-    val contentType: String,
-    val fileName: String
+    // Mirrors backend `UploadController.PresignRequest`. The old purpose/fileName shape was
+    // never accepted (400 UPLOAD_SCOPE_INVALID).
+    val scope: String,              // VENDOR_DOCS, VENDOR_PRODUCTS, DRIVER_DOCS, ORDER_PROOF, CLAIM_EVIDENCE, COMPLAINT_EVIDENCE, CUSTOMER_AVATAR
+    val kind: String,               // free-form sub-folder, e.g. "fssai", "pickup-photo"
+    val contentType: String
 )
 
 @JsonClass(generateAdapter = true)
 data class PresignResponse(
     val uploadUrl: String,
     val s3Key: String,
-    val expiresAt: String
+    val headers: Map<String, String> = emptyMap(),
+    val expiresInSeconds: Long = 0
 )

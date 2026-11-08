@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,25 +31,35 @@ fun RolePickerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NeerlyColors.Paper)
+            .background(NeerlyColors.Canvas)
             .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x5)
     ) {
         Text(
-            "Continue as",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            stringResource(R.string.cust_role_title),
+            fontSize = 32.sp, lineHeight = 38.sp,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
             color = NeerlyColors.Ink900
         )
         Spacer(Modifier.height(NeerlySpacing.x2))
-        Text("You have access to multiple roles.", fontSize = 14.sp, color = NeerlyColors.Ink600)
+        val can = listOfNotNull(
+            "c".takeIf { grantedRoles.contains(PortalRole.CUSTOMER) },
+            "v".takeIf { grantedRoles.contains(PortalRole.VENDOR) },
+            "d".takeIf { grantedRoles.contains(PortalRole.DRIVER) }).joinToString("")
+        // Whole sentences per combination — translations can't be stitched from fragments.
+        val canText = when (can) {
+            "cvd" -> R.string.cust_role_can_all; "cv" -> R.string.cust_role_can_cust_shop
+            "cd" -> R.string.cust_role_can_cust_drive; "vd" -> R.string.cust_role_can_shop_drive
+            else -> R.string.cust_role_can_one
+        }
+        Text(stringResource(canText), fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600)
 
         Spacer(Modifier.height(NeerlySpacing.x8))
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (grantedRoles.contains(PortalRole.CUSTOMER)) {
                 RoleCard(
-                    title = "Customer",
-                    subtitle = "Browse vendors and order water",
+                    title = stringResource(R.string.cust_role_order),
+                    subtitle = stringResource(R.string.cust_role_order_sub),
                     color = NeerlyColors.CustomerPrimary,
                     icon = "🏠",
                     onClick = { onRoleSelected(PortalRole.CUSTOMER, rememberChoice) }
@@ -55,8 +67,8 @@ fun RolePickerScreen(
             }
             if (grantedRoles.contains(PortalRole.VENDOR)) {
                 RoleCard(
-                    title = "Vendor",
-                    subtitle = "Manage your business",
+                    title = stringResource(R.string.cust_role_shop),
+                    subtitle = stringResource(R.string.cust_role_shop_sub),
                     color = NeerlyColors.VendorPrimary,
                     icon = "🏪",
                     onClick = { onRoleSelected(PortalRole.VENDOR, rememberChoice) }
@@ -64,8 +76,8 @@ fun RolePickerScreen(
             }
             if (grantedRoles.contains(PortalRole.DRIVER)) {
                 RoleCard(
-                    title = "Driver",
-                    subtitle = "Deliver for your vendor",
+                    title = stringResource(R.string.cust_role_drive),
+                    subtitle = stringResource(R.string.cust_role_drive_sub),
                     color = NeerlyColors.DriverPrimary,
                     icon = "🚚",
                     onClick = { onRoleSelected(PortalRole.DRIVER, rememberChoice) }
@@ -80,7 +92,7 @@ fun RolePickerScreen(
             modifier = Modifier.clickable { rememberChoice = !rememberChoice }
         ) {
             Checkbox(checked = rememberChoice, onCheckedChange = { rememberChoice = it })
-            Text("Remember my choice", fontSize = 14.sp, color = NeerlyColors.Ink700)
+            Text(stringResource(R.string.cust_role_remember), fontSize = 15.sp, color = NeerlyColors.Ink700)
         }
     }
 }
@@ -96,9 +108,9 @@ private fun RoleCard(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(NeerlyRadius.lg),
-        color = Color.White,
-        modifier = Modifier.fillMaxWidth().height(88.dp),
-        shadowElevation = 2.dp
+        color = NeerlyColors.Paper,
+        border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink200),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 88.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.customer
 
+import com.neerly.mobile.R
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,8 +25,10 @@ import javax.inject.Inject
 class VendorDetailViewModel @Inject constructor(
     private val repo: CustomerRepository,
     private val cart: CartStore,
+    private val api: com.neerly.mobile.data.api.NeerlyApi,
     connectivity: ConnectivityObserver,
-    savedState: SavedStateHandle
+    savedState: SavedStateHandle,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val vendorId: String = savedState["vendorId"]
@@ -59,7 +62,7 @@ class VendorDetailViewModel @Inject constructor(
                         loading = false,
                         error = it.userMessage(
                             context = "vendor detail",
-                            fallback = "Couldn't load this vendor. Please try again."
+                            fallback = strings.get(R.string.cust_vendor_load_failed)
                         )
                     )
                 }
@@ -67,6 +70,13 @@ class VendorDetailViewModel @Inject constructor(
     }
 
     /** Quantity of [productId] already in the cart, so the sheet opens pre-filled. */
+    /** The shop's reviews, for the Reviews tab (loaded on first open). */
+    val reviews = kotlinx.coroutines.flow.MutableStateFlow<List<com.neerly.mobile.data.dto.ReviewResponse>?>(null)
+    fun loadReviews() { if (reviews.value == null) viewModelScope.launch {
+        reviews.value = runCatching { api.vendorReviews(vendorId) }.getOrDefault(emptyList())
+    } }
+    val cartState = cart.state
+
     fun quantityInCart(productId: String): Int =
         cart.snapshot.items.firstOrNull { it.productId == productId }?.quantity ?: 0
 

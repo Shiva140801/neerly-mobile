@@ -1,6 +1,10 @@
 package com.neerly.mobile.feature.search
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +33,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -95,7 +103,7 @@ fun CustomerSearchScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .background(NeerlyColors.Paper)
+            .background(NeerlyColors.Canvas)
             .imePadding()
     ) {
         if (!online) OfflineBanner(onRetry = vm::retry)
@@ -117,7 +125,8 @@ fun CustomerSearchScreen(
                 recents = state.recents,
                 reorderSuggestions = state.reorderSuggestions,
                 onPick = { keyboard?.hide(); vm.submit(it) },
-                onRemoveRecent = vm::removeRecent
+                onRemoveRecent = vm::removeRecent,
+                onClearRecents = vm::clearRecents
             )
 
             is SearchResults.Loading -> SearchSkeleton()
@@ -163,14 +172,14 @@ private fun SearchBar(
         ) {
             Box(
                 Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cust_back),
                     tint = NeerlyColors.Ink800
                 )
             }
@@ -180,7 +189,8 @@ private fun SearchBar(
                     .clip(RoundedCornerShape(NeerlyRadius.pill))
                     .background(NeerlyColors.Paper)
                     .border(1.5.dp, NeerlyColors.CustomerPrimary, RoundedCornerShape(NeerlyRadius.pill))
-                    .padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3),
+                    .heightIn(min = 52.dp)
+                    .padding(start = NeerlySpacing.x4, end = NeerlySpacing.x1),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x2)
             ) {
@@ -192,14 +202,14 @@ private fun SearchBar(
                 )
                 Box(Modifier.weight(1f)) {
                     if (query.isEmpty()) {
-                        Text("Search water", fontSize = 14.sp, color = NeerlyColors.Ink400)
+                        Text(stringResource(R.string.cust_home_search), fontSize = 16.sp, color = NeerlyColors.Ink600)
                     }
                     BasicTextField(
                         value = query,
                         onValueChange = onQueryChange,
                         singleLine = true,
                         textStyle = androidx.compose.ui.text.TextStyle(
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = NeerlyColors.Ink900
                         ),
@@ -209,15 +219,10 @@ private fun SearchBar(
                     )
                 }
                 if (query.isNotEmpty()) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = "Clear search",
-                        tint = NeerlyColors.Ink400,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable(onClick = onClear)
-                    )
-                }
+                    IconButton(onClick = onClear, modifier = Modifier.size(44.dp)) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cust_search_clear), tint = NeerlyColors.Ink600)
+                    }
+                } else Spacer(Modifier.size(44.dp))
             }
         }
         HorizontalDivider(color = NeerlyColors.Ink100)
@@ -231,22 +236,35 @@ private fun EmptyQueryState(
     recents: List<String>,
     reorderSuggestions: List<String>,
     onPick: (String) -> Unit,
-    onRemoveRecent: (String) -> Unit
+    onRemoveRecent: (String) -> Unit,
+    onClearRecents: () -> Unit = {}
 ) {
     Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = NeerlySpacing.x5, vertical = NeerlySpacing.x4)
     ) {
+        Text(stringResource(R.string.cust_search_title), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 30.sp, color = NeerlyColors.Ink900)
+        Spacer(Modifier.height(NeerlySpacing.x4))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.cust_search_recent)) }
+            if (recents.isNotEmpty()) TextButton(onClick = onClearRecents, modifier = Modifier.heightIn(min = 44.dp)) {
+                Text(stringResource(R.string.cust_clear), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) }
+        }
+        if (recents.isEmpty()) {
+            Text(stringResource(R.string.cust_search_recent_empty), fontSize = 14.sp, color = NeerlyColors.Ink600,
+                modifier = Modifier.padding(vertical = NeerlySpacing.x2))
+            Spacer(Modifier.height(NeerlySpacing.x4))
+        }
         if (recents.isNotEmpty()) {
-            SectionLabel("Recent")
             Spacer(Modifier.height(NeerlySpacing.x1))
             recents.forEach { term ->
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clickable { onPick(term) }
-                        .padding(vertical = NeerlySpacing.x3),
+                        .heightIn(min = 48.dp)
+                        .clickable { onPick(term) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
                 ) {
@@ -259,18 +277,14 @@ private fun EmptyQueryState(
                     Text(
                         term,
                         Modifier.weight(1f),
-                        fontSize = 14.5.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = NeerlyColors.Ink900
                     )
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = "Remove $term from recent searches",
-                        tint = NeerlyColors.Ink300,
-                        modifier = Modifier
-                            .size(16.dp)
-                            .clickable { onRemoveRecent(term) }
-                    )
+                    IconButton(onClick = { onRemoveRecent(term) }, modifier = Modifier.size(44.dp)) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cust_search_remove_recent, term),
+                            tint = NeerlyColors.Ink600, modifier = Modifier.size(18.dp))
+                    }
                 }
                 HorizontalDivider(color = NeerlyColors.Ink50)
             }
@@ -278,7 +292,7 @@ private fun EmptyQueryState(
         }
 
         if (reorderSuggestions.isNotEmpty()) {
-            SectionLabel("From your orders")
+            SectionLabel(stringResource(R.string.cust_search_from_orders))
             Spacer(Modifier.height(NeerlySpacing.x3))
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x2),
@@ -289,15 +303,22 @@ private fun EmptyQueryState(
             Spacer(Modifier.height(NeerlySpacing.x6))
         }
 
-        Surface(color = NeerlyColors.Ink50, shape = RoundedCornerShape(NeerlyRadius.md)) {
-            Text(
-                "Type at least ${CustomerSearchViewModel.MIN_QUERY_LENGTH} letters to search.",
-                modifier = Modifier.padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3),
-                fontSize = 12.sp,
-                color = NeerlyColors.Ink500,
-                lineHeight = 18.sp
-            )
+        // Board 38 "Browse" — each is a search the catalogue answers, not a fixed list.
+        SectionLabel(stringResource(R.string.cust_search_browse))
+        Spacer(Modifier.height(NeerlySpacing.x3))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x2),
+            verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x2)
+        ) {
+            BROWSE_TERMS.forEach { (label, term) -> SuggestionChip(stringResource(label)) { onPick(term) } }
         }
+        Spacer(Modifier.height(NeerlySpacing.x5))
+        Text(
+            stringResource(R.string.cust_search_min_letters, CustomerSearchViewModel.MIN_QUERY_LENGTH),
+            fontSize = 13.sp,
+            color = NeerlyColors.Ink600,
+            lineHeight = 19.sp
+        )
     }
 }
 
@@ -320,17 +341,17 @@ private fun ResultsList(
         // "Products · 0", which reads as a failure rather than as "look below".
         if (products.isNotEmpty()) {
             item {
-                SectionLabel("Products · ${products.size}")
+                SectionLabel(stringResource(R.string.cust_search_products, products.size))
                 Spacer(Modifier.height(NeerlySpacing.x2))
             }
             items(products, key = { it.categoryCode }) { group ->
-                ProductGroupRow(group, query)
+                ProductGroupRow(group, query, onOpenVendor)
             }
         }
         if (vendors.isNotEmpty()) {
             item {
                 Spacer(Modifier.height(NeerlySpacing.x3))
-                SectionLabel("Vendors · ${vendors.size}")
+                SectionLabel(stringResource(R.string.cust_search_suppliers, vendors.size))
                 Spacer(Modifier.height(NeerlySpacing.x2))
             }
             items(vendors, key = { it.id }) { vendor ->
@@ -345,11 +366,13 @@ private fun ResultsList(
  * vendors is one result that says how many stock it and what the cheapest asks.
  */
 @Composable
-private fun ProductGroupRow(group: SearchProductGroup, query: String) {
+private fun ProductGroupRow(group: SearchProductGroup, query: String, onOpenVendor: (String) -> Unit = {}) {
+  Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(NeerlyRadius.md))
+            .background(NeerlyColors.Paper)
             .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(NeerlyRadius.md))
             .padding(NeerlySpacing.x3),
         verticalAlignment = Alignment.CenterVertically,
@@ -365,7 +388,7 @@ private fun ProductGroupRow(group: SearchProductGroup, query: String) {
         Column(Modifier.weight(1f)) {
             Text(
                 highlightMatch(group.displayName, query),
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = NeerlyColors.Ink900,
                 maxLines = 1,
@@ -373,13 +396,36 @@ private fun ProductGroupRow(group: SearchProductGroup, query: String) {
             )
             val detail = listOfNotNull(
                 group.sizeLabel?.takeIf { it.isNotBlank() },
-                "from ${group.fromPrice.asRupees()}",
-                if (group.vendorCount == 1) "1 vendor" else "${group.vendorCount} vendors"
+                stringResource(R.string.cust_search_from_price, group.fromPrice.asRupees()),
+                androidx.compose.ui.res.pluralStringResource(R.plurals.cust_search_supplier_count, group.vendorCount, group.vendorCount)
             ).joinToString(" · ")
-            Text(detail, fontSize = 12.sp, color = NeerlyColors.Ink500)
+            Text(detail, fontSize = 14.sp, color = NeerlyColors.Ink600)
         }
     }
+    // Board 09: who sells it and for how much — tap a shop to buy from it.
+    group.offers.forEach { o ->
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(NeerlyRadius.sm))
+                .clickable { onOpenVendor(o.vendorId) }.padding(horizontal = NeerlySpacing.x3, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(o.vendorName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                val kmFmt = stringResource(R.string.cust_km, "%s")
+                val bits = offerDetail(o) { km -> kmFmt.replace("%s", km) }
+                if (bits.isNotBlank()) Text(bits, fontSize = 13.sp, color = NeerlyColors.Ink600)
+            }
+            Text(o.price.asRupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        }
+    }
+  }
 }
+
+/** "4.6 ★ · 1.2 km" — only the parts the server knows. */
+internal fun offerDetail(o: com.neerly.mobile.data.dto.SearchOffer, km: (String) -> String = { "$it km" }): String = listOfNotNull(
+    o.rating?.let { "${it.setScale(1, java.math.RoundingMode.HALF_UP)} ★" },
+    o.distanceKm?.let { km(it.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) }
+).joinToString(" · ")
 
 @Composable
 private fun VendorResultRow(vendor: SearchVendorHit, query: String, onClick: () -> Unit) {
@@ -387,8 +433,10 @@ private fun VendorResultRow(vendor: SearchVendorHit, query: String, onClick: () 
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(NeerlyRadius.md))
+            .background(NeerlyColors.Paper)
             .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(NeerlyRadius.md))
             .clickable(onClick = onClick)
+            .heightIn(min = 64.dp)
             .padding(NeerlySpacing.x3),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
@@ -399,24 +447,22 @@ private fun VendorResultRow(vendor: SearchVendorHit, query: String, onClick: () 
                 .clip(RoundedCornerShape(NeerlyRadius.sm))
                 .background(NeerlyColors.Water50),
             contentAlignment = Alignment.Center
-        ) { Text("🏪", fontSize = 20.sp) }
+        ) {
+            Text(vendor.businessName.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(),
+                fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
+        }
         Column(Modifier.weight(1f)) {
             Text(
                 highlightMatch(vendor.businessName, query),
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = NeerlyColors.Ink900,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Text("Tap to see what they stock", fontSize = 12.sp, color = NeerlyColors.Ink500)
+            Text(stringResource(R.string.cust_search_tap_stock), fontSize = 14.sp, color = NeerlyColors.Ink600)
         }
-        Icon(
-            Icons.Filled.Search,
-            contentDescription = null,
-            tint = NeerlyColors.Ink300,
-            modifier = Modifier.size(16.dp)
-        )
+        Text("›", fontSize = 22.sp, color = NeerlyColors.Ink600)
     }
 }
 
@@ -463,7 +509,7 @@ private fun NoResultsState(
         }
         Spacer(Modifier.height(NeerlySpacing.x6))
         Text(
-            "No matches for \"$query\"",
+            stringResource(R.string.cust_search_nothing_for, query),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = NeerlyColors.Ink900
@@ -471,12 +517,12 @@ private fun NoResultsState(
         Spacer(Modifier.height(NeerlySpacing.x2))
         Text(
             if (shorterTerm != null) {
-                "Check the spelling, or try a shorter word like \"$shorterTerm\"."
+                stringResource(R.string.cust_search_try_shorter, shorterTerm)
             } else {
-                "Check the spelling, or browse the vendors delivering near you."
+                stringResource(R.string.cust_search_try_browse)
             },
-            fontSize = 13.5.sp,
-            color = NeerlyColors.Ink500,
+            fontSize = 15.sp,
+            color = NeerlyColors.Ink600,
             lineHeight = 21.sp
         )
         Spacer(Modifier.height(NeerlySpacing.x5))
@@ -485,14 +531,16 @@ private fun NoResultsState(
                 onClick = { onTryShorter(shorterTerm) },
                 shape = RoundedCornerShape(NeerlyRadius.pill),
                 colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-            ) { Text("Search \"$shorterTerm\"", fontWeight = FontWeight.Bold, fontSize = 13.sp) }
+                , modifier = Modifier.heightIn(min = 48.dp)
+            ) { Text(stringResource(R.string.cust_search_search_term, shorterTerm), fontWeight = FontWeight.Bold, fontSize = 15.sp) }
             Spacer(Modifier.height(NeerlySpacing.x2))
         }
         OutlinedButton(
             onClick = onBrowseVendors,
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = NeerlyColors.CustomerPrimary)
-        ) { Text("Browse all vendors", fontWeight = FontWeight.Bold, fontSize = 13.sp) }
+            , modifier = Modifier.heightIn(min = 48.dp)
+        ) { Text(stringResource(R.string.cust_search_browse_all), fontWeight = FontWeight.Bold, fontSize = 15.sp) }
     }
 }
 
@@ -506,7 +554,7 @@ private fun SearchErrorState(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            "Search isn't available",
+            stringResource(R.string.cust_search_unavailable),
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             color = NeerlyColors.Ink900
@@ -514,8 +562,8 @@ private fun SearchErrorState(message: String, onRetry: () -> Unit) {
         Spacer(Modifier.height(NeerlySpacing.x2))
         Text(
             message,
-            fontSize = 13.sp,
-            color = NeerlyColors.Ink500,
+            fontSize = 15.sp,
+            color = NeerlyColors.Ink600,
             lineHeight = 19.sp
         )
         Spacer(Modifier.height(NeerlySpacing.x5))
@@ -523,7 +571,7 @@ private fun SearchErrorState(message: String, onRetry: () -> Unit) {
             onClick = onRetry,
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-        ) { Text("Try again", fontWeight = FontWeight.Bold) }
+        ) { Text(stringResource(R.string.cust_try_again), fontWeight = FontWeight.Bold) }
     }
 }
 
@@ -533,7 +581,7 @@ private fun SearchSkeleton() {
         Modifier
             .fillMaxSize()
             .padding(horizontal = NeerlySpacing.x5, vertical = NeerlySpacing.x4)
-            .loadingSemantics("Searching"),
+            .loadingSemantics(stringResource(R.string.cust_search_searching)),
         verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x2)
     ) {
         SkeletonBlock(height = 12.dp, width = 90.dp)
@@ -560,8 +608,9 @@ private fun SuggestionChip(text: String, onClick: () -> Unit) {
     ) {
         Text(
             text,
-            modifier = Modifier.padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3),
-            fontSize = 13.5.sp,
+            modifier = Modifier.heightIn(min = 44.dp).wrapContentHeight(Alignment.CenterVertically)
+                .padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x2),
+            fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = NeerlyColors.CustomerDark
         )
@@ -569,12 +618,7 @@ private fun SuggestionChip(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text.uppercase(),
-        fontSize = 11.sp,
-        letterSpacing = 0.9.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = NeerlyColors.Ink500
-    )
-}
+private fun SectionLabel(text: String) = com.neerly.mobile.core.design.SectionLabel(text)
+
+/** Browse shortcuts (board 38): label shown → term searched. */
+internal val BROWSE_TERMS = listOf(R.string.cust_search_b_jars to "20L", R.string.cust_search_b_chilled to "chilled", R.string.cust_search_b_bottles to "bottle", R.string.cust_search_b_events to "tanker")

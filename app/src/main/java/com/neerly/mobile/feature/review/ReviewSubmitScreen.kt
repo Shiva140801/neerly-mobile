@@ -1,135 +1,116 @@
 package com.neerly.mobile.feature.review
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.neerly.mobile.core.design.NeerlyColors
-import com.neerly.mobile.core.design.NeerlyRadius
-import com.neerly.mobile.core.design.NeerlySpacing
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.neerly.mobile.core.design.*
+
+/** What the customer can tap instead of typing (board 16). Sent as part of the review text. */
+internal val RATE_TAGS = listOf(R.string.cust_rv_t_on_time, R.string.cust_rv_t_polite, R.string.cust_rv_t_clean, R.string.cust_rv_t_seal, R.string.cust_rv_t_upstairs, R.string.cust_rv_t_swap)
+internal val VERDICTS = listOf(0, R.string.cust_rv_v1, R.string.cust_rv_v2, R.string.cust_rv_v3, R.string.cust_rv_v4, R.string.cust_rv_v5)
+
+/** The review text the backend stores: picked tags first, then whatever was typed. */
+internal fun reviewText(tags: Collection<String>, note: String, order: List<String>): String? =
+    listOfNotNull(order.filter { it in tags }.joinToString(" · ").ifBlank { null }, note.trim().ifBlank { null })
+        .joinToString("\n").ifBlank { null }
 
 /**
- * Customer review submission. PRD §13: 2-axis rating — vendor experience +
- * water quality. Both 1-5 stars; optional written review applies to both.
- *
- * The "overall" rating sent to the backend's `rating` field is the average
- * of the two; vendor + waterQuality fields are also sent for backwards
- * compat with single-axis aggregation.
- *
- * Stays presentational — the caller (NavHost) wires the API call.
+ * Board 16 — rate the delivery. The backend keeps two axes (the delivery and the water), so
+ * both get stars; "what stood out" chips and an optional note become the review text.
+ * The VM is the same instance the NavHost submits through (same back-stack entry), so the
+ * screen can show its progress and errors.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewSubmitScreen(
     orderId: String,
     vendorName: String,
     onSubmit: (rating: Int, vendorRating: Int, waterQualityRating: Int, text: String?) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    vm: ReviewSubmitViewModel = hiltViewModel()
 ) {
+    val state by vm.state.collectAsState()
     var vendorStars by remember { mutableIntStateOf(0) }
     var waterStars by remember { mutableIntStateOf(0) }
-    var text by remember { mutableStateOf("") }
-    var submitting by remember { mutableStateOf(false) }
+    var note by remember { mutableStateOf("") }
+    var picked by remember { mutableStateOf(setOf<String>()) }
+    val tagLabels = RATE_TAGS.map { stringResource(it) }
+    // The route carries the shop name, or the order number when that's all the caller had.
+    val isOrderNumber = Regex("^[A-Z]{3}-\\d").containsMatchIn(vendorName)
+    val shop = vendorName.takeUnless { isOrderNumber }
 
-    val canSubmit = vendorStars in 1..5 && waterStars in 1..5 && !submitting
-
-    Scaffold(
-        containerColor = NeerlyColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = { Text("Rate your order", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("Back", color = NeerlyColors.CustomerPrimary) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = NeerlyColors.Paper)
-            )
+    BoondhPage(
+        title = stringResource(R.string.cust_rv_title),
+        subtitle = if (isOrderNumber) stringResource(R.string.cust_co_payment_desc, vendorName) else stringResource(R.string.cust_rv_from, vendorName),
+        onBack = onBack, backLabel = stringResource(R.string.cust_skip),
+        footer = {
+            state.error?.let { Notice(it, Tone.Bad) }
+            PrimaryButton(if (state.submitting) stringResource(R.string.cust_rv_sending) else stringResource(R.string.cust_rv_send), {
+                onSubmit((vendorStars + waterStars + 1) / 2, vendorStars, waterStars, reviewText(picked, note, tagLabels))
+            }, enabled = vendorStars in 1..5 && waterStars in 1..5 && !state.submitting)
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(NeerlySpacing.x5)
-        ) {
-            // The route carries the order number; the old header printed "this order"
-            // over the first eight characters of a UUID.
-            Text("How was your delivery?", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-            Text("Order $vendorName", fontSize = 13.sp, color = NeerlyColors.Ink500)
-            Spacer(Modifier.height(NeerlySpacing.x6))
-
-            StarSection(
-                label = "Vendor experience",
-                hint = "Driver, packaging, on-time delivery",
-                rating = vendorStars,
-                onRate = { vendorStars = it }
-            )
-            Spacer(Modifier.height(NeerlySpacing.x5))
-            StarSection(
-                label = "Water quality",
-                hint = "Taste, cleanliness, container condition",
-                rating = waterStars,
-                onRate = { waterStars = it }
-            )
-
-            Spacer(Modifier.height(NeerlySpacing.x6))
-            Text("Tell us more (optional)",
-                fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(NeerlySpacing.x3))
-            OutlinedTextField(
-                value = text,
-                onValueChange = { if (it.length <= 2000) text = it },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                placeholder = { Text("What went well? What could be better?", color = NeerlyColors.Ink400) },
-                supportingText = { Text("${text.length} / 2000", color = NeerlyColors.Ink500, fontSize = 12.sp) }
-            )
-
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = {
-                    submitting = true
-                    val overall = (vendorStars + waterStars + 1) / 2  // round half-up
-                    onSubmit(overall, vendorStars, waterStars, text.takeIf { it.isNotBlank() })
-                },
-                enabled = canSubmit,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-            ) {
-                Text(if (submitting) "Submitting…" else "Submit review",
-                    fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+    ) {
+        item { StarRow(stringResource(R.string.cust_rv_delivery), stringResource(R.string.cust_rv_delivery_hint), vendorStars) { vendorStars = it } }
+        item { StarRow(stringResource(R.string.cust_rv_water), stringResource(R.string.cust_rv_water_hint), waterStars) { waterStars = it } }
+        item { SectionLabel(stringResource(R.string.cust_rv_stood_out)) }
+        item {
+            FlowRowCompat {
+                tagLabels.forEach { t ->
+                    val on = t in picked
+                    FilterChip(selected = on, onClick = { picked = if (on) picked - t else picked + t },
+                        label = { Text(t, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) },
+                        modifier = Modifier.heightIn(min = 44.dp))
+                }
             }
-            Spacer(Modifier.height(NeerlySpacing.x3))
+        }
+        item {
+            Text(if (shop != null) stringResource(R.string.cust_rv_anything_for, shop) else stringResource(R.string.cust_rv_anything_else),
+                fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(value = note, onValueChange = { if (it.length <= 1500) note = it },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp),
+                placeholder = { Text(stringResource(R.string.cust_rv_note_hint), color = NeerlyColors.Ink600) })
         }
     }
 }
 
 @Composable
-private fun StarSection(label: String, hint: String, rating: Int, onRate: (Int) -> Unit) {
-    Text(label, fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = FontWeight.SemiBold)
-    Text(hint, fontSize = 12.sp, color = NeerlyColors.Ink500)
-    Spacer(Modifier.height(NeerlySpacing.x3))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        for (i in 1..5) {
-            val isOn = i <= rating
-            val bg = if (isOn) NeerlyColors.CustomerPrimary else NeerlyColors.Ink100
-            val fg = if (isOn) NeerlyColors.Paper else NeerlyColors.Ink500
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(NeerlyRadius.md))
-                    .background(bg)
-                    .clickable { onRate(i) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text("★", fontSize = 22.sp, color = fg)
+private fun StarRow(title: String, hint: String, rating: Int, onRate: (Int) -> Unit) {
+    BoondhCard {
+        Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Text(hint, fontSize = 13.sp, color = NeerlyColors.Ink600)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            for (i in 1..5) {
+                val on = i <= rating
+                val cd = androidx.compose.ui.res.pluralStringResource(R.plurals.cust_rv_star_cd, i, i, title)
+                IconButton(onClick = { onRate(i) }, modifier = Modifier.size(52.dp).semantics {
+                    role = Role.RadioButton; selected = i == rating
+                    contentDescription = cd
+                }) {
+                    Text(if (on) "★" else "☆", fontSize = 34.sp, color = if (on) Boondh.Amber else NeerlyColors.Ink400)
+                }
             }
         }
+        if (rating > 0) Text(stringResource(VERDICTS[rating]), fontFamily = FontFamily.Serif, fontSize = 18.sp, color = NeerlyColors.Ink900)
     }
+}
+
+/** Wrapping chip row without pulling the experimental FlowRow API into callers. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FlowRowCompat(content: @Composable () -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
 }

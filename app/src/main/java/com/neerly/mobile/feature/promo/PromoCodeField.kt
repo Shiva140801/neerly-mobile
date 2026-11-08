@@ -1,5 +1,8 @@
 package com.neerly.mobile.feature.promo
 
+import com.neerly.mobile.core.util.asRupees
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,7 +39,7 @@ fun PromoCodeField(
     var code by remember { mutableStateOf("") }
 
     Column {
-        Text("Promo code", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
+        Text(stringResource(R.string.cust_promo_label), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
         Spacer(Modifier.height(NeerlySpacing.x2))
 
         if (currentDiscount > BigDecimal.ZERO) {
@@ -50,12 +53,12 @@ fun PromoCodeField(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("₹$currentDiscount off", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok)
-                        Text("Applied to order subtotal of ₹$orderSubtotal",
+                        Text(stringResource(R.string.cust_promo_off, currentDiscount.asRupees()), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok)
+                        Text(stringResource(R.string.cust_promo_applied_to, orderSubtotal.asRupees()),
                             fontSize = 12.sp, color = NeerlyColors.Ink700)
                     }
                     TextButton(onClick = onRemove) {
-                        Text("Remove", color = NeerlyColors.Ok, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.cust_remove), color = NeerlyColors.Ok, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -65,7 +68,7 @@ fun PromoCodeField(
                     value = code,
                     onValueChange = { code = it.uppercase() },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Enter code") },
+                    placeholder = { Text(stringResource(R.string.cust_promo_enter)) },
                     singleLine = true
                 )
                 Spacer(Modifier.width(NeerlySpacing.x2))
@@ -73,7 +76,7 @@ fun PromoCodeField(
                     onClick = { if (code.isNotBlank()) onQuote(code.trim()) },
                     enabled = code.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-                ) { Text("Apply") }
+                ) { Text(stringResource(R.string.cust_apply)) }
             }
             if (!currentReason.isNullOrBlank()) {
                 Spacer(Modifier.height(NeerlySpacing.x2))
@@ -81,7 +84,7 @@ fun PromoCodeField(
             }
             if (isFirstOrder) {
                 Spacer(Modifier.height(NeerlySpacing.x2))
-                Text("Tip: first-order promos are available to you",
+                Text(stringResource(R.string.cust_promo_first_order_tip),
                     color = NeerlyColors.Ink500, fontSize = 12.sp)
             }
         }

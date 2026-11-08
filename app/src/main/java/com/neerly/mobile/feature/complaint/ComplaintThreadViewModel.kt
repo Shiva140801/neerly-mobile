@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.complaint
 
+import com.neerly.mobile.core.util.userMessage
+
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ComplaintThreadViewModel @Inject constructor(
     private val repo: CustomerRepository,
-    savedState: SavedStateHandle
+    savedState: SavedStateHandle,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val complaintId: String = savedState["complaintId"]
@@ -32,7 +35,7 @@ class ComplaintThreadViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.complaint(complaintId) }
                 .onSuccess { _state.value = _state.value.copy(loading = false, complaint = it) }
-                .onFailure { _state.value = _state.value.copy(loading = false, error = it.message) }
+                .onFailure { _state.value = _state.value.copy(loading = false, error = it.userMessage("complaint thread", com.neerly.mobile.R.string.acct_cmp_thread_failed, strings)) }
         }
     }
 
@@ -47,7 +50,16 @@ class ComplaintThreadViewModel @Inject constructor(
                     }
                     _state.value = _state.value.copy(sending = false, complaint = updated)
                 }
-                .onFailure { _state.value = _state.value.copy(sending = false, error = it.message) }
+                .onFailure { _state.value = _state.value.copy(sending = false, error = it.userMessage("complaint thread", com.neerly.mobile.R.string.acct_cmp_thread_failed, strings)) }
+        }
+    }
+
+    /** "Yes, all sorted" — the customer closes it. */
+    fun close() {
+        viewModelScope.launch {
+            runCatching { repo.closeComplaint(complaintId) }
+                .onSuccess { _state.value = _state.value.copy(complaint = it.copy(messages = _state.value.complaint?.messages ?: emptyList()), closedNow = true) }
+                .onFailure { _state.value = _state.value.copy(error = it.userMessage("complaint thread", com.neerly.mobile.R.string.acct_cmp_thread_failed, strings)) }
         }
     }
 
@@ -55,7 +67,7 @@ class ComplaintThreadViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.withdrawComplaint(complaintId) }
                 .onSuccess { _state.value = _state.value.copy(complaint = it) }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+                .onFailure { _state.value = _state.value.copy(error = it.userMessage("complaint thread", com.neerly.mobile.R.string.acct_cmp_thread_failed, strings)) }
         }
     }
 }
@@ -64,5 +76,6 @@ data class ComplaintThreadUiState(
     val loading: Boolean = true,
     val sending: Boolean = false,
     val complaint: ComplaintResponse? = null,
+    val closedNow: Boolean = false,
     val error: String? = null
 )

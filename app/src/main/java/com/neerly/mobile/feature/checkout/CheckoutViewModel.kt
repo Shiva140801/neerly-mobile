@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.checkout
 
+import com.neerly.mobile.R
 import android.app.Activity
 
 import androidx.lifecycle.ViewModel
@@ -41,7 +42,8 @@ class CheckoutViewModel @Inject constructor(
     private val api: NeerlyApi,
     private val cart: CartStore,
     private val orderStore: OrderLocalStore,
-    private val gateway: GatewayPayments
+    private val gateway: GatewayPayments,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     /**
@@ -56,6 +58,10 @@ class CheckoutViewModel @Inject constructor(
 
     init {
         loadAddresses()
+        // The wallet option shows its balance (or how much it is short) before choosing it.
+        viewModelScope.launch {
+            runCatching { repo.wallet() }.onSuccess { _state.value = _state.value.copy(walletBalance = it.availableAmount) }
+        }
     }
 
     fun loadAddresses() {
@@ -133,15 +139,15 @@ class CheckoutViewModel @Inject constructor(
         val s = _state.value
         if (s.placing) return
         if (s.selectedAddress == null) {
-            _state.value = s.copy(error = "Please pick a delivery address")
+            _state.value = s.copy(error = strings.get(R.string.cust_co_pick_address))
             return
         }
         if (cart.snapshot.isEmpty) {
-            _state.value = s.copy(error = "Cart is empty")
+            _state.value = s.copy(error = strings.get(R.string.cust_co_cart_empty))
             return
         }
         val req = buildRequest() ?: run {
-            _state.value = s.copy(error = "Cart vendor missing")
+            _state.value = s.copy(error = strings.get(R.string.cust_co_cart_no_shop))
             return
         }
         _state.value = s.copy(placing = true, error = null)
@@ -156,7 +162,7 @@ class CheckoutViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         placing = false,
-                        error = it.userMessage(context = "place order", fallback = "Couldn't place your order. Please try again.")
+                        error = it.userMessage(context = "place order", fallback = strings.get(R.string.cust_co_place_failed))
                     )
                 }
         }
@@ -194,10 +200,10 @@ class CheckoutViewModel @Inject constructor(
                         method = _state.value.paymentMethod)
                 )
                 gateway.pay(activity, init, customerName = "", customerContact = null,
-                    description = "Order ${order.orderNumber}")
+                    description = strings.get(R.string.cust_co_payment_desc, order.orderNumber))
             }.getOrElse {
                 PaymentOutcome.Declined(it.userMessage(context = "start the payment",
-                    fallback = "Couldn't start the payment. Nothing was taken — try again."))
+                    fallback = strings.get(R.string.cust_co_payment_start_failed)))
             }
             when (outcome) {
                 PaymentOutcome.Captured, is PaymentOutcome.Unconfirmed -> {
@@ -227,6 +233,7 @@ data class CheckoutUiState(
     val quote: OrderQuoteResponse? = null,
     val quoting: Boolean = false,
     val paymentCaptured: Boolean = false,
+    val walletBalance: java.math.BigDecimal? = null,
     val paying: Boolean = false,
     /** Placed but not paid: the button retries the payment, it doesn't place again. */
     val awaitingPaymentFor: OrderResponse? = null,

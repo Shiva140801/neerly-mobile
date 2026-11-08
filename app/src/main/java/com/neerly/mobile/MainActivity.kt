@@ -8,6 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.neerly.mobile.core.design.NeerlyTheme
@@ -28,9 +33,18 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     @Inject lateinit var cartStore: CartStore
     @Inject lateinit var tokenStore: TokenStore
     @Inject lateinit var gatewayResults: GatewayResults
+    @Inject lateinit var appConfig: com.neerly.mobile.data.config.AppConfigRepository
+    @Inject lateinit var languageSync: com.neerly.mobile.core.util.LanguageSync
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.neerly.mobile.core.util.AppLocale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Server notices in the language picked in the app (also covers a choice made on the
+        // Welcome screen before signing in).
+        languageSync.push()
         // The app draws edge-to-edge, so *something* has to inset the content or
         // it renders under the clock and the gesture bar. Doing it once here —
         // rather than per screen — fixes every destination at the root, and
@@ -38,11 +52,17 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         // so nothing double-pads. IME insets are deliberately left unconsumed
         // for `Modifier.imePadding()` on the screens that take text input.
         enableEdgeToEdge()
+        // Business values (fees, cut-offs, limits, support hours) come from the server; the
+        // last copy is used until this lands, and stays if the phone is offline.
+        lifecycleScope.launch { appConfig.refresh() }
         setContent {
-            NeerlyTheme(role = Role.CUSTOMER) {
-                Surface(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
-                    val navController = rememberNavController()
-                    NeerlyNavHost(navController, cartStore, tokenStore)
+            val config by appConfig.config.collectAsState()
+            CompositionLocalProvider(com.neerly.mobile.data.config.LocalAppConfig provides config) {
+                NeerlyTheme(role = Role.CUSTOMER) {
+                    Surface(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
+                        val navController = rememberNavController()
+                        NeerlyNavHost(navController, cartStore, tokenStore, languageSync)
+                    }
                 }
             }
         }

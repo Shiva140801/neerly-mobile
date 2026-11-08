@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.customer
 
+import com.neerly.mobile.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.dto.AddressResponse
@@ -28,7 +29,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CustomerHomeViewModel @Inject constructor(
     private val repo: CustomerRepository,
-    private val connectivity: ConnectivityObserver
+    private val connectivity: ConnectivityObserver,
+    private val cart: com.neerly.mobile.data.cart.CartStore,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -39,6 +42,19 @@ class CustomerHomeViewModel @Inject constructor(
 
     init {
         refresh()
+    }
+
+    /** Your usual → into the cart. */
+    fun orderUsual(): Boolean {
+        val o = _state.value.usual ?: return false
+        val vendorId = o.vendorId ?: return false
+        o.items.forEachIndexed { i, it ->
+            val item = com.neerly.mobile.data.cart.CartItem(it.productId, it.productName, it.unitPrice, it.quantity,
+                keepContainer = it.containerMode != "TRANSFER_AND_RETURN")
+            if (i == 0) cart.replaceWithNewVendor(vendorId, o.vendorName ?: strings.get(R.string.cust_your_shop), item)
+            else cart.addItem(vendorId, o.vendorName ?: strings.get(R.string.cust_your_shop), item)
+        }
+        return o.items.isNotEmpty()
     }
 
     fun refresh() {
@@ -52,12 +68,21 @@ class CustomerHomeViewModel @Inject constructor(
                 val vendors = repo.vendors(pincode)
                 val active = runCatching { repo.activeOrders() }.getOrDefault(emptyList())
                 val wallet = runCatching { repo.wallet() }.getOrNull()
+                // "Your usual": the last delivered order, one tap to repeat it.
+                val usual = runCatching { repo.myOrders(0, 10) }.getOrDefault(emptyList()).firstOrNull { it.status == "DELIVERED" }
+                // Tomorrow's subscription strip.
+                val nextSub = runCatching { repo.subscriptions() }.getOrDefault(emptyList())
+                    .filter { it.status == "ACTIVE" && it.nextDeliveryDate != null }.minByOrNull { it.nextDeliveryDate!! }
+                val name = runCatching { repo.me().displayName }.getOrNull()
                 HomeUiState(
                     loading = false,
                     primaryAddress = primary,
                     vendors = vendors,
                     activeOrders = active,
-                    wallet = wallet
+                    wallet = wallet,
+                    usual = usual,
+                    nextSubscription = nextSub,
+                    name = name
                 )
             }.onSuccess { _state.value = it }
              .onFailure {
@@ -65,7 +90,7 @@ class CustomerHomeViewModel @Inject constructor(
                      loading = false,
                      error = it.userMessage(
                          context = "customer home",
-                         fallback = "Couldn't load vendors near you. Check your connection and try again."
+                         fallback = strings.get(R.string.cust_home_load_failed)
                      )
                  )
              }
@@ -79,5 +104,8 @@ data class HomeUiState(
     val vendors: List<VendorCardResponse> = emptyList(),
     val activeOrders: List<OrderResponse> = emptyList(),
     val wallet: WalletResponse? = null,
+    val usual: com.neerly.mobile.data.dto.OrderResponse? = null,
+    val nextSubscription: com.neerly.mobile.data.dto.SubscriptionResponse? = null,
+    val name: String? = null,
     val error: String? = null
 )

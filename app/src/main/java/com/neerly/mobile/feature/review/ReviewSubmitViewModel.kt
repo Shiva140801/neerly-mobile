@@ -1,5 +1,6 @@
 package com.neerly.mobile.feature.review
 
+import com.neerly.mobile.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.repo.TrustRepository
@@ -22,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ReviewSubmitViewModel @Inject constructor(
     private val repo: TrustRepository,
-    private val orderStore: com.neerly.mobile.data.order.OrderLocalStore
+    private val orderStore: com.neerly.mobile.data.order.OrderLocalStore,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReviewSubmitUiState())
@@ -37,7 +39,7 @@ class ReviewSubmitViewModel @Inject constructor(
     ) {
         if (_state.value.submitting) return
         if (vendorStars !in 1..5 || waterStars !in 1..5) {
-            _state.value = _state.value.copy(error = "Pick a star rating for both")
+            _state.value = _state.value.copy(error = strings.get(R.string.cust_rv_pick_both))
             return
         }
         _state.value = ReviewSubmitUiState(submitting = true)
@@ -69,7 +71,7 @@ class ReviewSubmitViewModel @Inject constructor(
                     }
                     _state.value = ReviewSubmitUiState(
                         submitting = false,
-                        error = it.userMessage(context = "submit review", fallback = "Couldn't submit your review. Please try again.")
+                        error = it.userMessage(context = "submit review", fallback = strings.get(R.string.cust_rv_failed))
                     )
                 }
         }

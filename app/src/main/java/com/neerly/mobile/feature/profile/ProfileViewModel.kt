@@ -16,6 +16,8 @@ import javax.inject.Inject
 data class ProfileUiState(
     val loading: Boolean = true,
     val user: UserSummary? = null,
+    val stats: com.neerly.mobile.data.dto.ProfileStats? = null,
+    val wallet: java.math.BigDecimal? = null,
     val error: String? = null,
     val grantedRoles: List<String> = emptyList()
 )
@@ -36,7 +38,9 @@ class ProfileViewModel @Inject constructor(
         _state.value = _state.value.copy(loading = true, error = null, grantedRoles = auth.getGrantedRoles())
         viewModelScope.launch {
             runCatching { repo.me() }
-                .onSuccess { _state.value = _state.value.copy(loading = false, user = it, grantedRoles = auth.getGrantedRoles()) }
+                .onSuccess { _state.value = _state.value.copy(loading = false, user = it, grantedRoles = auth.getGrantedRoles(),
+                    stats = runCatching { api.profileStats() }.getOrNull(),
+                    wallet = runCatching { repo.wallet().availableAmount }.getOrNull()) }
                 .onFailure { _state.value = _state.value.copy(loading = false, error = it.message) }
         }
     }

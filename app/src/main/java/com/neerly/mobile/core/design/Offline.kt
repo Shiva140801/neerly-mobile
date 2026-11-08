@@ -1,5 +1,8 @@
 package com.neerly.mobile.core.design
 
+import androidx.compose.ui.res.stringResource
+import com.neerly.mobile.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,16 +50,9 @@ import androidx.compose.ui.unit.sp
  */
 
 /** What still works when the connection drops, and what doesn't. */
-private val WorksOffline = listOf(
-    "The order status you already have on screen",
-    "Everything you've already loaded this session"
-)
+private val WorksOffline = listOf(R.string.core_offline_works_status, R.string.core_offline_works_loaded)
 
-private val NeedsInternet = listOf(
-    "Placing a new order",
-    "Payments and wallet top-ups",
-    "Live status updates and new deliveries"
-)
+private val NeedsInternet = listOf(R.string.core_offline_needs_order, R.string.core_offline_needs_payments, R.string.core_offline_needs_live)
 
 /**
  * Full-screen blocker for a cold start with no data.
@@ -67,8 +63,8 @@ private val NeedsInternet = listOf(
 fun OfflineScreen(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    title: String = "You're offline",
-    body: String = "Neerly needs a connection to load this. Check your Wi-Fi or mobile data and try again."
+    title: String = stringResource(R.string.core_offline_title),
+    body: String = stringResource(R.string.core_offline_body)
 ) {
     Column(
         modifier = modifier
@@ -107,7 +103,7 @@ fun OfflineScreen(
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(NeerlyRadius.pill),
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
-        ) { Text("Try again", fontWeight = FontWeight.Bold, fontSize = 15.sp) }
+        ) { Text(stringResource(R.string.core_try_again), fontWeight = FontWeight.Bold, fontSize = 15.sp) }
         Spacer(Modifier.height(NeerlySpacing.x6))
         OfflineCapabilityCard(Modifier.fillMaxWidth())
     }
@@ -121,7 +117,7 @@ fun OfflineScreen(
 fun OfflineBanner(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    subtitle: String = "Tracking stays on screen · payments paused"
+    subtitle: String = stringResource(R.string.core_offline_banner_sub)
 ) {
     Row(
         modifier = modifier
@@ -139,7 +135,7 @@ fun OfflineBanner(
         )
         Column(Modifier.weight(1f)) {
             Text(
-                "Connection lost",
+                stringResource(R.string.core_offline_lost),
                 fontSize = 12.5.sp,
                 fontWeight = FontWeight.Bold,
                 color = NeerlyColors.Paper
@@ -152,7 +148,7 @@ fun OfflineBanner(
         ) {
             TextButton(onClick = onRetry, contentPadding = PaddingValuesRetry) {
                 Text(
-                    "Retry",
+                    stringResource(R.string.core_retry),
                     color = NeerlyColors.Ink900,
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.Bold
@@ -191,20 +187,20 @@ fun OfflineCapabilityCard(modifier: Modifier = Modifier) {
             )
             Column(verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x1)) {
                 Text(
-                    "Works offline",
+                    stringResource(R.string.core_offline_works),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = NeerlyColors.Ink800
                 )
-                WorksOffline.forEach { Bullet(it) }
+                WorksOffline.forEach { Bullet(stringResource(it)) }
                 Spacer(Modifier.height(NeerlySpacing.x2))
                 Text(
-                    "Needs internet",
+                    stringResource(R.string.core_offline_needs),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = NeerlyColors.Ink800
                 )
-                NeedsInternet.forEach { Bullet(it) }
+                NeedsInternet.forEach { Bullet(stringResource(it)) }
             }
         }
     }
@@ -226,7 +222,7 @@ private fun Bullet(text: String) {
 @Composable
 fun StaleDataStamp(lastUpdatedLabel: String, modifier: Modifier = Modifier) {
     Text(
-        "Last updated $lastUpdatedLabel · showing the status we already had",
+        stringResource(R.string.core_stale_stamp, lastUpdatedLabel),
         fontSize = 11.5.sp,
         fontWeight = FontWeight.Bold,
         color = NeerlyColors.Warn,

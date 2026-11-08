@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.order
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -115,14 +117,14 @@ fun OrderLiveMap(tracking: OrderTrackingResponse, modifier: Modifier = Modifier)
             pickup?.let {
                 Marker(
                     state = MarkerState(position = it),
-                    title = "Pickup",
+                    title = stringResource(R.string.cust_map_pickup),
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
                 )
             }
             drop?.let {
                 Marker(
                     state = MarkerState(position = it),
-                    title = "Your address",
+                    title = stringResource(R.string.cust_map_your_address),
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
                 )
             }
@@ -130,7 +132,7 @@ fun OrderLiveMap(tracking: OrderTrackingResponse, modifier: Modifier = Modifier)
             driver?.let {
                 Marker(
                     state = MarkerState(position = it),
-                    title = tracking.driverName ?: "Driver",
+                    title = tracking.driverName ?: stringResource(R.string.cust_map_driver),
                     snippet = tracking.vehicle,
                     rotation = tracking.driverHeadingDeg?.toFloat() ?: 0f,
                     flat = tracking.driverHeadingDeg != null,
@@ -159,10 +161,10 @@ private fun FreshnessChip(recordedAt: String?, modifier: Modifier = Modifier) {
         ?.let { runCatching { Instant.parse(it) }.getOrNull() }
         ?.let { (System.currentTimeMillis() - it.toEpochMilli()) / 1000 }
     val (label, fg, bg) = when {
-        ageSec == null -> Triple("Locating driver…", NeerlyColors.Ink500, NeerlyColors.Ink100)
-        ageSec < 60 -> Triple("LIVE", NeerlyColors.Ok, NeerlyColors.OkSoft)
-        ageSec < 300 -> Triple("Updated ${ageSec / 60} min ago", NeerlyColors.Warn, NeerlyColors.WarnSoft)
-        else -> Triple("Last seen ${ageSec / 60} min ago", NeerlyColors.Ink500, NeerlyColors.Ink100)
+        ageSec == null -> Triple(stringResource(R.string.cust_map_locating), NeerlyColors.Ink500, NeerlyColors.Ink100)
+        ageSec < 60 -> Triple(stringResource(R.string.cust_map_live), NeerlyColors.Ok, NeerlyColors.OkSoft)
+        ageSec < 300 -> Triple(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_map_updated, (ageSec / 60).toInt(), (ageSec / 60).toInt()), NeerlyColors.Warn, NeerlyColors.WarnSoft)
+        else -> Triple(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_map_last_seen, (ageSec / 60).toInt(), (ageSec / 60).toInt()), NeerlyColors.Ink500, NeerlyColors.Ink100)
     }
     Surface(color = bg, shape = RoundedCornerShape(NeerlyRadius.pill), modifier = modifier) {
         Text(

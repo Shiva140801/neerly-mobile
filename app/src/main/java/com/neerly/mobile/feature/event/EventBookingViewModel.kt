@@ -33,7 +33,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class EventBookingViewModel @Inject constructor(
-    private val repo: CustomerRepository
+    private val repo: CustomerRepository,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EventBookingUiState())
@@ -64,10 +65,7 @@ class EventBookingViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.userMessage(
-                            context = "event booking vendor list",
-                            fallback = "Couldn't load vendors near you. Check your connection and try again."
-                        )
+                        error = it.userMessage("event booking vendor list", com.neerly.mobile.R.string.acct_new_vendors_failed, strings)
                     )
                 }
         }
@@ -84,10 +82,7 @@ class EventBookingViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         loadingProducts = false,
-                        error = it.userMessage(
-                            context = "vendor products",
-                            fallback = "Couldn't load this vendor's products. Please try again."
-                        )
+                        error = it.userMessage("vendor products", com.neerly.mobile.R.string.acct_new_products_failed, strings)
                     )
                 }
         }
@@ -114,17 +109,34 @@ class EventBookingViewModel @Inject constructor(
     fun setStart(t: Instant) {
         // Keep duration if end > start, otherwise set end = start + 3h
         val cur = _state.value
+        if (cur.minStart != null && t.isBefore(cur.minStart)) {
+            _state.value = cur.copy(error = strings.get(com.neerly.mobile.R.string.acct_evt_more_notice))
+            return
+        }
         val newEnd = if (cur.eventEnd.isAfter(t)) cur.eventEnd else t.plus(3, ChronoUnit.HOURS)
-        _state.value = cur.copy(eventStart = t, eventEnd = newEnd)
+        _state.value = cur.copy(eventStart = t, eventEnd = newEnd, error = null)
     }
     fun setEnd(t: Instant) {
         val cur = _state.value
         if (t.isAfter(cur.eventStart)) _state.value = cur.copy(eventEnd = t)
     }
+    /**
+     * The server refuses events sooner than `events.min_advance_hours` (an admin setting the
+     * screen passes in from app config). Push the default slot past it, on the hour.
+     */
+    fun applyMinAdvance(hours: Int, now: Instant = Instant.now()) {
+        val earliest = now.plus(hours.toLong(), ChronoUnit.HOURS).truncatedTo(ChronoUnit.HOURS).plus(1, ChronoUnit.HOURS)
+        val cur = _state.value
+        _state.value = cur.copy(minStart = earliest)
+        if (cur.eventStart.isBefore(earliest)) setStart(earliest)
+    }
+
     fun setNotes(v: String) { _state.value = _state.value.copy(customerNotes = v.take(1000)) }
 
     fun goToAddress() {
-        if (_state.value.eventEnd.isBefore(_state.value.eventStart)) return
+        val s = _state.value
+        if (!s.eventEnd.isAfter(s.eventStart)) return
+        if (s.minStart != null && s.eventStart.isBefore(s.minStart)) return
         _state.value = _state.value.copy(step = 3)
     }
 
@@ -159,10 +171,7 @@ class EventBookingViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         submitting = false,
-                        error = it.userMessage(
-                            context = "create event booking",
-                            fallback = "Couldn't create your booking. Please try again."
-                        )
+                        error = it.userMessage("create event booking", com.neerly.mobile.R.string.acct_evt_create_failed, strings)
                     )
                 }
         }
@@ -193,6 +202,7 @@ data class EventBookingUiState(
     val chillingLeadHours: Int = 6,
     val eventStart: Instant = Instant.now(),
     val eventEnd: Instant = Instant.now(),
+    val minStart: Instant? = null,
     val customerNotes: String = "",
 
     val addresses: List<AddressResponse> = emptyList(),

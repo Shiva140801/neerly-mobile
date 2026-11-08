@@ -33,7 +33,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SubscriptionCreateViewModel @Inject constructor(
-    private val repo: CustomerRepository
+    private val repo: CustomerRepository,
+    private val strings: com.neerly.mobile.core.util.Strings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SubscriptionCreateUiState())
@@ -60,10 +61,7 @@ class SubscriptionCreateViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = it.userMessage(
-                            context = "subscription vendor list",
-                            fallback = "Couldn't load vendors near you. Check your connection and try again."
-                        )
+                        error = it.userMessage("subscription vendor list", com.neerly.mobile.R.string.acct_new_vendors_failed, strings)
                     )
                 }
         }
@@ -77,10 +75,7 @@ class SubscriptionCreateViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         loadingProducts = false,
-                        error = it.userMessage(
-                            context = "vendor products",
-                            fallback = "Couldn't load this vendor's products. Please try again."
-                        )
+                        error = it.userMessage("vendor products", com.neerly.mobile.R.string.acct_new_products_failed, strings)
                     )
                 }
         }
@@ -112,15 +107,22 @@ class SubscriptionCreateViewModel @Inject constructor(
 
     fun pickAddress(a: AddressResponse) { _state.value = _state.value.copy(selectedAddress = a, step = 4) }
 
+    /** Board 19 picks the address on the plan page itself — no step change. */
+    fun selectAddress(a: AddressResponse) { _state.value = _state.value.copy(selectedAddress = a) }
+
     fun setPaymentMode(mode: String) { _state.value = _state.value.copy(paymentMode = mode) }
 
-    fun submit(onCreated: (String) -> Unit) {
+    /**
+     * [startDate] is the first day the plan may deliver — the screen passes the cut-off-aware
+     * first changeable day (after 9 PM, "tomorrow" is already closed and the server refuses it).
+     */
+    fun submit(startDate: LocalDate = LocalDate.now().plusDays(1), onCreated: (String) -> Unit) {
         val s = _state.value
         val vendor = s.selectedVendor ?: return
         val product = s.selectedProduct ?: return
         val address = s.selectedAddress ?: return
         if (s.paymentMode.isBlank()) {
-            _state.value = s.copy(error = "Pick a payment mode")
+            _state.value = s.copy(error = strings.get(com.neerly.mobile.R.string.acct_new_pick_payment))
             return
         }
         _state.value = s.copy(submitting = true, error = null)
@@ -141,7 +143,7 @@ class SubscriptionCreateViewModel @Inject constructor(
             daysOfWeek = s.daysOfWeek,
             slotStart = slotStart,
             slotEnd = slotEnd,
-            startDate = LocalDate.now().plusDays(1).toString(),  // first delivery tomorrow
+            startDate = startDate.toString(),
             paymentMethod = s.paymentMode,
             mandateMaxAmount = mandateMax
         )
@@ -154,10 +156,7 @@ class SubscriptionCreateViewModel @Inject constructor(
                 .onFailure {
                     _state.value = _state.value.copy(
                         submitting = false,
-                        error = it.userMessage(
-                            context = "create subscription",
-                            fallback = "Couldn't create your subscription. Please try again."
-                        )
+                        error = it.userMessage("create subscription", com.neerly.mobile.R.string.acct_new_create_failed, strings)
                     )
                 }
         }
@@ -201,10 +200,19 @@ data class SubscriptionCreateUiState(
     val quantity: Int = 1,
     val addresses: List<AddressResponse> = emptyList(),
     val selectedAddress: AddressResponse? = null,
-    val paymentMode: String = "UPI_AUTOPAY"
+    val paymentMode: String = "WALLET"
 ) {
+    /** Rough deliveries in a month, for the "about N deliveries · ₹X" line. Says "about" on screen. */
+    val deliveriesPerMonth: Int
+        get() = when (frequency) {
+            "DAILY" -> 30; "ALT_DAY" -> 15; "WEEKLY" -> 4; "BIWEEKLY" -> 2; "MONTHLY" -> 1
+            else -> (daysOfWeek.size * 30 / 7).coerceAtLeast(1)
+        }
+
+    val perDelivery: BigDecimal? get() = selectedProduct?.price?.multiply(BigDecimal(quantity))
+
     val canSubmit: Boolean
         get() = selectedVendor != null && selectedProduct != null &&
             selectedAddress != null && frequency.isNotBlank() && slot.isNotBlank() &&
-            paymentMode.isNotBlank()
+            paymentMode.isNotBlank() && (frequency != "CUSTOM" || daysOfWeek.isNotEmpty())
 }

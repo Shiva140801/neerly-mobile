@@ -1,5 +1,8 @@
 package com.neerly.mobile.core.design
 
+import androidx.compose.ui.res.stringResource
+import com.neerly.mobile.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,12 +49,12 @@ import androidx.compose.ui.unit.sp
  * state matches the canvas: accent-coloured label with a 5dp dot underneath,
  * not a pill-shaped indicator behind the icon.
  */
-enum class CustomerTab(val label: String, val icon: ImageVector) {
-    Home("Home", Icons.Filled.Home),
-    Orders("Orders", Icons.AutoMirrored.Filled.ReceiptLong),
-    Subs("Subs", Icons.Filled.Autorenew),
-    Wallet("Wallet", Icons.Filled.AccountBalanceWallet),
-    Profile("Profile", Icons.Filled.Person)
+enum class CustomerTab(@androidx.annotation.StringRes val labelRes: Int, val icon: ImageVector) {
+    Home(R.string.core_tab_home, Icons.Filled.Home),
+    Orders(R.string.core_tab_orders, Icons.AutoMirrored.Filled.ReceiptLong),
+    Subs(R.string.core_tab_subs, Icons.Filled.Autorenew),
+    Wallet(R.string.core_tab_wallet, Icons.Filled.AccountBalanceWallet),
+    Profile(R.string.core_tab_profile, Icons.Filled.Person)
 }
 
 @Composable
@@ -104,9 +107,10 @@ private fun BottomBarItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Icon(tab.icon, contentDescription = tab.label, tint = tint, modifier = Modifier.size(22.dp))
+        val label = stringResource(tab.labelRes)
+        Icon(tab.icon, contentDescription = label, tint = tint, modifier = Modifier.size(22.dp))
         Text(
-            tab.label,
+            label,
             fontSize = 10.5.sp,
             color = tint,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold

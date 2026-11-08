@@ -1,5 +1,7 @@
 package com.neerly.mobile.feature.auth
 
+import com.neerly.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -30,19 +32,27 @@ fun NameScreen(
     val state by vm.state.collectAsState()
 
     AuthPageScaffold {
-        Text("What should we call you?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Text(stringResource(R.string.cust_name_step), fontSize = 13.sp, color = NeerlyColors.Ink600)
         Spacer(Modifier.height(NeerlySpacing.x2))
-        Text("This helps vendors recognise you.", fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Text(stringResource(R.string.cust_name_title), fontSize = 32.sp, lineHeight = 38.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, color = NeerlyColors.Ink900)
+        Spacer(Modifier.height(NeerlySpacing.x2))
+        Text(stringResource(R.string.cust_name_body), fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600)
 
         Spacer(Modifier.height(NeerlySpacing.x8))
         OutlinedTextField(
             value = name,
             onValueChange = { name = it.take(50) },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("First name") },
+            placeholder = { Text(stringResource(R.string.cust_name_placeholder)) },
             singleLine = true,
             shape = RoundedCornerShape(NeerlyRadius.md)
         )
+        val short = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.let { p ->
+            if (p.isEmpty()) "" else p[0] + (p.getOrNull(1)?.let { " ${it.first()}." } ?: "") }
+        if (short.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(stringResource(R.string.cust_name_shown_as, short), fontSize = 14.sp, color = NeerlyColors.Ink600)
+        }
         Spacer(Modifier.weight(1f))
 
         if (state.error != null) {
@@ -65,7 +75,7 @@ fun NameScreen(
             )
         ) {
             Text(
-                if (state.savingName) "Saving…" else "Continue",
+                when { state.savingName -> stringResource(R.string.cust_saving); !valid -> stringResource(R.string.cust_name_type_to_continue); else -> stringResource(R.string.cust_continue) },
                 fontSize = 15.sp, fontWeight = FontWeight.SemiBold
             )
         }
