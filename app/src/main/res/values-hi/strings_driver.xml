@@ -201,9 +201,9 @@
     <string name="drv_doc_insurance">बीमा</string>
     <string name="drv_doc_aadhaar">आधार</string>
     <string name="drv_doc_police">पुलिस वेरिफ़िकेशन</string>
-    <string name="drv_sos_hold_label">SOS के लिए 2 सेकंड दबाए रखें</string>
-    <string name="drv_sos_hold_short">2 सेकंड दबाए रखें</string>
-    <string name="drv_sos_cd">SOS. अपनी दुकान और Boondh को सूचित करने के लिए दो सेकंड दबाए रखें।</string>
+    <string name="drv_sos_hold_label">SOS के लिए 3 सेकंड दबाए रखें</string>
+    <string name="drv_sos_hold_short">3 सेकंड दबाए रखें</string>
+    <string name="drv_sos_cd">SOS. अपनी दुकान और Boondh को सूचित करने के लिए तीन सेकंड दबाए रखें।</string>
     <string name="drv_sos_send">SOS भेजें</string>
     <string name="drv_sos_keep_holding">दबाए रखें…</string>
     <string name="drv_back">‹ वापस</string>

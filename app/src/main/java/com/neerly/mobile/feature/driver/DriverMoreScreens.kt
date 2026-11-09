@@ -79,7 +79,8 @@ fun SosHoldButton(onSend: () -> Unit, modifier: Modifier = Modifier, label: Stri
     }
 }
 
-private const val HOLD_MS = 2_000L
+/** NPDCatalog D10: "SOS held 3 s" (decision A4). */
+private const val HOLD_MS = 3_000L
 
 /** D29 — SOS sent: who was told, live location sharing, "I'm safe". */
 @Composable
@@ -164,7 +165,10 @@ fun DriverMeContent(
             }
         }
         if (onDuty) item { SecondaryButton(stringResource(R.string.drv_end_duty), onEndDuty, modifier = BIG, color = NeerlyColors.Err) }
+        // Tasks ring full screen and SOS comes through Do Not Disturb only with these allowed (plan §e).
+        item { com.neerly.mobile.push.RingReadinessCard(com.neerly.mobile.push.PushRole.DRIVER) }
         item { SosHoldButton(onSos) }
+        item { com.neerly.mobile.push.PushLabEntry() }
         onSwitchRole?.let { item { SecondaryButton(stringResource(R.string.drv_switch_role), it, modifier = BIG) } }
         item { TextButton(onClick = vm::checkLogout, enabled = !s.checkingLogout, modifier = Modifier.heightIn(min = 48.dp)) {
             Text(if (s.checkingLogout) stringResource(R.string.drv_checking) else stringResource(R.string.drv_log_out), color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) } }

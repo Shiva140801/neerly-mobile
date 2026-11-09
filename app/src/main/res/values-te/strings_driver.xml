@@ -201,9 +201,9 @@
     <string name="drv_doc_insurance">ఇన్సూరెన్స్</string>
     <string name="drv_doc_aadhaar">ఆధార్</string>
     <string name="drv_doc_police">పోలీస్ వెరిఫికేషన్</string>
-    <string name="drv_sos_hold_label">SOS కోసం 2 సెకన్లు నొక్కి ఉంచండి</string>
-    <string name="drv_sos_hold_short">2 సెకన్లు నొక్కి ఉంచండి</string>
-    <string name="drv_sos_cd">SOS. మీ షాప్‌కి, Boondh కి తెలియజేయడానికి రెండు సెకన్లు నొక్కి ఉంచండి.</string>
+    <string name="drv_sos_hold_label">SOS కోసం 3 సెకన్లు నొక్కి ఉంచండి</string>
+    <string name="drv_sos_hold_short">3 సెకన్లు నొక్కి ఉంచండి</string>
+    <string name="drv_sos_cd">SOS. మీ షాప్‌కి, Boondh కి తెలియజేయడానికి మూడు సెకన్లు నొక్కి ఉంచండి.</string>
     <string name="drv_sos_send">SOS పంపండి</string>
     <string name="drv_sos_keep_holding">నొక్కి ఉంచండి…</string>
     <string name="drv_back">‹ వెనక్కి</string>

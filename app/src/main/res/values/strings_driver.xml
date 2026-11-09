@@ -201,9 +201,9 @@
     <string name="drv_doc_insurance">Insurance</string>
     <string name="drv_doc_aadhaar">Aadhaar</string>
     <string name="drv_doc_police">Police verification</string>
-    <string name="drv_sos_hold_label">Hold 2 s for SOS</string>
-    <string name="drv_sos_hold_short">Hold 2 s</string>
-    <string name="drv_sos_cd">SOS. Hold for two seconds to alert your shop and Boondh.</string>
+    <string name="drv_sos_hold_label">Hold 3 s for SOS</string>
+    <string name="drv_sos_hold_short">Hold 3 s</string>
+    <string name="drv_sos_cd">SOS. Hold for three seconds to alert your shop and Boondh.</string>
     <string name="drv_sos_send">Send SOS</string>
     <string name="drv_sos_keep_holding">Keep holding…</string>
     <string name="drv_back">‹ Back</string>
