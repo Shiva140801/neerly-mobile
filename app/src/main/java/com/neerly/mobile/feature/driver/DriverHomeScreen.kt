@@ -72,11 +72,24 @@ fun DriverHomeScreen(
     // Live tracking needs a fix stream the moment the shift starts, so ask when the driver
     // goes on duty rather than burying it in onboarding.
     val context = LocalContext.current
-    val locationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { vm.onLocationPermission(it) }
+    val locationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        vm.onLocationPermission(it)
+        if (it && vm.state.value.isOnDuty) com.neerly.mobile.push.DriverDutyService.start(context)
+    }
     LaunchedEffect(state.isOnDuty) {
         if (!state.isOnDuty) return@LaunchedEffect
         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (granted) vm.onLocationPermission(true) else locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+    // Push: ask for notifications when duty starts (plan §e), and keep the on-duty card — a
+    // location foreground service — up for the whole shift (NPDLock).
+    com.neerly.mobile.push.AskNotificationsOnce("driver", state.isOnDuty)
+    var wasOnDuty by remember { mutableStateOf(false) }
+    LaunchedEffect(state.isOnDuty, state.loading) {
+        if (state.loading) return@LaunchedEffect
+        val located = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (state.isOnDuty && located) { com.neerly.mobile.push.DriverDutyService.start(context); wasOnDuty = true }
+        else if (!state.isOnDuty && wasOnDuty) { com.neerly.mobile.push.DriverDutyService.end(context, state.today?.cashInHand); wasOnDuty = false }
     }
     // D19: re-check on every return to the app — the driver may have switched GPS off meanwhile.
     OnReturn { reportGps(context, vm) }

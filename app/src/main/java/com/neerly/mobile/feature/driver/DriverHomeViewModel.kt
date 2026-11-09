@@ -73,7 +73,9 @@ class DriverHomeViewModel @Inject constructor(
     private val photos: PhotoUploader,
     private val jobs: DriverJobStore,
     private val platform: DriverPlatformApi,
-    private val strings: com.neerly.mobile.core.util.Strings
+    private val strings: com.neerly.mobile.core.util.Strings,
+    /** Feeds the on-duty notification card and gates task rings (push). */
+    private val duty: com.neerly.mobile.push.DriverDutyState = com.neerly.mobile.push.DriverDutyState()
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DriverHomeUiState())
@@ -158,10 +160,31 @@ class DriverHomeViewModel @Inject constructor(
                     shops = s.shops, loadedOrders = s.jobs.map { it.orderId }.filter(jobs::isLoaded).toSet(), error = null,
                     shiftState = s.shiftState
                 )
+                publishDutyCard()
                 syncLocationLoop()
                 syncOfferLoop()
             }.onFailure { _state.value = _state.value.copy(loading = false, error = it.say("driver home")) }
         }
+    }
+
+    /** NPDLock card: drops done / total, time on duty, cash in hand, next customer. */
+    private fun publishDutyCard() {
+        val s = _state.value
+        if (!s.isOnDuty) { duty.update(false, null); return }
+        val open = s.assignments.count { it.status in setOf("PREPARING", "DISPATCHED", "ARRIVING") }
+        val done = s.today?.drops ?: 0
+        val next = s.activeAssignment ?: s.upNext.firstOrNull()
+        duty.update(true, com.neerly.mobile.push.DutyCard(
+            shopName = s.shops.firstOrNull { it.shopId == s.shift?.vendorId }?.shopName,
+            startedAtMs = s.shift?.startedAt?.let { runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull() },
+            dropsDone = done,
+            dropsTotal = done + open,
+            cashInHand = s.today?.cashInHand ?: java.math.BigDecimal.ZERO,
+            nextCustomer = next?.customerFirstName,
+            nextLat = next?.deliveryLat,
+            nextLng = next?.deliveryLng,
+            onBreak = s.onBreak
+        ))
     }
 
     private data class Snapshot(val shift: DriverShiftResponse?, val jobs: List<DriverAssignment>,
