@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: Push lab and the adb push trigger. Never in release. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".push.debug.PushLabActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Neerly" />
+        <!-- adb: am broadcast with action DEBUG_PUSH and a "type" string extra (see PushSamples). -->
+        <receiver
+            android:name=".push.debug.DebugPushReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.neerly.mobile.DEBUG_PUSH" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
