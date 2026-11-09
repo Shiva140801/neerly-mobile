@@ -69,6 +69,8 @@ class VendorNewOrderViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        // "Can't take" on the ring screen or the notification opens the reason sheet directly.
+        if (com.neerly.mobile.push.PendingDecline.take(orderId)) _state.value = _state.value.copy(stage = OfferStage.Declining)
         load()
         viewModelScope.launch {
             runCatching { ops.dashboard().missedOffersLast7d }.onSuccess { _state.value = _state.value.copy(missedThisWeek = it) }

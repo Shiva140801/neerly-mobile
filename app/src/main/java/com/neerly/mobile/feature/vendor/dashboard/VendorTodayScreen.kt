@@ -42,6 +42,8 @@ fun VendorTodayScreen(
     vm: VendorTodayViewModel = hiltViewModel()
 ) {
     val s by vm.state.collectAsState()
+    // New orders ring like a call — ask for notifications the first time the shop opens Today (plan §e).
+    com.neerly.mobile.push.AskNotificationsOnce("seller", true)
     // Poll only while this screen is in front; the alert screen takes over when an offer lands.
     val owner = LocalLifecycleOwner.current
     DisposableEffect(owner) {

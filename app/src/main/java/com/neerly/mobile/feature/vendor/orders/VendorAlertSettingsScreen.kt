@@ -40,6 +40,8 @@ fun VendorAlertSettingsScreen(onBack: () -> Unit, vm: VendorAlertSettingsViewMod
         title = stringResource(R.string.vend_alert_title), onBack = onBack,
         subtitle = stringResource(R.string.vend_alert_sub)
     ) {
+        // What new-order rings and driver SOS need from Android (plan §e).
+        item { com.neerly.mobile.push.RingReadinessCard(com.neerly.mobile.push.PushRole.SELLER) }
         item {
             BoondhCard {
                 Toggle(stringResource(R.string.vend_alert_silent), stringResource(R.string.vend_alert_silent_sub), p.ringOnSilent) { v -> vm.update { copy(ringOnSilent = v) } }

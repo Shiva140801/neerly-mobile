@@ -5,4 +5,11 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">#FFFFFFFF</item>
     </style>
+    <!-- Ring screens (NPVRing / NPDRing) are dark, edge to edge. -->
+    <style name="Theme.Neerly.Ring" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF1A2238</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#FF1A2238</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
 </resources>
