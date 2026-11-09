@@ -23,11 +23,43 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repo: AuthRepository,
-    private val strings: com.neerly.mobile.core.util.Strings
+    private val strings: com.neerly.mobile.core.util.Strings,
+    private val sender: OtpSender
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthUiState())
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
+
+    val resendPolicy = ResendPolicy()
+
+    /** Wall clock in ms; tests replace it to walk the countdown without waiting. */
+    internal var now: () -> Long = System::currentTimeMillis
+
+    /** The code screen opened: the code was just sent, so the resend countdown starts now. */
+    fun otpScreenShown() {
+        if (_state.value.codeSentAt == null) _state.value = _state.value.copy(codeSentAt = now())
+    }
+
+    fun resendGate(): ResendPolicy.Gate = resendPolicy.gate(now(), _state.value.codeSentAt, _state.value.resends)
+
+    /** "Didn't get it? Resend" — only when the gate is open; the server's own message on failure. */
+    fun resendOtp(phoneE164: String, role: String) {
+        if (_state.value.resending || resendGate() != ResendPolicy.Gate.Open) return
+        _state.value = _state.value.copy(resending = true, error = null, resendNotice = null)
+        viewModelScope.launch {
+            sender.send(phoneE164, role)
+                .onSuccess {
+                    val t = now()
+                    _state.value = _state.value.copy(resending = false, codeSentAt = t,
+                        resends = _state.value.resends + t, hint = it.hint,
+                        resendNotice = strings.get(R.string.core_otp_resent))
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(resending = false,
+                        error = it.userMessage(context = "resend otp", fallback = strings.get(R.string.core_otp_resend_failed)))
+                }
+        }
+    }
 
     fun sendOtp(phone10digits: String, role: String = "CUSTOMER", onSent: (phoneE164: String, hint: String) -> Unit) {
         if (!phone10digits.matches(Regex("^[6-9]\\d{9}$"))) {
@@ -123,5 +155,11 @@ data class AuthUiState(
     val savingName: Boolean = false,
     val hint: String? = null,
     val error: String? = null,
-    val roleIntent: String? = null
+    val roleIntent: String? = null,
+    /** When the current code was sent (start of the resend countdown). */
+    val codeSentAt: Long? = null,
+    /** Resends in this session, for the hourly cap. */
+    val resends: List<Long> = emptyList(),
+    val resending: Boolean = false,
+    val resendNotice: String? = null
 )
