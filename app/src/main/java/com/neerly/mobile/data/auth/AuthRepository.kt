@@ -7,7 +7,6 @@ import com.neerly.mobile.data.dto.DevVerifyOtpRequest
 import com.neerly.mobile.data.dto.ExchangeRequest
 import com.neerly.mobile.data.dto.ExchangeResponse
 import com.neerly.mobile.data.dto.LogoutRequest
-import com.neerly.mobile.data.dto.RegisterDeviceRequest
 import com.neerly.mobile.data.dto.UpdateProfileRequest
 import com.neerly.mobile.data.dto.UserSummary
 import javax.inject.Inject
@@ -25,7 +24,8 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val api: NeerlyApi,
-    private val tokens: TokenStore
+    private val tokens: TokenStore,
+    private val push: dagger.Lazy<com.neerly.mobile.push.PushRegistration>
 ) {
 
     suspend fun exchange(
@@ -51,6 +51,7 @@ class AuthRepository @Inject constructor(
             activeRole = resp.activeRole,
             grantedRoles = resp.grantedRoles
         )
+        push.get().register()
         return resp
     }
 
@@ -64,28 +65,17 @@ class AuthRepository @Inject constructor(
             grantedRoles = resp.grantedRoles ?: tokens.grantedRoles
         )
         if (remember) tokens.lastRolePreference = resp.activeRole
+        // Pushes follow the face this phone is showing now.
+        push.get().register()
     }
 
     suspend fun logout() {
+        push.get().unregister()
         val refresh = tokens.refreshToken
         tokens.clear()
         if (!refresh.isNullOrBlank()) {
             runCatching { api.logout(LogoutRequest(refresh)) }
         }
-    }
-
-    suspend fun registerDevice(fcmToken: String?, appVersion: String?, osVersion: String?) {
-        runCatching {
-            api.registerDevice(
-                RegisterDeviceRequest(
-                    deviceId = tokens.deviceId(),
-                    platform = "ANDROID",
-                    fcmToken = fcmToken,
-                    appVersion = appVersion,
-                    osVersion = osVersion
-                )
-            )
-        }  // best-effort; a failed device register shouldn't block login
     }
 
     /**
@@ -146,6 +136,7 @@ class AuthRepository @Inject constructor(
                 activeRole = resp.activeRole,
                 grantedRoles = resp.grantedRoles
             )
+            push.get().register()
         }.getOrNull()
     }
 }

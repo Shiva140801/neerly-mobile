@@ -31,6 +31,8 @@ class OrderPlacedViewModel @Inject constructor(private val api: NeerlyApi, priva
 fun OrderPlacedScreen(orderId: String, orderNumber: String, onTrack: () -> Unit, onHome: () -> Unit,
                       vm: OrderPlacedViewModel = hiltViewModel()) {
     LaunchedEffect(orderId) { vm.load(orderId) }
+    // The moment the customer wants updates: right after placing an order (plan §e), not at install.
+    com.neerly.mobile.push.AskNotificationsOnce("customer", true)
     val o by vm.order.collectAsState()
     val cash = o?.paymentMethod == "COD"
     val swaps = o?.items?.filter { it.containerMode == "TRANSFER_AND_RETURN" }?.sumOf { it.quantity } ?: 0

@@ -35,6 +35,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     @Inject lateinit var gatewayResults: GatewayResults
     @Inject lateinit var appConfig: com.neerly.mobile.data.config.AppConfigRepository
     @Inject lateinit var languageSync: com.neerly.mobile.core.util.LanguageSync
+    @Inject lateinit var deepLinks: com.neerly.mobile.push.DeepLinkBus
+    @Inject lateinit var pushRegistration: com.neerly.mobile.push.PushRegistration
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(com.neerly.mobile.core.util.AppLocale.wrap(newBase))
@@ -55,6 +57,9 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         // Business values (fees, cut-offs, limits, support hours) come from the server; the
         // last copy is used until this lands, and stays if the phone is offline.
         lifecycleScope.launch { appConfig.refresh() }
+        // Keeps the device row (token, role, app version) fresh for pushes on every launch.
+        if (tokenStore.hasSession()) pushRegistration.register()
+        takePushLink(intent)
         setContent {
             val config by appConfig.config.collectAsState()
             CompositionLocalProvider(com.neerly.mobile.data.config.LocalAppConfig provides config) {
@@ -62,10 +67,26 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     Surface(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
                         val navController = rememberNavController()
                         NeerlyNavHost(navController, cartStore, tokenStore, languageSync)
+                        com.neerly.mobile.navigation.PushLinkHandler(navController, deepLinks, tokenStore)
                     }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        takePushLink(intent)
+    }
+
+    /** A notification tap (`boondh://…`) becomes a pending route the NavHost opens once past sign-in. */
+    private fun takePushLink(intent: android.content.Intent?) {
+        val link = intent?.dataString
+        val route = com.neerly.mobile.push.DeepLinks.route(link) ?: return
+        com.neerly.mobile.push.DeepLinks.declineOrderId(link)?.let(com.neerly.mobile.push.PendingDecline::add)
+        intent?.data = null  // don't reopen it on rotation
+        deepLinks.open(route)
     }
 
     /**

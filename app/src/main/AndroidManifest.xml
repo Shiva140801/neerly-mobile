@@ -12,6 +12,14 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Push notifications (docs/PUSH_NOTIFICATIONS_PLAN.md §e) -->
+    <!-- Seller new-order and driver new-task rings show full screen over the lock screen. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Driver on-duty card: a location foreground service keeps GPS flowing with the screen off. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- Only the SOS channels ask to come through Do Not Disturb. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
     <application
@@ -41,6 +49,37 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
+
+        <!-- Push: full-screen ring screens (NPVRing / NPDRing) -->
+        <activity
+            android:name=".push.SellerRingActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:taskAffinity="com.neerly.mobile.ring"
+            android:theme="@style/Theme.Neerly.Ring" />
+        <activity
+            android:name=".push.DriverRingActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:taskAffinity="com.neerly.mobile.ring"
+            android:theme="@style/Theme.Neerly.Ring" />
+
+        <!-- Push: buttons that work without opening a screen, and ring time-outs -->
+        <receiver
+            android:name=".push.PushActionReceiver"
+            android:exported="false" />
+
+        <!-- Push: the driver's on-duty card for the whole shift -->
+        <service
+            android:name=".push.DriverDutyService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
 
         <!-- FCM token rotation + message receiver -->
         <service

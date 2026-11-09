@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Push notifications. English only for now (brief rule 11); Telugu and Hindi are added
+     later in values-te / values-hi — until then those languages fall back to these. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- Channel groups (the designs' three apps) -->
+    <string name="push_grp_customer">Boondh</string>
+    <string name="push_grp_seller">Boondh Seller</string>
+    <string name="push_grp_driver">Boondh Driver</string>
+
+    <!-- Channels -->
+    <string name="push_ch_cust_orders">Order updates</string>
+    <string name="push_ch_cust_gate">Driver at your gate</string>
+    <string name="push_ch_cust_alerts">Order problems</string>
+    <string name="push_ch_cust_live">Live delivery</string>
+    <string name="push_ch_cust_subs">Subscription reminders</string>
+    <string name="push_ch_cust_jars">Jar return dates</string>
+    <string name="push_ch_cust_money">Refunds and wallet</string>
+    <string name="push_ch_cust_offers">Offers from your suppliers</string>
+    <string name="push_ch_cust_security">Account security</string>
+    <string name="push_ch_seller_ring">New orders (ring)</string>
+    <string name="push_ch_seller_complaints">Customer complaints</string>
+    <string name="push_ch_seller_team">Team</string>
+    <string name="push_ch_seller_orders">Orders and shop</string>
+    <string name="push_ch_seller_money">Money</string>
+    <string name="push_ch_seller_money_quiet">Money (quiet)</string>
+    <string name="push_ch_seller_quiet">Reviews, jars and closed days</string>
+    <string name="push_ch_seller_sos">Driver SOS</string>
+    <string name="push_ch_driver_ring">New tasks (ring)</string>
+    <string name="push_ch_driver_tasks">Tasks</string>
+    <string name="push_ch_driver_info">Shops and papers</string>
+    <string name="push_ch_driver_dayend">Day end</string>
+    <string name="push_ch_driver_duty">On duty</string>
+    <string name="push_ch_driver_quiet">Earnings, shifts and missed tasks</string>
+    <string name="push_ch_driver_sos">Safety</string>
+
+    <!-- Lock-screen versions of private cards -->
+    <string name="push_pub_order_title">Your order was accepted</string>
+    <string name="push_pub_order_body">Unlock to see your delivery code.</string>
+    <string name="push_pub_gate_title">Your driver is at the gate</string>
+    <string name="push_pub_gate_body">Unlock to see your delivery code.</string>
+    <string name="push_pub_complaint_title">New message from a customer</string>
+    <string name="push_pub_complaint_body">Unlock to read it.</string>
+    <string name="push_pub_payout_title">Payout sent</string>
+    <string name="push_pub_payout_held_title">Payout still on hold</string>
+    <string name="push_pub_money_body">Unlock to see the amount.</string>
+    <string name="push_pub_claim_title">A jar claim was decided</string>
+    <string name="push_pub_claim_body">Unlock to see what Boondh decided.</string>
+
+    <!-- Action buttons -->
+    <string name="push_a_track">Track</string>
+    <string name="push_a_call">Call</string>
+    <string name="push_a_show_code">Show code</string>
+    <string name="push_a_rate">Rate</string>
+    <string name="push_a_report">Something\'s wrong</string>
+    <string name="push_a_new_time">Pick a new time</string>
+    <string name="push_a_i_was_home">I was home</string>
+    <string name="push_a_other_shops">See other shops</string>
+    <string name="push_a_retry_pay">Try again</string>
+    <string name="push_a_pay_cash">Pay cash</string>
+    <string name="push_a_skip_tomorrow">Skip tomorrow</string>
+    <string name="push_a_change_plan">Change plan</string>
+    <string name="push_a_add_money">Add money</string>
+    <string name="push_a_plan_return">Plan return</string>
+    <string name="push_a_view">View</string>
+    <string name="push_a_reply">Reply</string>
+    <string name="push_a_open">Open</string>
+    <string name="push_a_order">Order</string>
+    <string name="push_a_not_me">It wasn\'t me</string>
+    <string name="push_a_accept">Accept</string>
+    <string name="push_a_decline">Can\'t take</string>
+    <string name="push_a_ring_settings">Check ring settings</string>
+    <string name="push_a_assign">Assign a driver</string>
+    <string name="push_a_fresh_jar">Send a fresh jar</string>
+    <string name="push_a_count_now">Count now</string>
+    <string name="push_a_see_map">See on map</string>
+    <string name="push_a_add_stock">Add stock</string>
+    <string name="push_a_plan_pickups">Plan pickups</string>
+    <string name="push_a_fix_bank">Fix bank account</string>
+    <string name="push_a_open_early">Open early instead</string>
+    <string name="push_a_upload">Upload again</string>
+    <string name="push_a_take">Take it</string>
+    <string name="push_a_pass">Pass</string>
+    <string name="push_a_close_day">Close my day</string>
+    <string name="push_a_back_now">I\'m back now</string>
+    <string name="push_a_safe">I\'m safe</string>
+    <string name="push_reply_hint">Your reply</string>
+    <string name="push_reply_sent">Reply sent</string>
+    <string name="push_reply_failed">Couldn\'t send. Open the app to reply.</string>
+    <string name="push_switch_role">Opens in another part of Boondh</string>
+
+    <!-- Seller ring screen (NPVRing) -->
+    <string name="push_ring_seller_label">Boondh Seller · new order</string>
+    <string name="push_ring_left">%1$s left to answer</string>
+    <string name="push_ring_you_keep">You keep %1$s</string>
+    <string name="push_ring_working">Opening…</string>
+    <string name="push_ring_failed">That order isn\'t open any more.</string>
+    <string name="push_ring_missed_title">Missed order · %1$s</string>
+    <string name="push_ring_missed_body">It went to the next shop. Keep the phone where you can hear it.</string>
+    <string name="push_ring_missed_title_plain">Missed order</string>
+    <!-- Driver ring screen (NPDRing) -->
+    <string name="push_ring_driver_label">New task</string>
+    <string name="push_ring_for_km">for %1$s km</string>
+    <string name="push_ring_missed_task_title">Missed task · %1$s</string>
+    <string name="push_ring_missed_task_title_plain">Missed task</string>
+    <string name="push_ring_missed_task_body">It went to another driver. No penalty.</string>
+    <string name="push_tts_new_task">New task, %1$s rupees, %2$s</string>
+
+    <!-- Driver on-duty card (NPDLock) -->
+    <string name="push_duty_title">%1$d of %2$d drops</string>
+    <string name="push_duty_title_none">On duty</string>
+    <string name="push_duty_line">On duty · %1$s · %2$s cash with you</string>
+    <string name="push_duty_next">Next: %1$s</string>
+    <string name="push_duty_navigate">Navigate</string>
+    <string name="push_duty_break">Take a break</string>
+    <string name="push_duty_ended_title">Shift ended</string>
+    <string name="push_duty_ended_body">Hand %1$s to the shop before you go.</string>
+    <string name="push_duty_hm">%1$dh %2$02dm</string>
+
+    <!-- Permission asks -->
+    <string name="push_perm_seller">New orders ring like a phone call. Allow notifications so you never miss one.</string>
+    <string name="push_perm_driver">New tasks ring while you\'re on duty. Allow notifications so you don\'t miss them.</string>
+    <string name="push_perm_allow">Allow</string>
+    <string name="push_fsi_title">Let new orders ring on the lock screen</string>
+    <string name="push_fsi_body">Android needs one more permission for the full-screen ring. Without it you still get a loud notification.</string>
+    <string name="push_fsi_open">Open settings</string>
+    <string name="push_dnd_title">Let SOS through Do Not Disturb</string>
+    <string name="push_dnd_body">Only a driver SOS will sound when the phone is on Do Not Disturb.</string>
+    <string name="push_dnd_on">SOS comes through Do Not Disturb</string>
+
+    <!-- Customer notification settings (NotifPrefs) -->
+    <string name="push_prefs_title">What we tell you about</string>
+    <string name="push_prefs_order">Order updates</string>
+    <string name="push_prefs_order_sub">Accepted, on the way, delivered · always on</string>
+    <string name="push_prefs_subs">Subscription reminders</string>
+    <string name="push_prefs_subs_sub">Night before each delivery, so you can skip</string>
+    <string name="push_prefs_jars">Jar return dates</string>
+    <string name="push_prefs_jars_sub">The evening before a jar is due</string>
+    <string name="push_prefs_wallet">Refunds and wallet</string>
+    <string name="push_prefs_wallet_sub">When money comes in or goes out</string>
+    <string name="push_prefs_offers">Offers from your suppliers</string>
+    <string name="push_prefs_offers_sub">At most one a week</string>
+    <string name="push_prefs_sms">SMS backup</string>
+    <string name="push_prefs_sms_sub">If the app can\'t reach you</string>
+    <string name="push_prefs_quiet">Quiet hours</string>
+    <string name="push_prefs_quiet_sub">Nothing but order updates 10 PM – 7 AM</string>
+    <string name="push_prefs_phone">Sound and vibration on this phone</string>
+    <string name="push_prefs_phone_sub">Android settings for each kind of message</string>
+    <string name="push_prefs_blocked">Notifications are off for Boondh on this phone.</string>
+    <string name="push_prefs_turn_on">Turn on</string>
+    <string name="push_prefs_failed">Couldn\'t save that. Try again.</string>
+
+    <!-- Push lab (debug builds) -->
+    <string name="push_lab_title">Push lab</string>
+    <string name="push_lab_sub">Debug build only. Each row posts the catalog push through the same code a real push uses.</string>
+    <string name="push_lab_as_bg">Ring as if the app were closed</string>
+    <string name="push_lab_cancel_all">Clear all</string>
+    <string name="push_lab_duty">Show on-duty card</string>
+    <string name="push_lab_duty_end">End on-duty card</string>
+
+    <!-- Catalog samples (Push lab), wording from NPCCatalog / NPVCatalog / NPDCatalog; the 6-digit code per D1 -->
+    <string name="push_s_c1_t">Sri Balaji accepted your order</string>
+    <string name="push_s_c1_b">It arrives in 25–35 min. Your code is 394712.</string>
+    <string name="push_s_c2_t">Ramesh is 12 min away</string>
+    <string name="push_s_c2_b">2 jars on the way from Sri Balaji.</string>
+    <string name="push_s_c3_t">Ramesh is at your gate</string>
+    <string name="push_s_c3_b">Tell him 394712 when he hands over the jars.</string>
+    <string name="push_s_c4_t">Delivered · 2 jars swapped</string>
+    <string name="push_s_c4_b">Ramesh took 2 empties at 9:44. ₹265 paid.</string>
+    <string name="push_s_c5_t">Ramesh couldn\'t hand over your jars</string>
+    <string name="push_s_c5_b">Nobody answered at the gate. Your ₹265 is coming back.</string>
+    <string name="push_s_c6_t">Sri Balaji can\'t take this order</string>
+    <string name="push_s_c6_b">Two other shops near you deliver the same jars.</string>
+    <string name="push_s_c7_t">Payment didn\'t go through</string>
+    <string name="push_s_c7_b">Your jars are held for 15 min. Try again or pay cash.</string>
+    <string name="push_s_c8_t">Tomorrow, 6–9 AM: 2 jars</string>
+    <string name="push_s_c8_b">From Sri Balaji. Skip by 9 PM if you don\'t need them.</string>
+    <string name="push_s_c9_t">Tue 10 skipped · Sri Balaji is closed</string>
+    <string name="push_s_c9_b">Your next delivery is Wed 11. You won\'t be charged for Tuesday.</string>
+    <string name="push_s_c10_t">₹120 due tomorrow</string>
+    <string name="push_s_c10_b">Your wallet has ₹40. Add money so tomorrow\'s jars come.</string>
+    <string name="push_s_c11_t">2 jars are due back tomorrow</string>
+    <string name="push_s_c11_b">From your 7 Nov order. Return them to get ₹300 back.</string>
+    <string name="push_s_c12_t">Refund of ₹180 sent</string>
+    <string name="push_s_c12_b">It reaches your bank in 3–5 working days.</string>
+    <string name="push_s_c13_t">₹80 is on its way to your bank</string>
+    <string name="push_s_c13_b">From your Boondh wallet.</string>
+    <string name="push_s_c14_t">Venkatesh replied about the leaking jar</string>
+    <string name="push_s_c14_b">“Sorry about that. A fresh jar is coming by 11.”</string>
+    <string name="push_s_c15_t">Boondh support joined your complaint</string>
+    <string name="push_s_c15_b">Asha will reply within 2 hours.</string>
+    <string name="push_s_c16_t">Sri Balaji: ₹100 off this Diwali</string>
+    <string name="push_s_c16_b">On a 4-jar order till Sunday.</string>
+    <string name="push_s_c17_t">AquaFresh is open again</string>
+    <string name="push_s_c17_b">You asked us to tell you.</string>
+    <string name="push_s_c18_t">New sign-in on a Redmi Note 13</string>
+    <string name="push_s_c18_b">Just now, Hyderabad. If this wasn\'t you, sign out everywhere.</string>
+    <string name="push_s_v1_t">New order · ₹460</string>
+    <string name="push_s_v1_b">Rahul V. · 2.3 km · 5 Plain + 2 Chilled, swap · you keep ₹406</string>
+    <string name="push_s_v2_t">Missed order · ₹240</string>
+    <string name="push_s_v2_b">Anjali\'s order went to the next shop at 7:12 PM. That\'s the 3rd this week.</string>
+    <string name="push_s_v3_t">Anil P.\'s order is waiting for a driver</string>
+    <string name="push_s_v3_b">Packed 8 min ago. Suresh is free.</string>
+    <string name="push_s_v4_t">Neha J. cancelled her order</string>
+    <string name="push_s_v4_b">Suresh keeps ₹25 for the trip.</string>
+    <string name="push_s_v5_t">Event price request · Wedding</string>
+    <string name="push_s_v5_b">Sun 22 Nov · 40 jars · reply by tomorrow 6 PM.</string>
+    <string name="push_s_v6_t">Shiva S.</string>
+    <string name="push_s_v6_b">One jar was dripping from the bottom seam. Water all over the lift. · Reply in 1h 48m</string>
+    <string name="push_s_v7_t">30 min left</string>
+    <string name="push_s_v7_b">Shiva S. is still waiting for your reply.</string>
+    <string name="push_s_v8_t">Boondh support joined</string>
+    <string name="push_s_v8_b">Shiva S.\'s complaint is with Boondh now.</string>
+    <string name="push_s_v9_t">Farhan Q. · 3★</string>
+    <string name="push_s_v9_b">“Late again, but the jar was clean.”</string>
+    <string name="push_s_v10_t">Ramesh is closing his day</string>
+    <string name="push_s_v10_b">₹1,240 cash and 11 empties to hand over. Count it with him at the counter.</string>
+    <string name="push_s_v11_t">Suresh pressed SOS</string>
+    <string name="push_s_v11_b">Road No. 10, Jubilee Hills. Boondh support is calling him now.</string>
+    <string name="push_s_v12_t">Mineral 1L case is sold out</string>
+    <string name="push_s_v12_b">Customers can\'t order it until you add stock.</string>
+    <string name="push_s_v13_t">7 jars are late coming back</string>
+    <string name="push_s_v13_b">Plan pickups for Rahul V., Neha J. and 5 more.</string>
+    <string name="push_s_v14_t">Payout sent · ₹28,756</string>
+    <string name="push_s_v14_b">To your SBI account ending 4410.</string>
+    <string name="push_s_v15_t">Payout still on hold</string>
+    <string name="push_s_v15_b">₹28,756 waits until your SBI account is checked. Usually 1 working day.</string>
+    <string name="push_s_v16_t">Shop is closed today</string>
+    <string name="push_s_v16_b">Customers see “back Wed 6 AM”. 12 subscription drops were skipped.</string>
+    <string name="push_s_v17_t">Licence renews in 30 days</string>
+    <string name="push_s_v17_b">Upload the new FSSAI licence before it runs out.</string>
+    <string name="push_s_a1_t">Claim on jar #1093 decided</string>
+    <string name="push_s_a1_b">Boondh approved ₹150 for the cracked jar.</string>
+    <string name="push_s_d1_t">New task · ₹42</string>
+    <string name="push_s_d1_b">Sri Balaji 0.4 km → Road No. 12, 2.1 km · 2 Plain jars + 1 Mineral case</string>
+    <string name="push_s_d2_t">Missed task · ₹42</string>
+    <string name="push_s_d2_b">It went to another driver after 45 s. No penalty.</string>
+    <string name="push_s_d3_t">Rajesh K. changed his note</string>
+    <string name="push_s_d3_b">“Ring once — I\'m upstairs. Cash ₹180 ready.”</string>
+    <string name="push_s_d4_t">Shop confirmed Shiva\'s hand-over</string>
+    <string name="push_s_d4_b">Venkatesh checked it with the customer. Task closed.</string>
+    <string name="push_s_d6_t">Break ends in 2 min</string>
+    <string name="push_s_d6_b">Break ends at 1:45 PM.</string>
+    <string name="push_s_d7_t">Hand over ₹1,240 before you go</string>
+    <string name="push_s_d7_b">14 drops today. Count it with Venkatesh at the counter, then close your day.</string>
+    <string name="push_s_d8_t">₹3,040 this week</string>
+    <string name="push_s_d8_b">73 drops so far.</string>
+    <string name="push_s_d9_t">Pure Drops wants you tomorrow 5 PM</string>
+    <string name="push_s_d9_b">Evening round in Ameerpet. Start duty from the app when you get there.</string>
+    <string name="push_s_d10_t">Help is coming</string>
+    <string name="push_s_d10_b">Your shop and Boondh support have your location.</string>
+    <string name="push_s_d11_t">Sri Balaji added you</string>
+    <string name="push_s_d11_b">You can start duty for them from tomorrow.</string>
+    <string name="push_s_d12_t">RC book photo is blurry</string>
+    <string name="push_s_d12_b">Take it again in daylight so every letter shows.</string>
+</resources>

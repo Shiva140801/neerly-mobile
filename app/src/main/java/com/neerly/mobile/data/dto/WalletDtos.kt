@@ -69,7 +69,9 @@ data class RegisterDeviceRequest(
     val fcmToken: String? = null,
     val apnsToken: String? = null,
     val appVersion: String? = null,
-    val osVersion: String? = null
+    val osVersion: String? = null,
+    /** CUSTOMER / VENDOR_OWNER / DRIVER — pushes go to devices in the matching role (plan §f5). */
+    val activeRole: String? = null
 )
 
 // ---- S3 presign ----
