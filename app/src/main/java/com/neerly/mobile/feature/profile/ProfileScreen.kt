@@ -45,6 +45,7 @@ fun ProfileScreen(
     onComplaints: () -> Unit = {},
     onReferEarn: () -> Unit = {},
     onLanguage: () -> Unit = {},
+    onLegal: () -> Unit = {},
     vm: ProfileViewModel = hiltViewModel()
 ) {
     val s by vm.state.collectAsState()
@@ -90,6 +91,8 @@ fun ProfileScreen(
                 HorizontalDivider(color = NeerlyColors.Ink200)
                 InfoRow(stringResource(R.string.acct_profile_help), stringResource(R.string.acct_profile_help_sub, cfg.clock(cfg.supportOpens), cfg.clock(cfg.supportCloses)), onClick = onHelp)
                 HorizontalDivider(color = NeerlyColors.Ink200)
+                InfoRow(stringResource(R.string.core_profile_legal), stringResource(R.string.core_profile_legal_sub), onClick = onLegal)
+                HorizontalDivider(color = NeerlyColors.Ink200)
                 InfoRow(stringResource(R.string.acct_profile_requests), stringResource(R.string.acct_profile_requests_sub), onClick = onComplaints)
                 HorizontalDivider(color = NeerlyColors.Ink200)
                 InfoRow(stringResource(R.string.acct_profile_event), stringResource(R.string.acct_profile_event_sub), onClick = onEventBooking)
@@ -111,6 +114,7 @@ fun ProfileScreen(
                 Text(stringResource(R.string.acct_profile_become_seller), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) }
         }
         if ("DRIVER" in s.grantedRoles) item { SecondaryButton(stringResource(R.string.acct_profile_to_driver), onDriverMode) }
+        item { com.neerly.mobile.push.PushLabEntry() }
         item { TextButton(onClick = { vm.logout(onLogout) }, modifier = Modifier.heightIn(min = 44.dp)) {
             Text(stringResource(R.string.acct_profile_logout), color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold) } }
     }

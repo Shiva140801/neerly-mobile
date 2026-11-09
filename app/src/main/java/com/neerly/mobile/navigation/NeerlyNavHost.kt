@@ -71,6 +71,11 @@ object Routes {
     const val RolePicker = "auth/role-picker"
     const val AdminTotp = "auth/admin-totp"
     const val RoleGate = "auth/enter/{role}?remember={remember}"
+    /** Terms / Privacy, plain words (doc = TERMS | PRIVACY). */
+    const val Legal = "legal/{doc}"
+    /** Location is off for Boondh — steps, Open settings, or type the address. */
+    const val LocationDenied = "location-denied"
+    fun legal(doc: com.neerly.mobile.feature.legal.LegalDoc): String = "legal/${doc.name}"
     fun roleGate(role: String, remember: Boolean = false) = "auth/enter/$role?remember=$remember"
     const val CustomerHome = "customer/home"
     const val CustomerSearch = "customer/search"
@@ -263,7 +268,27 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.Welcome) {
             WelcomeScreen(
                 onGetStarted = { nav.navigate(Routes.Phone + "?role=CUSTOMER") },
-                onVendorRegister = { nav.navigate(Routes.Phone + "?role=VENDOR") }
+                onVendorRegister = { nav.navigate(Routes.Phone + "?role=VENDOR") },
+                onTerms = { nav.navigate(Routes.legal(com.neerly.mobile.feature.legal.LegalDoc.Terms)) },
+                onPrivacy = { nav.navigate(Routes.legal(com.neerly.mobile.feature.legal.LegalDoc.Privacy)) }
+            )
+        }
+        composable(Routes.Legal) { entry ->
+            val doc = runCatching { com.neerly.mobile.feature.legal.LegalDoc.valueOf(entry.arguments?.getString("doc").orEmpty()) }
+                .getOrDefault(com.neerly.mobile.feature.legal.LegalDoc.Terms)
+            com.neerly.mobile.feature.legal.LegalScreen(initial = doc, onDone = { nav.popBackStack() })
+        }
+        composable(Routes.LocationDenied) {
+            // The screen that sent us here reads "location_choice" from its saved state:
+            // "granted" (try GPS again) or "typed" (show the typed-address form).
+            fun back(choice: String) {
+                nav.previousBackStackEntry?.savedStateHandle?.set("location_choice", choice)
+                nav.popBackStack()
+            }
+            com.neerly.mobile.feature.auth.LocationDeniedScreen(
+                onContinue = { back("granted") },
+                onTypeAddress = { back("typed") },
+                onBack = { nav.popBackStack() }
             )
         }
         composable(
@@ -284,7 +309,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                     isNew -> nav.navigate(Routes.Name)
                     else -> nav.navigate(entryRouteFor(tokenStore)) { popUpTo(Routes.Welcome) { inclusive = true } }
                 }
-            })
+            }, onEditNumber = { nav.popBackStack() })
         }
         composable(Routes.RolePicker) {
             com.neerly.mobile.feature.auth.RolePickerScreen(
@@ -611,7 +636,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onRefundSetting = { nav.navigate(Routes.RefundSetting) },
                 onHelp = { nav.navigate(Routes.help(null)) },
                 onReferEarn = { nav.navigate(Routes.ReferEarn) },
-                onLanguage = { nav.navigate(Routes.Language) }
+                onLanguage = { nav.navigate(Routes.Language) },
+                onLegal = { nav.navigate(Routes.legal(com.neerly.mobile.feature.legal.LegalDoc.Terms)) }
             )
         }
         // ---- Week 4-5 vendor app ----

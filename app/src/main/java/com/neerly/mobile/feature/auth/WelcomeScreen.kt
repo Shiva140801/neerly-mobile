@@ -12,7 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.neerly.mobile.core.design.AuthPageScaffold
@@ -25,7 +31,9 @@ import com.neerly.mobile.core.util.AppLocale
 @Composable
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
-    onVendorRegister: () -> Unit = {}
+    onVendorRegister: () -> Unit = {},
+    onTerms: () -> Unit = {},
+    onPrivacy: () -> Unit = {}
 ) {
     val context = LocalContext.current
     AuthPageScaffold {
@@ -53,7 +61,24 @@ fun WelcomeScreen(
         Spacer(Modifier.height(10.dp))
         SecondaryButton(stringResource(R.string.cust_welcome_sell), onVendorRegister)
         Spacer(Modifier.height(14.dp))
-        Text(stringResource(R.string.cust_welcome_terms), fontSize = 13.sp, color = NeerlyColors.Ink600,
-            modifier = Modifier.align(Alignment.CenterHorizontally))
+        AgreeLine(onTerms, onPrivacy, Modifier.align(Alignment.CenterHorizontally))
     }
+}
+
+/** "By continuing you agree to our Terms and Privacy Policy." — both words open their page. */
+@Composable
+private fun AgreeLine(onTerms: () -> Unit, onPrivacy: () -> Unit, modifier: Modifier = Modifier) {
+    val terms = stringResource(R.string.core_legal_link_terms)
+    val privacy = stringResource(R.string.core_legal_link_privacy)
+    val full = stringResource(R.string.core_welcome_agree, terms, privacy)
+    val link = SpanStyle(color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
+    val text = buildAnnotatedString {
+        append(full)
+        listOf(terms to onTerms, privacy to onPrivacy).forEach { (word, open) ->
+            val at = full.indexOf(word)
+            if (at >= 0) addLink(LinkAnnotation.Clickable(word, TextLinkStyles(link)) { open() }, at, at + word.length)
+        }
+    }
+    Text(text, fontSize = 13.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600, textAlign = TextAlign.Center,
+        modifier = modifier.heightIn(min = 48.dp))
 }

@@ -63,6 +63,8 @@ data class AppConfig(
     val deliveryFeeNear get() = decimal("delivery.fee_near", "25")
     val freeDeliveryAbove get() = decimal("delivery.free_above", "400")
     val minOrderValue get() = decimal("orders.min_order_value", "0")
+    /** Kept from a prepaid order cancelled after the driver left the shop (admin setting). */
+    val lateCancelFee get() = decimal("orders.late_cancel_fee", "25")
     val vendorAcceptWindowSec get() = int("orders.vendor_accept_window_sec", 180)
     val subscriptionCutoff get() = time("subscriptions.change_cutoff", "21:00")
     val depositForfeitDays get() = int("deposits.forfeit_after_days", 7)

@@ -65,7 +65,7 @@ fun SplashScreen(onDone: () -> Unit) {
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
-                stringResource(R.string.cust_splash_tagline),
+                stringResource(R.string.core_splash_tagline),
                 color = Color.White.copy(alpha = 0.85f),
                 fontSize = 15.sp,
                 modifier = Modifier.padding(top = 10.dp)
