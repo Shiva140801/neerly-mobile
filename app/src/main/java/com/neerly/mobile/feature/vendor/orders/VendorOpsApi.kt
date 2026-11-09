@@ -65,6 +65,9 @@ data class VendorOrderView(
     val codeLocked: Boolean = false,
     val codeLockedUntil: String? = null,
     val driverName: String? = null,
+    /** Full numbers for the call buttons — only once accepted and until the order is finished. */
+    val customerPhone: String? = null,
+    val driverPhone: String? = null,
     /** Status history, detail view only. */
     val timeline: List<VendorOrderStep> = emptyList()
 ) {

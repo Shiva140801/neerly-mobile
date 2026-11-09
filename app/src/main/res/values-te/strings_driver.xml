@@ -70,7 +70,7 @@
     <string name="drv_at_door">నేను తలుపు దగ్గర ఉన్నాను</string>
     <string name="drv_km_from_you">మీ నుండి సుమారు %1$s కి.మీ (సరళ రేఖ)</string>
     <string name="drv_location_to_see">ఎంత దూరమో చూడాలంటే లొకేషన్ ఆన్ చేయండి</string>
-    <string name="drv_customer_call">కస్టమర్ %1$s · Boondh ద్వారా కాల్ చేయడం ఇంకా లేదు — తలుపు దొరకకపోతే షాప్‌ను అడగండి.</string>
+    <string name="drv_customer_call">కస్టమర్ %1$s · తలుపు దొరకకపోతే వాళ్ళకి లేదా షాప్‌కు కాల్ చేయండి.</string>
     <string name="drv_ask_code_title">%1$s ను కోడ్ అడగండి</string>
     <string name="drv_step3">దశ 3/3 · అప్పగింత · కోడ్ లేకుండా జార్లు ఇవ్వకండి</string>
     <string name="drv_saving">సేవ్ అవుతోంది…</string>
@@ -116,7 +116,7 @@
     <string name="drv_try_these">వెళ్ళే ముందు ఇవి ప్రయత్నించండి</string>
     <string name="drv_waiting">వేచి ఉన్న సమయం</string>
     <string name="drv_calls_tried">చేసిన కాల్స్</string>
-    <string name="drv_calls_via_shop">Boondh ద్వారా కాల్ ఇంకా లేదు — షాప్ ద్వారా కాల్ చేయండి</string>
+    <string name="drv_calls_via_shop">కాల్ బటన్ నుండి చేసిన కాల్స్ ఆటోమేటిక్‌గా లెక్కలోకి వస్తాయి</string>
     <string name="drv_tried_calling">నేను కాల్ చేశాను</string>
     <string name="drv_what_happened">ఏం జరిగింది</string>
     <string name="drv_reason_not_home">ఇంట్లో ఎవరూ లేరు</string>
@@ -314,6 +314,8 @@
     <string name="drv_photo_prep_failed">ఫోటో పంపడానికి సిద్ధం కాలేదు (%1$d). మళ్ళీ ప్రయత్నించండి.</string>
     <string name="drv_photo_no_internet">ఇంటర్నెట్ లేదు — మళ్ళీ ప్రయత్నించినప్పుడు ఫోటో వెళ్తుంది.</string>
     <string name="drv_photo_not_uploaded">ఫోటో అప్‌లోడ్ కాలేదు. మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="drv_photo_too_big">ఫోటో చాలా పెద్దది, పంపలేం. మళ్లీ తీయండి.</string>
+    <string name="drv_photo_wrong_type">ఈ ఫైల్ ఫోటో కాదు. కెమెరాతో మళ్లీ తీయండి.</string>
     <plurals name="drv_drops_n">
         <item quantity="one">%d డ్రాప్</item>
         <item quantity="other">%d డ్రాప్‌లు</item>
@@ -362,4 +364,6 @@
         <item quantity="one">ఈ రోజు %d డ్రాప్ · Boondh లెక్కించింది</item>
         <item quantity="other">ఈ రోజు %d డ్రాప్‌లు · Boondh లెక్కించింది</item>
     </plurals>
+    <string name="drv_call_customer">కస్టమర్‌కు కాల్</string>
+    <string name="drv_call_shop_btn">షాప్‌కు కాల్</string>
 </resources>

@@ -245,7 +245,7 @@ fun DriverDocumentsScreen(onBack: () -> Unit, vm: DriverDocumentsViewModel = hil
     var pendingType by remember { mutableStateOf<String?>(null) }
     var pendingFile by remember { mutableStateOf<java.io.File?>(null) }
     var numbers by remember { mutableStateOf(mapOf<String, String>()) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+    val camera = rememberCameraCapture { ok ->
         val t = pendingType; val f = pendingFile
         if (ok && t != null && f != null) vm.upload(t, f, numbers[t], null)
     }
@@ -270,7 +270,7 @@ fun DriverDocumentsScreen(onBack: () -> Unit, vm: DriverDocumentsViewModel = hil
                         shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
                     SecondaryButton(when { s.uploading == d.type -> stringResource(R.string.drv_sending); d.status == "MISSING" -> stringResource(R.string.drv_take_a_photo); else -> stringResource(R.string.drv_send_new_photo) }, {
                         val f = vm.newPhotoFile(); pendingType = d.type; pendingFile = f
-                        runCatching { camera.launch(photoUri(context, f)) }
+                        camera(f)
                     }, enabled = s.uploading == null, modifier = BIG)
                 }
             }
@@ -340,7 +340,7 @@ fun DriverPickupsScreen(onBack: () -> Unit, vm: DriverPickupsViewModel = hiltVie
     val s by vm.state.collectAsState()
     val context = LocalContext.current
     var pending by remember { mutableStateOf<Pair<String, java.io.File>?>(null) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+    val camera = rememberCameraCapture { ok ->
         pending?.let { (id, f) -> vm.photoTaken(id, f, ok) }
     }
     OnReturn(vm::load)
@@ -371,7 +371,7 @@ fun DriverPickupsScreen(onBack: () -> Unit, vm: DriverPickupsViewModel = hiltVie
                 else {
                     SecondaryButton(if (s.photoFor == p.id) stringResource(R.string.drv_photo_saved_again) else stringResource(R.string.drv_photo_of_jars), {
                         val f = vm.newPhotoFile(); pending = p.id to f
-                        runCatching { camera.launch(photoUri(context, f)) }
+                        camera(f)
                     }, enabled = s.working == null, modifier = BIG)
                     OutlinedTextField(value = note, onValueChange = { note = it.take(300) }, label = { Text(stringResource(R.string.drv_jar_condition)) },
                         shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())

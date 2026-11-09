@@ -40,4 +40,5 @@
     <string name="core_err_offline">Can\'t reach Boondh right now. Check your connection and try again.</string>
     <string name="core_err_session">Your session expired. Please sign in again.</string>
     <string name="core_err_server">Boondh is having trouble right now. Please try again in a moment.</string>
+    <string name="core_call">Call</string>
 </resources>

@@ -53,7 +53,7 @@ fun CartScreen(
             short?.let { com.neerly.mobile.core.design.Notice(stringResource(R.string.cust_cart_below_min, it.asRupees(), cart.vendorName ?: stringResource(R.string.cust_this_shop), cfg.minOrderValue.asRupees()), com.neerly.mobile.core.design.Tone.Warn) }
             if (promo.quoting) SkeletonBlock(height = 22.dp, width = 110.dp)
             com.neerly.mobile.core.design.PrimaryButton(
-                if (short != null) stringResource(R.string.cust_cart_add_more) else stringResource(R.string.cust_cart_continue_pay, cart.total.asRupees()),
+                if (short != null) stringResource(R.string.cust_cart_add_more) else stringResource(R.string.cust_cart_continue_checkout),
                 onCheckout, enabled = !cart.isEmpty && short == null && !promo.quoting)
         })
     ) {
@@ -151,19 +151,35 @@ private fun PricingBreakdown(cart: Cart) {
     ) {
         Column(Modifier.padding(NeerlySpacing.x4)) {
             PricingRow(stringResource(R.string.cust_subtotal), cart.subtotal)
-            if (cart.deliveryFee > BigDecimal.ZERO) PricingRow(stringResource(R.string.cust_delivery), cart.deliveryFee)
+            // The fee depends on the address, which is picked at checkout — say so rather
+            // than show a total the customer won't actually pay.
+            val cfg = com.neerly.mobile.data.config.LocalAppConfig.current
+            val feeKnown = cart.deliveryFee > BigDecimal.ZERO
+            val freeDelivery = !feeKnown && cart.subtotal >= cfg.freeDeliveryAbove
+            if (feeKnown) PricingRow(stringResource(R.string.cust_delivery), cart.deliveryFee)
+            else PricingNote(stringResource(R.string.cust_delivery),
+                if (freeDelivery) stringResource(R.string.cust_cart_delivery_free)
+                else stringResource(R.string.cust_cart_delivery_from, cfg.deliveryFeeNear.asRupees()))
             if (cart.surge > BigDecimal.ZERO) PricingRow(stringResource(R.string.cust_surge), cart.surge, surge = true)
             if (cart.deposit > BigDecimal.ZERO) PricingRow(stringResource(R.string.cust_deposit), cart.deposit, sub = stringResource(R.string.cust_refundable))
             if (cart.discount > BigDecimal.ZERO) PricingRow(cart.promoCode?.let { stringResource(R.string.cust_promo_code_line, it) } ?: stringResource(R.string.cust_promo),
                 cart.discount.negate())
             HorizontalDivider(Modifier.padding(vertical = 8.dp), color = NeerlyColors.Ink100)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.cust_total), Modifier.weight(1f),
+                Text(if (feeKnown || freeDelivery) stringResource(R.string.cust_total) else stringResource(R.string.cust_cart_total_before_delivery), Modifier.weight(1f),
                     fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
                 Text(cart.total.asRupees(),
                     fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
             }
         }
+    }
+}
+
+@Composable
+private fun PricingNote(label: String, note: String) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, Modifier.weight(1f), fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Text(note, fontSize = 14.sp, color = NeerlyColors.Ink600)
     }
 }
 

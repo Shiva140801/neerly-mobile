@@ -1031,4 +1031,8 @@
         <item quantity="one">ట్రిప్ డబ్బు · పికప్ తర్వాత %1$d రద్దు</item>
         <item quantity="other">ట్రిప్ డబ్బు · పికప్ తర్వాత %1$d రద్దు</item>
     </plurals>
+    <string name="vend_call_customer">కస్టమర్‌కు కాల్</string>
+    <string name="vend_call_driver">డ్రైవర్‌కు కాల్</string>
+    <string name="vend_withdrawn_title">కస్టమర్ రద్దు చేశారు</string>
+    <string name="vend_withdrawn_sub">%1$s %2$s ని రద్దు చేశారు. మీరు ఏమీ చేయనక్కర్లేదు — ఇది మిస్ అయిన ఆర్డర్‌గా లెక్కించబడదు.</string>
 </resources>

@@ -70,7 +70,7 @@
     <string name="drv_at_door">मैं दरवाज़े पर हूँ</string>
     <string name="drv_km_from_you">आपसे लगभग %1$s किमी (सीधी दूरी)</string>
     <string name="drv_location_to_see">दूरी देखने के लिए लोकेशन चालू करें</string>
-    <string name="drv_customer_call">ग्राहक %1$s · Boondh से कॉल अभी उपलब्ध नहीं — दरवाज़ा न मिले तो दुकान से पूछें।</string>
+    <string name="drv_customer_call">ग्राहक %1$s · दरवाज़ा न मिले तो उन्हें या दुकान को कॉल करें।</string>
     <string name="drv_ask_code_title">%1$s से कोड पूछें</string>
     <string name="drv_step3">चरण 3/3 · सौंपना · कोड के बिना जार न दें</string>
     <string name="drv_saving">सेव हो रहा है…</string>
@@ -116,7 +116,7 @@
     <string name="drv_try_these">जाने से पहले ये करें</string>
     <string name="drv_waiting">इंतज़ार</string>
     <string name="drv_calls_tried">की गई कॉल</string>
-    <string name="drv_calls_via_shop">Boondh से कॉल अभी नहीं — दुकान के ज़रिए कॉल करें</string>
+    <string name="drv_calls_via_shop">कॉल बटन से की गई कॉल अपने आप गिनी जाती हैं</string>
     <string name="drv_tried_calling">मैंने कॉल किया</string>
     <string name="drv_what_happened">क्या हुआ</string>
     <string name="drv_reason_not_home">घर पर कोई नहीं</string>
@@ -314,6 +314,8 @@
     <string name="drv_photo_prep_failed">फ़ोटो भेजने के लिए तैयार नहीं हो सकी (%1$d)। फिर कोशिश करें।</string>
     <string name="drv_photo_no_internet">इंटरनेट नहीं — दोबारा कोशिश करने पर फ़ोटो जाएगी।</string>
     <string name="drv_photo_not_uploaded">फ़ोटो अपलोड नहीं हुई। फिर कोशिश करें।</string>
+    <string name="drv_photo_too_big">फ़ोटो बहुत बड़ी है, भेजी नहीं जा सकती। दोबारा लें।</string>
+    <string name="drv_photo_wrong_type">यह फ़ोटो नहीं है। कैमरे से दोबारा लें।</string>
     <plurals name="drv_drops_n">
         <item quantity="one">%d ड्रॉप</item>
         <item quantity="other">%d ड्रॉप</item>
@@ -362,4 +364,6 @@
         <item quantity="one">आज %d ड्रॉप · Boondh ने गिना</item>
         <item quantity="other">आज %d ड्रॉप · Boondh ने गिना</item>
     </plurals>
+    <string name="drv_call_customer">ग्राहक को कॉल</string>
+    <string name="drv_call_shop_btn">दुकान को कॉल</string>
 </resources>

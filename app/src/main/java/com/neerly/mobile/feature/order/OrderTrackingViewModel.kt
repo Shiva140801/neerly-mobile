@@ -111,9 +111,10 @@ class OrderTrackingViewModel @Inject constructor(
 
     private suspend fun fetchOnce() {
         val order = repo.order(orderId)
-        // The tracking payload only carries a fix while in flight; a failure here
-        // must not take down the whole screen, so it degrades to timeline-only.
-        val tracking = if (order.status in IN_FLIGHT) {
+        // Fetched for every open order: before dispatch it carries the shop's phone
+        // (the driver fix arrives once in flight). A failure here must not take down
+        // the whole screen, so it degrades to timeline-only.
+        val tracking = if (order.status !in TERMINAL) {
             runCatching { repo.orderTracking(orderId) }.getOrNull()
         } else null
         updateFrom(order, tracking)

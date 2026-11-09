@@ -98,7 +98,8 @@ fun CheckoutScreen(
                 vm.placeAndPay(activity) { order -> onOrderPlaced(order) }
             }, enabled = !state.placing && !state.paying && total != null && state.selectedAddress != null &&
                 !snapshot.isEmpty && !(state.paymentMethod == "WALLET" && walletShort))
-            Text(stringResource(R.string.cust_co_secured), fontSize = 12.sp, color = NeerlyColors.Ink600,
+            // Razorpay only handles UPI/card; on cash or wallet the line would be untrue.
+            if (state.paymentMethod in setOf("UPI", "CARD")) Text(stringResource(R.string.cust_co_secured), fontSize = 12.sp, color = NeerlyColors.Ink600,
                 modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     ) {

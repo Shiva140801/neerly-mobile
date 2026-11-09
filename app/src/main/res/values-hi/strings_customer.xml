@@ -476,4 +476,10 @@
         <item quantity="one">%1$d सप्लायर</item>
         <item quantity="other">%1$d सप्लायर</item>
     </plurals>
+    <string name="cust_call_driver">ड्राइवर को कॉल</string>
+    <string name="cust_call_shop">दुकान को कॉल</string>
+    <string name="cust_cart_total_before_delivery">डिलीवरी से पहले कुल</string>
+    <string name="cust_cart_delivery_from">%1$s से · चेकआउट पर जुड़ेगा</string>
+    <string name="cust_cart_delivery_free">मुफ़्त</string>
+    <string name="cust_cart_continue_checkout">चेकआउट पर जाएँ</string>
 </resources>

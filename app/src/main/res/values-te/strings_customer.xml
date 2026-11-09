@@ -476,4 +476,10 @@
         <item quantity="one">%1$d సరఫరాదారు</item>
         <item quantity="other">%1$d సరఫరాదారులు</item>
     </plurals>
+    <string name="cust_call_driver">డ్రైవర్‌కు కాల్</string>
+    <string name="cust_call_shop">షాప్‌కు కాల్</string>
+    <string name="cust_cart_total_before_delivery">డెలివరీ ముందు మొత్తం</string>
+    <string name="cust_cart_delivery_from">%1$s నుండి · చెక్అవుట్‌లో కలుపుతారు</string>
+    <string name="cust_cart_delivery_free">ఉచితం</string>
+    <string name="cust_cart_continue_checkout">చెక్అవుట్‌కు కొనసాగండి</string>
 </resources>

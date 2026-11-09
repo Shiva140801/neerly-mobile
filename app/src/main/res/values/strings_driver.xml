@@ -70,7 +70,7 @@
     <string name="drv_at_door">I\'m at the door</string>
     <string name="drv_km_from_you">About %1$s km from you (straight line)</string>
     <string name="drv_location_to_see">Turn on location to see how far</string>
-    <string name="drv_customer_call">Customer %1$s · calling through Boondh isn\'t available yet — use the shop if you can\'t find the door.</string>
+    <string name="drv_customer_call">Customer %1$s · can\'t find the door? Call them or the shop.</string>
     <string name="drv_ask_code_title">Ask %1$s for the code</string>
     <string name="drv_step3">STEP 3 OF 3 · HAND OVER · don\'t hand over jars without it</string>
     <string name="drv_saving">Saving…</string>
@@ -116,7 +116,7 @@
     <string name="drv_try_these">Try these before you leave</string>
     <string name="drv_waiting">Waiting</string>
     <string name="drv_calls_tried">Calls tried</string>
-    <string name="drv_calls_via_shop">Calling through Boondh isn\'t available yet — call via the shop</string>
+    <string name="drv_calls_via_shop">Calls from the Call button count on their own</string>
     <string name="drv_tried_calling">I tried calling</string>
     <string name="drv_what_happened">What happened</string>
     <string name="drv_reason_not_home">No one home</string>
@@ -314,6 +314,8 @@
     <string name="drv_photo_prep_failed">Couldn\'t get the photo ready to send (%1$d). Try again.</string>
     <string name="drv_photo_no_internet">No internet — the photo will send when you try again.</string>
     <string name="drv_photo_not_uploaded">The photo didn\'t upload. Try again.</string>
+    <string name="drv_photo_too_big">The photo is too big to send. Take it again.</string>
+    <string name="drv_photo_wrong_type">That isn\'t a photo Boondh can take. Take it again with the camera.</string>
     <plurals name="drv_drops_n">
         <item quantity="one">%d drop</item>
         <item quantity="other">%d drops</item>
@@ -371,4 +373,6 @@
     <string name="drv_upi_ph" translatable="false">name@bank</string>
     <string name="drv_plate_ph" translatable="false">TS 09 AB 1234</string>
     <string name="drv_model_ph" translatable="false">Bajaj Maxima Cargo</string>
+    <string name="drv_call_customer">Call customer</string>
+    <string name="drv_call_shop_btn">Call shop</string>
 </resources>

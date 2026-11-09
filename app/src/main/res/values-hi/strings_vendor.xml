@@ -1031,4 +1031,8 @@
         <item quantity="one">ट्रिप भुगतान · पिकअप के बाद %1$d रद्द</item>
         <item quantity="other">ट्रिप भुगतान · पिकअप के बाद %1$d रद्द</item>
     </plurals>
+    <string name="vend_call_customer">ग्राहक को कॉल</string>
+    <string name="vend_call_driver">ड्राइवर को कॉल</string>
+    <string name="vend_withdrawn_title">ग्राहक ने रद्द किया</string>
+    <string name="vend_withdrawn_sub">%1$s ने %2$s रद्द कर दिया। आपको कुछ नहीं करना — इसे छूटा हुआ ऑर्डर नहीं गिना जाएगा।</string>
 </resources>

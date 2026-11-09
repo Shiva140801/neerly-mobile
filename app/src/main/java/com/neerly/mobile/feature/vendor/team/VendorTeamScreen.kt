@@ -67,6 +67,7 @@ private fun Drivers(s: VendorTeamUiState, onBack: () -> Unit, vm: VendorTeamView
                         else -> Pill(stringResource(R.string.vend_off), Tone.Neutral)
                     }
                 }
+                CallButton(d.phone, color = NeerlyColors.VendorPrimary)
                 InfoRow(pluralStringResource(R.plurals.vend_drops_today_n2, d.dropsToday, d.dropsToday),
                     trailing = if (d.cashHeld.signum() > 0) stringResource(R.string.vend_holding_cash, d.cashHeld.rupees()) else null)
                 if (cash != null && (cash.drops > 0 || cash.confirmation != null)) {

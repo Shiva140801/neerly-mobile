@@ -595,4 +595,13 @@ interface NeerlyApi {
 
     @POST("api/v1/uploads/presign")
     suspend fun presign(@Body body: PresignRequest): PresignResponse
+
+    /** Photo straight to Boondh (kept in its database until S3 is switched on). */
+    @retrofit2.http.Multipart
+    @POST("api/v1/media")
+    suspend fun uploadMedia(
+        @retrofit2.http.Part file: okhttp3.MultipartBody.Part,
+        @retrofit2.http.Part("purpose") purpose: okhttp3.RequestBody,
+        @retrofit2.http.Part("kind") kind: okhttp3.RequestBody
+    ): com.neerly.mobile.data.dto.MediaUploadResponse
 }

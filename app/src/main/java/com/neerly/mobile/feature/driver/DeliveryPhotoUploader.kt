@@ -73,7 +73,8 @@ class S3PhotoUploader @Inject constructor(
 @dagger.Module
 @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
 abstract class PhotoUploaderModule {
-    @dagger.Binds abstract fun bind(impl: S3PhotoUploader): PhotoUploader
+    // Photos go to Boondh's own database for now; S3PhotoUploader comes back when S3 is set up.
+    @dagger.Binds abstract fun bind(impl: DbPhotoUploader): PhotoUploader
 }
 
 /** content:// Uri for the camera to write into (FileProvider authority `<app>.photos`). */

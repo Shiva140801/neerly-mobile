@@ -123,15 +123,25 @@ class TokenStore @Inject constructor(
     }
 
     /**
-     * Cached deviceId — persisted across re-installs within the same
-     * EncryptedSharedPreferences file because it's tied to the Android keystore.
-     * We treat it as a pseudo-hardware id for refresh-token rotation.
+     * Cached deviceId, used for refresh-token rotation and by the backend's same-phone
+     * rule (a customer's order can't be taken or delivered from the customer's phone).
+     *
+     * New installs derive it from ANDROID_ID — stable for this app on this phone across
+     * clearing data and reinstalling — hashed so the raw id never leaves the phone. An
+     * install that already has an id keeps it, so signed-in sessions stay valid.
      */
     fun deviceId(): String {
         prefs.getString(KEY_DEVICE_ID, null)?.let { return it }
-        val id = "mobile-" + java.util.UUID.randomUUID().toString().take(12)
+        val id = stableDeviceId() ?: ("mobile-" + java.util.UUID.randomUUID().toString().take(12))
         prefs.edit().putString(KEY_DEVICE_ID, id).apply()
         return id
+    }
+
+    private fun stableDeviceId(): String? = runCatching {
+        android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID)
+    }.getOrNull()?.takeIf { it.isNotBlank() }?.let { raw ->
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(("neerly:" + raw).toByteArray())
+        "android-" + digest.take(10).joinToString("") { "%02x".format(it) }
     }
 
     private companion object {

@@ -70,7 +70,10 @@ data class DriverAssignment(
     val shopName: String? = null,
     val pickupAddress: String? = null,
     val pickupLat: Double? = null,
-    val pickupLng: Double? = null
+    val pickupLng: Double? = null,
+    // Full numbers for the call buttons — the backend fills them only while the drop is live.
+    val customerPhone: String? = null,
+    val shopPhone: String? = null
 )
 
 /** Mirrors backend `DriverOfferResponse` — a run offered to this driver with a countdown. */

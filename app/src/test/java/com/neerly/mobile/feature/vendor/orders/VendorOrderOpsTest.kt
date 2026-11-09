@@ -10,6 +10,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -49,6 +51,29 @@ class VendorOrderOpsTest {
         assertEquals(30L, secondsLeft("2026-11-07T09:03:00Z", now))
         assertEquals(0L, secondsLeft("2026-11-07T09:03:00Z", now.plusSeconds(120)))
         assertEquals("2:41", mmss(161))
+    }
+
+    @Test fun newOrder_customerCancelsWhileRinging_showsWithdrawnNotTimedOut() = runTest(dispatcher) {
+        coEvery { ops.order("o1") } returnsMany listOf(o("VENDOR_ASSIGNED"), o("CANCELLED"))
+        coEvery { ops.dashboard() } throws RuntimeException("offline")
+        val vm = VendorNewOrderViewModel(ops, repo, prefs, SavedStateHandle(mapOf("orderId" to "o1")), com.neerly.mobile.support.TestStrings)
+        advanceUntilIdle()
+        assertEquals(OfferStage.Offer, vm.state.value.stage)
+        val watch = launch { vm.watchWhileRinging() }
+        advanceTimeBy(VendorNewOrderViewModel.RECHECK_MS + 1)
+        advanceUntilIdle()
+        assertEquals(OfferStage.Withdrawn, vm.state.value.stage)
+        watch.cancel()
+    }
+
+    @Test fun newOrder_cancelledFoundAfterClockRanOut_isWithdrawn() = runTest(dispatcher) {
+        coEvery { ops.order("o1") } returnsMany listOf(o("VENDOR_ASSIGNED"), o("CANCELLED"))
+        coEvery { ops.dashboard() } throws RuntimeException("offline")
+        val vm = VendorNewOrderViewModel(ops, repo, prefs, SavedStateHandle(mapOf("orderId" to "o1")), com.neerly.mobile.support.TestStrings)
+        advanceUntilIdle()
+        vm.expired()
+        advanceUntilIdle()
+        assertEquals(OfferStage.Withdrawn, vm.state.value.stage)
     }
 
     @Test fun newOrder_declineNeedsAReason_andSendsTheLabel() = runTest(dispatcher) {

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -56,8 +57,13 @@ fun OrderLiveMap(tracking: OrderTrackingResponse, modifier: Modifier = Modifier)
     val points = listOfNotNull(driver, drop, pickup)
     if (points.isEmpty()) return
 
-    val cameraPositionState = rememberCameraPositionState()
+    // Open on the pins at street level — the map's default is the whole world, and a
+    // bounds fit can only run once the map has a size (see onMapLoaded below).
+    val cameraPositionState = rememberCameraPositionState {
+        position = com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(points.first(), 15f)
+    }
     var framed by remember { mutableLongStateOf(0L) }
+    var mapLoaded by remember { mutableStateOf(false) }
     var lastFollowAt by remember { mutableLongStateOf(0L) }
     var pannedAt by remember { mutableLongStateOf(0L) }
 
@@ -67,19 +73,21 @@ fun OrderLiveMap(tracking: OrderTrackingResponse, modifier: Modifier = Modifier)
             .collect { if (it == CameraMoveStartedReason.GESTURE) pannedAt = System.currentTimeMillis() }
     }
 
-    // Frame once when the pin set first becomes known — an initial camera position
-    // computed before data arrives would open the map on 0,0 in the Gulf of Guinea.
-    LaunchedEffect(points.size) {
-        if (framed != 0L) return@LaunchedEffect
-        framed = System.currentTimeMillis()
-        runCatching {
+    // Frame all pins once, after the map has laid out — newLatLngBounds on a map with no
+    // size throws, so trying before onMapLoaded left the map stuck on the whole world.
+    LaunchedEffect(points.size, mapLoaded) {
+        if (!mapLoaded || framed != 0L) return@LaunchedEffect
+        val ok = runCatching {
             if (points.size == 1) {
                 cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(points.first(), 15f))
             } else {
                 val bounds = LatLngBounds.builder().apply { points.forEach(::include) }.build()
                 cameraPositionState.move(CameraUpdateFactory.newLatLngBounds(bounds, 90))
+                // Pins a few hundred metres apart would zoom in to rooftops; cap it.
+                if (cameraPositionState.position.zoom > 16.5f) cameraPositionState.move(CameraUpdateFactory.zoomTo(16.5f))
             }
-        }
+        }.isSuccess
+        if (ok) framed = System.currentTimeMillis()
     }
 
     LaunchedEffect(driver?.latitude, driver?.longitude) {
@@ -100,6 +108,7 @@ fun OrderLiveMap(tracking: OrderTrackingResponse, modifier: Modifier = Modifier)
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
+            onMapLoaded = { mapLoaded = true },
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 mapToolbarEnabled = false,

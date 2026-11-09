@@ -99,6 +99,9 @@ data class OrderTrackingResponse(
     val deliverBy: String,
     val driverName: String? = null,
     val driverPhoneMask: String? = null,
+    // Full numbers for the call buttons — null outside the window the backend allows.
+    val driverPhone: String? = null,
+    val shopPhone: String? = null,
     val vehicle: String? = null,
     val deliveredAt: String? = null,
     val driverLat: Double? = null,

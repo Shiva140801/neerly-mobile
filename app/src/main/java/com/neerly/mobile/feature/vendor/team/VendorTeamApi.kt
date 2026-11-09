@@ -21,6 +21,8 @@ data class TeamDriver(
     val driverId: String,
     val name: String? = null,
     val phoneMasked: String? = null,
+    /** Full number for the call button — only for drivers who have joined. */
+    val phone: String? = null,
     val notes: String? = null,
     val liveStatus: String = "OFF",
     val dropsToday: Int = 0,

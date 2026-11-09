@@ -50,6 +50,10 @@ fun VendorOrderDetailScreen(onBack: () -> Unit, vm: VendorOrderDetailViewModel =
                 Text(listOfNotNull(o.deliveryAddress.ifBlank { null }, km)
                     .joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink600)
                 if (o.customerPhoneMask.isNotBlank()) Text(o.customerPhoneMask, fontSize = 13.sp, color = NeerlyColors.Ink600)
+                if (o.customerPhone != null || o.driverPhone != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CallButton(o.customerPhone, stringResource(R.string.vend_call_customer), color = NeerlyColors.VendorPrimary)
+                    CallButton(o.driverPhone, stringResource(R.string.vend_call_driver), color = NeerlyColors.VendorPrimary)
+                }
                 o.notes?.let { Text(stringResource(R.string.vend_note, it), fontSize = 14.sp, color = NeerlyColors.Ink700) }
             }
         }

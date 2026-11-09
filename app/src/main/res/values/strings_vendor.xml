@@ -1031,4 +1031,8 @@
         <item quantity="one">Trip pay · %1$d cancelled after pickup</item>
         <item quantity="other">Trip pay · %1$d cancelled after pickup</item>
     </plurals>
+    <string name="vend_call_customer">Call customer</string>
+    <string name="vend_call_driver">Call driver</string>
+    <string name="vend_withdrawn_title">Customer cancelled</string>
+    <string name="vend_withdrawn_sub">%1$s cancelled %2$s. Nothing to do — this doesn\'t count as a missed order.</string>
 </resources>

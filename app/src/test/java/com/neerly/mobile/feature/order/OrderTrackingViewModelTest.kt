@@ -125,8 +125,17 @@ class OrderTrackingViewModelTest {
     }
 
     @Test
-    fun notInFlight_neverCallsTracking() = runTest(dispatcher) {
+    fun beforeDispatch_stillFetchesTracking_forTheShopPhone() = runTest(dispatcher) {
         coEvery { repo.order("o1") } returns order("PREPARING")
+        vm()
+        runCurrent()
+        coVerify(exactly = 1) { repo.orderTracking("o1") }
+        endPolling()
+    }
+
+    @Test
+    fun finishedOrder_neverCallsTracking() = runTest(dispatcher) {
+        coEvery { repo.order("o1") } returns order("DELIVERED")
         val t = vm()
         runCurrent()
         coVerify(exactly = 0) { repo.orderTracking(any()) }

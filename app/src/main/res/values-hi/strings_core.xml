@@ -40,4 +40,5 @@
     <string name="core_err_offline">अभी Boondh से जुड़ नहीं पा रहे। इंटरनेट जाँचें और फिर से कोशिश करें।</string>
     <string name="core_err_session">आपका सेशन ख़त्म हो गया। कृपया फिर से साइन इन करें।</string>
     <string name="core_err_server">Boondh में अभी दिक़्क़त है। थोड़ी देर में फिर से कोशिश करें।</string>
+    <string name="core_call">कॉल</string>
 </resources>

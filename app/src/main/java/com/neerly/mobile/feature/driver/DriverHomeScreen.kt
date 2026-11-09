@@ -324,6 +324,7 @@ private fun PickupScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driver
                 enabled = ready && ticked.size == lines.size && !s.working, modifier = BIG)
         }) {
         item { Text(stringResource(R.string.drv_tick_each), fontSize = 15.sp, color = NeerlyColors.Ink600) }
+        job.shopPhone?.let { item { CallButton(it, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark) } }
         s.error?.let { item { Notice(it, Tone.Bad) } }
         lines.forEachIndexed { i, (title, sub) -> item(key = i) {
             val on = i in ticked
@@ -370,6 +371,12 @@ private fun RideScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHo
         job.notes?.let { item { Notice(stringResource(R.string.drv_quote, it), Tone.Info) } }
         item { Text(stringResource(R.string.drv_customer_call, job.customerPhoneMask),
             fontSize = 13.sp, color = NeerlyColors.Ink600) }
+        if (job.customerPhone != null || job.shopPhone != null) item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CallButton(job.customerPhone, stringResource(R.string.drv_call_customer), color = NeerlyColors.CustomerDark)
+                CallButton(job.shopPhone, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark)
+            }
+        }
         item { SosHoldButton(onSos) }
     }
 }
@@ -385,7 +392,7 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
     val isCash = job.paymentMethod == "COD"
     var settlement by remember(job.orderId) { mutableStateOf("CASH") }
     var pending by remember { mutableStateOf<java.io.File?>(null) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+    val camera = rememberCameraCapture { ok ->
         pending?.let { vm.photoTaken(it, ok) }
     }
     val due = job.codAmount ?: BigDecimal.ZERO
@@ -446,7 +453,7 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
                 }
                 SecondaryButton(if (s.photo is DoorPhoto.Ready) stringResource(R.string.drv_take_again) else stringResource(R.string.drv_take_photo), {
                     val f = vm.newPhotoFile(); pending = f
-                    runCatching { camera.launch(photoUri(context, f)) }
+                    camera(f)
                 }, enabled = s.photo !is DoorPhoto.Uploading, modifier = BIG)
             }
         }
@@ -506,6 +513,7 @@ private fun CodeLockedScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Dr
             SectionLabel(stringResource(R.string.drv_ask_shop))
             Text(stringResource(R.string.drv_call_shop, job.shopName ?: stringResource(R.string.drv_your_shop_lower)),
                 fontSize = 15.sp, color = NeerlyColors.Ink900)
+            CallButton(job.shopPhone, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark)
         } }
     }
 }
@@ -529,7 +537,11 @@ private fun NotHomeScreen(job: DriverAssignment, n: NotHome, vm: DriverHomeViewM
         item { BoondhCard {
             SectionLabel(stringResource(R.string.drv_try_these))
             InfoRow(stringResource(R.string.drv_waiting), trailing = "%d:%02d".format(waited / 60, waited % 60))
-            InfoRow(stringResource(R.string.drv_calls_tried), stringResource(R.string.drv_calls_via_shop), "${n.calls}")
+            InfoRow(stringResource(R.string.drv_calls_tried), job.customerPhone?.let { stringResource(R.string.drv_calls_via_shop) }, "${n.calls}")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CallButton(job.customerPhone, stringResource(R.string.drv_call_customer), color = NeerlyColors.CustomerDark, onDialed = vm::recordCall)
+                CallButton(job.shopPhone, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark)
+            }
             SecondaryButton(stringResource(R.string.drv_tried_calling), vm::recordCall, modifier = BIG)
         } }
         item { SectionLabel(stringResource(R.string.drv_what_happened)) }

@@ -347,7 +347,7 @@ class DriverHomeViewModel @Inject constructor(
 
     fun closeNotHome() { _state.value = _state.value.copy(notHome = null) }
 
-    /** The driver tried calling (through the shop — Boondh has no masked calling yet). */
+    /** One call attempt: the Call button on the not-home screen, or the driver saying they rang another way. */
     fun recordCall() {
         val n = _state.value.notHome ?: return
         _state.value = _state.value.copy(notHome = n.copy(calls = n.calls + 1, problem = null))

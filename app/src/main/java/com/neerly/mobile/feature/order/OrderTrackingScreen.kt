@@ -74,6 +74,12 @@ fun OrderTrackingScreen(
                     com.neerly.mobile.core.design.InfoRow(t.driverName!!, listOfNotNull(t.vehicle, t.driverPhoneMask).joinToString(" · "))
                 }
             }
+            if (t != null && (t.driverPhone != null || t.shopPhone != null)) item {
+                androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    com.neerly.mobile.core.design.CallButton(t.driverPhone, stringResource(R.string.cust_call_driver))
+                    com.neerly.mobile.core.design.CallButton(t.shopPhone, stringResource(R.string.cust_call_shop))
+                }
+            }
             when (order.status) {
                 "DELIVERED" -> item {
                     if (state.reviewed) Text(stringResource(R.string.cust_tr_rated), fontSize = 14.sp, color = NeerlyColors.Ink600)

@@ -40,4 +40,5 @@
     <string name="core_err_offline">ఇప్పుడు Boondh కి కనెక్ట్ కాలేకపోతున్నాం. ఇంటర్నెట్ చూసి మళ్ళీ ప్రయత్నించండి.</string>
     <string name="core_err_session">మీ సెషన్ ముగిసింది. దయచేసి మళ్ళీ సైన్ ఇన్ చేయండి.</string>
     <string name="core_err_server">Boondh లో ఇప్పుడు చిన్న సమస్య ఉంది. కాసేపట్లో మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="core_call">కాల్</string>
 </resources>

@@ -476,4 +476,10 @@
         <item quantity="one">%1$d supplier</item>
         <item quantity="other">%1$d suppliers</item>
     </plurals>
+    <string name="cust_call_driver">Call driver</string>
+    <string name="cust_call_shop">Call shop</string>
+    <string name="cust_cart_total_before_delivery">Total before delivery</string>
+    <string name="cust_cart_delivery_from">From %1$s · added at checkout</string>
+    <string name="cust_cart_delivery_free">Free</string>
+    <string name="cust_cart_continue_checkout">Continue to checkout</string>
 </resources>

@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class OfferStage { Offer, Declining, Accepted, Declined, TimedOut }
+enum class OfferStage { Offer, Declining, Accepted, Declined, TimedOut, Withdrawn }
 
 /** Board V19 reasons — what the shop picks is what the server gets as the reject reason. */
 enum class DeclineReason(@androidx.annotation.StringRes val label: Int, /** What the server records — kept in English. */ val serverText: String) {
@@ -75,11 +75,26 @@ class VendorNewOrderViewModel @Inject constructor(
         }
     }
 
+    /** While the alert rings, re-check every few seconds so a cancelled order stops it at once. */
+    suspend fun watchWhileRinging() {
+        while (_state.value.stage == OfferStage.Offer || _state.value.stage == OfferStage.Declining) {
+            kotlinx.coroutines.delay(RECHECK_MS)
+            load().join()
+        }
+    }
+
     fun load() = viewModelScope.launch {
         runCatching { ops.order(orderId) }
             .onSuccess { o ->
+                val st = _state.value.stage
+                val open = st == OfferStage.Offer || st == OfferStage.Declining || st == OfferStage.TimedOut
                 _state.value = _state.value.copy(order = o,
-                    stage = if (o.status != "VENDOR_ASSIGNED" && _state.value.stage == OfferStage.Offer) OfferStage.TimedOut else _state.value.stage)
+                    stage = when {
+                        // The customer cancelled while it was ringing — not a miss.
+                        o.status == "CANCELLED" && open -> OfferStage.Withdrawn
+                        o.status != "VENDOR_ASSIGNED" && st == OfferStage.Offer -> OfferStage.TimedOut
+                        else -> st
+                    })
             }
             // A 404 here means the offer moved on to another shop.
             .onFailure { _state.value = _state.value.copy(stage = OfferStage.TimedOut) }
@@ -131,6 +146,10 @@ class VendorNewOrderViewModel @Inject constructor(
                     error = it.userMessage(context = "pause orders", fallback = strings.get(R.string.vend_err_pause))) }
         }
     }
+
+    companion object {
+        const val RECHECK_MS = 5_000L
+    }
 }
 
 /** Boards V10 (new order, rings for 3 minutes), V19 (decline) and V20 (time ran out). */
@@ -154,10 +173,14 @@ fun VendorNewOrderScreen(
     LaunchedEffect(s.stage) { if (s.stage == OfferStage.Accepted) s.order?.let { onAccepted(it.id) } }
     val left by rememberSecondsLeft(s.order?.acceptDeadlineAt)
     LaunchedEffect(left) { if (left == 0L) vm.expired() }
+    LaunchedEffect(Unit) { vm.watchWhileRinging() }
 
     val o = s.order
     when (s.stage) {
         OfferStage.TimedOut -> TimedOut(o, s.missedThisWeek, onAlertSettings, onDone)
+        OfferStage.Withdrawn -> BoondhPage(stringResource(R.string.vend_withdrawn_title),
+            subtitle = o?.let { stringResource(R.string.vend_withdrawn_sub, it.customerFirstName, it.orderNumber) },
+            footer = { PrimaryButton(stringResource(R.string.vend_back_to_today), onDone) }) {}
         OfferStage.Declined -> BoondhPage(stringResource(R.string.vend_declined_title), subtitle = stringResource(R.string.vend_declined_sub),
             footer = { PrimaryButton(stringResource(R.string.vend_back_to_today), onDone) }) {}
         OfferStage.Declining -> Decline(s, vm, onCatalog, onCloseForHours)
