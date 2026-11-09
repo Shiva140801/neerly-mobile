@@ -1035,4 +1035,6 @@
     <string name="vend_call_driver">ड्राइवर को कॉल</string>
     <string name="vend_withdrawn_title">ग्राहक ने रद्द किया</string>
     <string name="vend_withdrawn_sub">%1$s ने %2$s रद्द कर दिया। आपको कुछ नहीं करना — इसे छूटा हुआ ऑर्डर नहीं गिना जाएगा।</string>
+    <string name="vend_pin_drag">मैप खिसकाएँ ताकि पिन आपकी दुकान के दरवाज़े पर रहे। पिकअप के लिए ड्राइवर इसी से आपको ढूँढते हैं।</string>
+    <string name="vend_map_desc">मैप। इसे खिसकाएँ ताकि पिन आपकी दुकान के दरवाज़े पर रहे।</string>
 </resources>

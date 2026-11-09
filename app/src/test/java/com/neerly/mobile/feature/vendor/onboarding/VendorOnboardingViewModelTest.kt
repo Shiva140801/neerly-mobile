@@ -10,6 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -151,5 +152,25 @@ class VendorOnboardingViewModelTest {
         assertEquals("21:00:00", f.copy(sunday = SundayMode.FULL).hoursRows().last().closeTime)
         assertNotNull(f.copy(opens = "22:00").areaProblem())
         assertFalse(ShopForm(pincode = "500096").pincodes.isEmpty())
+    }
+
+    /** Board VShopPin: the pin counts at once; the address line follows after the drag settles. */
+    @Test
+    fun shopPin_dragSettles_setsThePinThenFillsTheAddress() {
+        val d = kotlinx.coroutines.test.StandardTestDispatcher()
+        Dispatchers.setMain(d)
+        kotlinx.coroutines.test.runTest(d) {
+            val vm = noVendorVm(null)
+            advanceUntilIdle()
+            vm.pinMoved(17.4156, 78.4108)
+            assertEquals(17.4156, vm.state.value.form.lat!!, 0.0)
+            assertNull(vm.state.value.form.foundAt)
+            advanceUntilIdle()
+            assertEquals("Shop 3, Film Nagar", vm.state.value.form.foundAt)
+            assertEquals("500096", vm.state.value.form.pincode)
+            vm.pinMoved(40.0, -74.0)                     // outside India
+            assertNotNull(vm.state.value.locationError)
+            assertEquals(17.4156, vm.state.value.form.lat!!, 0.0)
+        }
     }
 }

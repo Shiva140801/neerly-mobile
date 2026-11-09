@@ -4,6 +4,10 @@ import com.neerly.mobile.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +17,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,23 +37,39 @@ import com.neerly.mobile.core.design.NeerlySpacing
  * decides POST vs PATCH based on whether the SavedStateHandle has
  * `addressId`.
  *
- * Uses a stub map placeholder + "Use my location" button. Once Maps SDK is
- * wired the placeholder swaps for a draggable pin and the lat/lng comes from
- * the camera position.
+ * With a Maps key the top card is a map with a fixed pin the customer drags onto the
+ * gate (boards Address, AddressPin, AddressPinEdit), plus search for an address they
+ * aren't standing at (AddressAdd, AddressType). Without a key it falls back to GPS +
+ * typed fields.
  */
 /** Boards 34–37 — find the door first (real GPS), then the details a driver needs. */
 @Composable
 fun AddressFormScreen(
     onSaved: () -> Unit,
     onBack: () -> Unit,
+    /** Opens the LocationDenied screen (board LocationDenied) after the permission is refused. */
+    onLocationDenied: () -> Unit = {},
+    /** That screen's answer: "granted" (try GPS again) or "typed" (type the address instead). */
+    locationChoice: kotlinx.coroutines.flow.StateFlow<String>? = null,
+    onLocationChoiceHandled: () -> Unit = {},
     vm: AddressFormViewModel = hiltViewModel()
 ) {
     val s by vm.state.collectAsState()
     val ask = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { granted ->
-        if (granted.values.any { it }) vm.useCurrentLocation() else vm.locationDenied()
+        if (granted.values.any { it }) vm.useCurrentLocation() else { vm.locationDenied(); onLocationDenied() }
     }
     val locate = { ask.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)) }
+    val searchFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+    val choice = locationChoice?.collectAsState()?.value.orEmpty()
+    LaunchedEffect(choice) {
+        when (choice) {
+            "granted" -> locate()
+            "typed" -> { vm.typeInstead(); runCatching { searchFocus.requestFocus() } }
+            else -> return@LaunchedEffect
+        }
+        onLocationChoiceHandled()
+    }
     BoondhPage(
         title = if (s.editing) stringResource(R.string.cust_addr_edit) else stringResource(R.string.cust_home_where_deliver),
         onBack = onBack,
@@ -59,9 +82,22 @@ fun AddressFormScreen(
     ) {
         item {
             BoondhCard {
-                if (s.locationCaptured) {
+                if (com.neerly.mobile.core.maps.pinPickerAvailable) {
+                    com.neerly.mobile.core.maps.PinPicker(
+                        target = com.google.android.gms.maps.model.LatLng(s.latitude, s.longitude),
+                        onSettled = vm::pinMoved,
+                        description = stringResource(R.string.cust_addr_map_desc),
+                        pinColor = NeerlyColors.CustomerPrimary
+                    )
+                    Text(s.foundAt ?: if (s.locationCaptured) stringResource(R.string.cust_addr_pin_at, "%.5f".format(s.latitude), "%.5f".format(s.longitude))
+                        else stringResource(R.string.cust_addr_find_building), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    Text(stringResource(if (s.editing) R.string.cust_addr_drag_hint_edit else R.string.cust_addr_drag_hint), fontSize = 13.sp, color = NeerlyColors.Ink600)
+                    ServiceLine(s)
+                    SecondaryButton(if (s.locating) stringResource(R.string.cust_addr_finding) else stringResource(R.string.cust_addr_use_location), locate)
+                } else if (s.locationCaptured) {
                     Pill(stringResource(R.string.cust_addr_location_set), Tone.Ok)
                     Text(s.foundAt ?: stringResource(R.string.cust_addr_pin_at, "%.5f".format(s.latitude), "%.5f".format(s.longitude)), fontSize = 15.sp, color = NeerlyColors.Ink900)
+                    ServiceLine(s)
                     SecondaryButton(if (s.locating) stringResource(R.string.cust_addr_finding) else stringResource(R.string.cust_addr_use_location_again), locate)
                 } else {
                     Text(stringResource(R.string.cust_addr_find_building), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
@@ -69,6 +105,35 @@ fun AddressFormScreen(
                     PrimaryButton(if (s.locating) stringResource(R.string.cust_addr_finding) else stringResource(R.string.cust_addr_use_location), locate, enabled = !s.locating)
                 }
                 s.locationError?.let { Notice(it, Tone.Warn) }
+            }
+        }
+        if (s.confirmMove) item {
+            BoondhCard {
+                Notice(pluralStringResource(R.plurals.cust_addr_move_loses, s.lostShops.size, s.lostShops.joinToString(", ")), Tone.Warn)
+                PrimaryButton(stringResource(R.string.cust_addr_use_spot), { vm.confirmMove(onSaved) })
+                SecondaryButton(stringResource(R.string.cust_addr_keep_old_pin), vm::keepOldPin)
+            }
+        }
+        item { SectionLabel(stringResource(R.string.cust_addr_search_title)) }
+        item {
+            Column {
+                if (s.locationError != null || s.typing) Text(stringResource(R.string.cust_addr_type_instead), fontSize = 14.sp, color = NeerlyColors.Ink600,
+                    modifier = Modifier.padding(bottom = 8.dp))
+                OutlinedTextField(
+                    value = s.query, onValueChange = vm::onQuery, singleLine = true,
+                    placeholder = { Text(stringResource(R.string.cust_addr_search_hint)) },
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth().focusRequester(searchFocus), shape = RoundedCornerShape(NeerlyRadius.md)
+                )
+                when {
+                    s.searching -> Text(stringResource(R.string.cust_addr_searching), fontSize = 13.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(top = 8.dp))
+                    s.matches.isNotEmpty() -> {
+                        SectionLabel(stringResource(R.string.cust_addr_matches))
+                        s.matches.forEach { row -> MatchItem(row) { vm.pickMatch(row) } }
+                        Text(stringResource(R.string.cust_addr_after_pick), fontSize = 13.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    s.searchedOnce -> Text(stringResource(R.string.cust_addr_no_matches), fontSize = 13.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(top = 8.dp))
+                }
             }
         }
         item { SectionLabel(stringResource(R.string.cust_addr_save_as)) }
@@ -113,6 +178,37 @@ fun AddressFormScreen(
                 }
             }
         }
+    }
+}
+
+/** "2 suppliers deliver here" / "Nobody on Boondh delivers here yet" under the pin. */
+@Composable
+private fun ServiceLine(s: AddressFormUiState) {
+    when {
+        s.serviceChecking -> Text(stringResource(R.string.cust_addr_service_checking), fontSize = 13.sp, color = NeerlyColors.Ink600)
+        s.serviceCount == 0L -> Text(stringResource(R.string.cust_addr_service_none), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Warn)
+        s.serviceCount != null -> Text(pluralStringResource(R.plurals.cust_addr_suppliers_here, s.serviceCount.toInt(), s.serviceCount.toInt()),
+            fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ok)
+    }
+}
+
+/** One search match (board AddressAdd): name, area + pincode, and either "already saved as" or who delivers. */
+@Composable
+private fun MatchItem(row: MatchRow, onPick: () -> Unit) {
+    val m = row.match
+    val tail = when {
+        row.savedAs != null -> stringResource(R.string.cust_addr_saved_as, addressLabel(row.savedAs))
+        row.serviceCount == 0L -> stringResource(R.string.cust_addr_service_none)
+        row.serviceCount != null -> pluralStringResource(R.plurals.cust_addr_suppliers_here, row.serviceCount.toInt(), row.serviceCount.toInt())
+        else -> null
+    }
+    Column(
+        Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(NeerlyRadius.md))
+            .clickable(onClick = onPick).padding(vertical = 8.dp, horizontal = 4.dp)
+    ) {
+        Text(m.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+        Text(listOfNotNull(m.subtitle.ifBlank { null }, tail).joinToString(" · "), fontSize = 13.sp,
+            color = if (row.serviceCount == 0L && row.savedAs == null) NeerlyColors.Warn else NeerlyColors.Ink600)
     }
 }
 

@@ -1035,4 +1035,6 @@
     <string name="vend_call_driver">డ్రైవర్‌కు కాల్</string>
     <string name="vend_withdrawn_title">కస్టమర్ రద్దు చేశారు</string>
     <string name="vend_withdrawn_sub">%1$s %2$s ని రద్దు చేశారు. మీరు ఏమీ చేయనక్కర్లేదు — ఇది మిస్ అయిన ఆర్డర్‌గా లెక్కించబడదు.</string>
+    <string name="vend_pin_drag">పిన్ మీ షాపు తలుపు మీద ఉండేలా మ్యాప్‌ను లాగండి. పికప్ కోసం డ్రైవర్లు దీనితోనే మిమ్మల్ని కనుగొంటారు.</string>
+    <string name="vend_map_desc">మ్యాప్. పిన్ మీ షాపు తలుపు మీద ఉండేలా దాన్ని లాగండి.</string>
 </resources>

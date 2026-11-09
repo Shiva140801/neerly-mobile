@@ -179,6 +179,30 @@ class VendorOnboardingViewModel @Inject constructor(
         _state.value = _state.value.copy(locationError = strings.get(R.string.vend_loc_off))
     }
 
+    private var pinJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * Board VShopPin — the map settled under the pin after a drag. The pin counts at once;
+     * the address line follows after a short pause (one reverse geocode per burst of drags).
+     */
+    fun pinMoved(lat: Double, lng: Double) {
+        if (lat !in 6.0..37.5 || lng !in 68.0..97.5) {
+            _state.value = _state.value.copy(locationError = strings.get(R.string.vend_loc_outside))
+            return
+        }
+        _state.value = _state.value.copy(locationError = null, form = _state.value.form.copy(lat = lat, lng = lng))
+        pinJob?.cancel()
+        pinJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(PIN_SETTLE_MS)
+            val place = locator.reverse(lat, lng) ?: return@launch
+            val f = _state.value.form
+            _state.value = _state.value.copy(form = f.copy(foundAt = place.line,
+                street = f.street.ifBlank { place.street.orEmpty() },
+                pincode = f.pincode.ifBlank { place.pincode.orEmpty() },
+                city = place.city ?: f.city))
+        }
+    }
+
     fun nextFromShop() {
         _state.value.form.shopProblem()?.let { _state.value = _state.value.copy(error = strings.get(it)); return }
         go(SetupStep.AREA)
@@ -287,3 +311,5 @@ class VendorOnboardingViewModel @Inject constructor(
         viewModelScope.launch { runCatching { repo.me() }.onSuccess { _state.value = _state.value.copy(vendor = it) } }
     }
 }
+
+private const val PIN_SETTLE_MS = 400L

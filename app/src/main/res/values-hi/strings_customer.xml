@@ -482,4 +482,23 @@
     <string name="cust_cart_delivery_from">%1$s से · चेकआउट पर जुड़ेगा</string>
     <string name="cust_cart_delivery_free">मुफ़्त</string>
     <string name="cust_cart_continue_checkout">चेकआउट पर जाएँ</string>
+    <string name="cust_addr_map_desc">मैप। इसे खिसकाएँ ताकि पिन आपके गेट पर रहे।</string>
+    <string name="cust_addr_drag_hint">मैप खिसकाएँ ताकि पिन गेट पर रहे।</string>
+    <string name="cust_addr_drag_hint_edit">मैप खिसकाएँ ताकि पिन गेट पर रहे। ड्राइवर लिखे पते पर नहीं, पिन पर आते हैं।</string>
+    <string name="cust_addr_service_checking">देख रहे हैं कि यहाँ कौन डिलीवरी करता है…</string>
+    <string name="cust_addr_service_none">यहाँ अभी Boondh पर कोई डिलीवरी नहीं करता</string>
+    <string name="cust_addr_use_spot">यही जगह रखें</string>
+    <string name="cust_addr_keep_old_pin">पुराना पिन रखें</string>
+    <string name="cust_addr_search_title">अभी वहाँ नहीं हैं? खोजें</string>
+    <string name="cust_addr_search_hint">बिल्डिंग, सड़क या इलाका</string>
+    <string name="cust_addr_type_instead">लोकेशन बंद है। अपना पता टाइप करें — इसके लिए आपकी लाइव लोकेशन नहीं चाहिए।</string>
+    <string name="cust_addr_searching">खोज रहे हैं…</string>
+    <string name="cust_addr_matches">मिलते-जुलते</string>
+    <string name="cust_addr_after_pick">एक चुनने के बाद आप पिन खिसका सकते हैं और फ़्लैट नंबर, मंज़िल और ड्राइवर के लिए नोट जोड़ सकते हैं।</string>
+    <string name="cust_addr_no_matches">कुछ नहीं मिला। सड़क या इलाके का नाम आज़माएँ।</string>
+    <string name="cust_addr_saved_as">पहले से %1$s के रूप में सेव है</string>
+    <plurals name="cust_addr_move_loses">
+        <item quantity="one">%1$s इस जगह तक नहीं पहुँचती, इसलिए जब तक आप दूसरी दुकान नहीं चुनते, वह सब्सक्रिप्शन रुका रहेगा।</item>
+        <item quantity="other">%1$s इस जगह तक नहीं पहुँचतीं, इसलिए जब तक आप दूसरी दुकान नहीं चुनते, वे सब्सक्रिप्शन रुके रहेंगे।</item>
+    </plurals>
 </resources>

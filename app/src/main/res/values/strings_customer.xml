@@ -482,4 +482,23 @@
     <string name="cust_cart_delivery_from">From %1$s · added at checkout</string>
     <string name="cust_cart_delivery_free">Free</string>
     <string name="cust_cart_continue_checkout">Continue to checkout</string>
+    <string name="cust_addr_map_desc">Map. Drag it so the pin sits on your gate.</string>
+    <string name="cust_addr_drag_hint">Drag the map so the pin sits on the gate.</string>
+    <string name="cust_addr_drag_hint_edit">Drag the map so the pin sits on the gate. Drivers navigate to the pin, not the text.</string>
+    <string name="cust_addr_service_checking">Checking who delivers here…</string>
+    <string name="cust_addr_service_none">Nobody on Boondh delivers here yet</string>
+    <string name="cust_addr_use_spot">Use this spot</string>
+    <string name="cust_addr_keep_old_pin">Keep the old pin</string>
+    <string name="cust_addr_search_title">Not here right now? Search</string>
+    <string name="cust_addr_search_hint">Building, road or area</string>
+    <string name="cust_addr_type_instead">Location is off. Type your address instead — we never need your live location for this.</string>
+    <string name="cust_addr_searching">Searching…</string>
+    <string name="cust_addr_matches">Matches</string>
+    <string name="cust_addr_after_pick">After you pick one, you can move the pin and add flat number, floor and a note for the driver.</string>
+    <string name="cust_addr_no_matches">No matches. Try the road or area name.</string>
+    <string name="cust_addr_saved_as">already saved as %1$s</string>
+    <plurals name="cust_addr_move_loses">
+        <item quantity="one">%1$s doesn\'t reach this spot, so that subscription pauses until you choose another shop.</item>
+        <item quantity="other">%1$s don\'t reach this spot, so those subscriptions pause until you choose another shop.</item>
+    </plurals>
 </resources>

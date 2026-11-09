@@ -357,11 +357,14 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.ReferralCode) {
             com.neerly.mobile.feature.auth.ReferralCodeScreen(onDone = { nav.navigate(Routes.Address) })
         }
-        composable(Routes.Address) {
-            // Step 6: the same form as Saved addresses — real GPS pin, not a placeholder.
+        composable(Routes.Address) { entry ->
+            // Step 6: the same form as Saved addresses — map pin, search, or GPS.
             com.neerly.mobile.feature.address.AddressFormScreen(
                 onSaved = { nav.navigate(Routes.CustomerHome) { popUpTo(Routes.Welcome) { inclusive = true } } },
-                onBack = { nav.popBackStack() }
+                onBack = { nav.popBackStack() },
+                onLocationDenied = { nav.navigate(Routes.LocationDenied) },
+                locationChoice = entry.savedStateHandle.getStateFlow("location_choice", ""),
+                onLocationChoiceHandled = { entry.savedStateHandle["location_choice"] = "" },
             )
         }
         composable(Routes.CustomerHome) {
@@ -463,19 +466,25 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onEdit = { id -> nav.navigate(Routes.addressEdit(id)) }
             )
         }
-        composable(Routes.AddressNew) {
+        composable(Routes.AddressNew) { entry ->
             AddressFormScreen(
                 onSaved = { nav.popBackStack() },
-                onBack = { nav.popBackStack() }
+                onBack = { nav.popBackStack() },
+                onLocationDenied = { nav.navigate(Routes.LocationDenied) },
+                locationChoice = entry.savedStateHandle.getStateFlow("location_choice", ""),
+                onLocationChoiceHandled = { entry.savedStateHandle["location_choice"] = "" },
             )
         }
         composable(
             Routes.AddressEdit,
             arguments = listOf(androidx.navigation.navArgument("addressId") { })
-        ) {
+        ) { entry ->
             AddressFormScreen(
                 onSaved = { nav.popBackStack() },
-                onBack = { nav.popBackStack() }
+                onBack = { nav.popBackStack() },
+                onLocationDenied = { nav.navigate(Routes.LocationDenied) },
+                locationChoice = entry.savedStateHandle.getStateFlow("location_choice", ""),
+                onLocationChoiceHandled = { entry.savedStateHandle["location_choice"] = "" },
             )
         }
         composable(Routes.Cart) {

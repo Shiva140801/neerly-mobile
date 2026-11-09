@@ -1035,4 +1035,6 @@
     <string name="vend_call_driver">Call driver</string>
     <string name="vend_withdrawn_title">Customer cancelled</string>
     <string name="vend_withdrawn_sub">%1$s cancelled %2$s. Nothing to do — this doesn\'t count as a missed order.</string>
+    <string name="vend_pin_drag">Drag the map until the pin sits on your shop door. Drivers use this to find you for pickups.</string>
+    <string name="vend_map_desc">Map. Drag it so the pin sits on your shop door.</string>
 </resources>

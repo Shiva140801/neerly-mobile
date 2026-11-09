@@ -109,7 +109,19 @@ private fun ShopStep(s: VendorSetupUiState, vm: VendorOnboardingViewModel) {
         item { SectionLabel(stringResource(R.string.vend_where_shop)) }
         item {
             BoondhCard {
-                if (f.lat != null) {
+                if (com.neerly.mobile.core.maps.pinPickerAvailable) {
+                    // Board VShopPin: drag the map until the pin sits on the shop door.
+                    com.neerly.mobile.core.maps.PinPicker(
+                        target = com.google.android.gms.maps.model.LatLng(f.lat ?: SHOP_PIN_START_LAT, f.lng ?: SHOP_PIN_START_LNG),
+                        onSettled = vm::pinMoved,
+                        description = stringResource(R.string.vend_map_desc),
+                        pinColor = NeerlyColors.VendorPrimary
+                    )
+                    Text(f.foundAt ?: f.lat?.let { "%.5f, %.5f".format(it, f.lng) } ?: stringResource(R.string.vend_put_pin),
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    Text(stringResource(R.string.vend_pin_drag), fontSize = 13.sp, color = NeerlyColors.Ink600)
+                    SecondaryButton(stringResource(if (s.locating) R.string.vend_finding_you else R.string.vend_use_loc), { ask.launch(LOCATION) })
+                } else if (f.lat != null) {
                     Pill(stringResource(R.string.vend_pin_set), Tone.Ok)
                     Text(f.foundAt ?: "%.5f, %.5f".format(f.lat, f.lng), fontSize = 15.sp, color = NeerlyColors.Ink900)
                     Text(stringResource(R.string.vend_pin_note), fontSize = 13.sp, color = NeerlyColors.Ink600)
@@ -349,3 +361,7 @@ private fun Field(label: String, value: String, keyboard: KeyboardType = Keyboar
     OutlinedTextField(value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(), singleLine = true,
         label = { Text(label) }, keyboardOptions = KeyboardOptions(keyboardType = keyboard, capitalization = caps))
 }
+
+// Where the shop map opens before a fix: Hyderabad city centre.
+private const val SHOP_PIN_START_LAT = 17.4239
+private const val SHOP_PIN_START_LNG = 78.4738

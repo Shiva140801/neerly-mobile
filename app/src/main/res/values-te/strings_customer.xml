@@ -482,4 +482,23 @@
     <string name="cust_cart_delivery_from">%1$s నుండి · చెక్అవుట్‌లో కలుపుతారు</string>
     <string name="cust_cart_delivery_free">ఉచితం</string>
     <string name="cust_cart_continue_checkout">చెక్అవుట్‌కు కొనసాగండి</string>
+    <string name="cust_addr_map_desc">మ్యాప్. పిన్ మీ గేటు మీద ఉండేలా దాన్ని లాగండి.</string>
+    <string name="cust_addr_drag_hint">పిన్ గేటు మీద ఉండేలా మ్యాప్‌ను లాగండి.</string>
+    <string name="cust_addr_drag_hint_edit">పిన్ గేటు మీద ఉండేలా మ్యాప్‌ను లాగండి. డ్రైవర్లు రాసిన చిరునామాకు కాదు, పిన్‌కే వస్తారు.</string>
+    <string name="cust_addr_service_checking">ఇక్కడ ఎవరు డెలివరీ చేస్తారో చూస్తున్నాం…</string>
+    <string name="cust_addr_service_none">ఇక్కడ ఇంకా Boondh లో ఎవరూ డెలివరీ చేయడం లేదు</string>
+    <string name="cust_addr_use_spot">ఈ చోటునే ఉంచండి</string>
+    <string name="cust_addr_keep_old_pin">పాత పిన్ ఉంచండి</string>
+    <string name="cust_addr_search_title">ఇప్పుడు అక్కడ లేరా? వెతకండి</string>
+    <string name="cust_addr_search_hint">భవనం, రోడ్డు లేదా ప్రాంతం</string>
+    <string name="cust_addr_type_instead">లొకేషన్ ఆఫ్‌లో ఉంది. మీ చిరునామా టైప్ చేయండి — దీనికి మీ లైవ్ లొకేషన్ అవసరం లేదు.</string>
+    <string name="cust_addr_searching">వెతుకుతున్నాం…</string>
+    <string name="cust_addr_matches">సరిపోలినవి</string>
+    <string name="cust_addr_after_pick">ఒకటి ఎంచుకున్నాక పిన్‌ను జరపవచ్చు, ఫ్లాట్ నంబర్, అంతస్తు, డ్రైవర్‌కు నోట్ చేర్చవచ్చు.</string>
+    <string name="cust_addr_no_matches">ఏవీ దొరకలేదు. రోడ్డు లేదా ప్రాంతం పేరుతో ప్రయత్నించండి.</string>
+    <string name="cust_addr_saved_as">ఇప్పటికే %1$s గా సేవ్ అయింది</string>
+    <plurals name="cust_addr_move_loses">
+        <item quantity="one">%1$s ఈ చోటుకు రాదు, కాబట్టి మీరు వేరే షాపు ఎంచుకునే వరకు ఆ సబ్‌స్క్రిప్షన్ ఆగుతుంది.</item>
+        <item quantity="other">%1$s ఈ చోటుకు రావు, కాబట్టి మీరు వేరే షాపు ఎంచుకునే వరకు ఆ సబ్‌స్క్రిప్షన్లు ఆగుతాయి.</item>
+    </plurals>
 </resources>
