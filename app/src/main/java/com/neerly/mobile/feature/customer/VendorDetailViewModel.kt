@@ -116,6 +116,9 @@ class VendorDetailViewModel @Inject constructor(
     } }
     val cartState = cart.state
 
+    /** The row stepper (board Vendor): change a line already in this shop's cart. */
+    fun stepQuantity(productId: String, newQty: Int) = cart.updateQuantity(productId, newQty)
+
     fun quantityInCart(productId: String): Int =
         cart.snapshot.items.firstOrNull { it.productId == productId }?.quantity ?: 0
 

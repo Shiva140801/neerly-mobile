@@ -10,6 +10,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.foundation.border
+import androidx.compose.ui.semantics.selected
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -82,58 +87,118 @@ fun VendorDetailScreen(
                 val v = state.vendor
                 val name = v?.businessName ?: stringResource(R.string.cust_shop)
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    // Board 10 header
-                    Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark).padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 44.dp)) {
-                            Text(stringResource(R.string.cust_back_arrow), color = NeerlyColors.Paper, fontSize = 15.sp) }
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Box(Modifier.size(52.dp).background(com.neerly.mobile.core.design.Boondh.Amber, RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
-                                Text(name.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(), fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, fontSize = 18.sp)
+                    // Board Vendor: light header — chevron, share; initials tile + serif name;
+                    // three stats split by hairlines; verified line; left text tabs.
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val shareText = stringResource(R.string.cust_shop2_share_text, name)
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            com.neerly.mobile.core.design.BackChevron(onBack, stringResource(R.string.core_back))
+                            Spacer(Modifier.weight(1f))
+                            IconButton(onClick = {
+                                context.startActivity(android.content.Intent.createChooser(
+                                    android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain")
+                                        .putExtra(android.content.Intent.EXTRA_TEXT, shareText), null))
+                            }, modifier = Modifier.size(48.dp)) {
+                                Icon(androidx.compose.material.icons.Icons.Outlined.Share, contentDescription = stringResource(R.string.cust_shop2_share), tint = NeerlyColors.Ink900)
                             }
-                            Text(name, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 26.sp, color = NeerlyColors.Paper)
                         }
-                        v?.let { Text(listOfNotNull(it.avgRating?.let { r -> stringResource(R.string.cust_rating_stars, r.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) },
-                            androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, it.totalOrders.toInt(), it.totalOrders.toInt()), it.businessCity).joinToString(" · "), fontSize = 14.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy) }
-                        v?.fssaiNumber?.let { Text(stringResource(R.string.cust_shop_verified_fssai, it), fontSize = 13.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy) }
-                    }
-                    if (state.closed && v != null) ClosedPanel(v, state, vm::pingMeWhenOpen)
-                    TabRow(selectedTabIndex = tab, containerColor = NeerlyColors.Paper, contentColor = NeerlyColors.CustomerPrimary) {
-                        listOf(stringResource(R.string.cust_shop_tab_water), stringResource(R.string.cust_shop_tab_reviews), stringResource(R.string.cust_shop_tab_about)).forEachIndexed { i, label ->
-                            Tab(selected = tab == i, onClick = { tab = i; if (i == 1) vm.loadReviews() },
-                                text = { Text(label, fontWeight = FontWeight.SemiBold) }, modifier = Modifier.heightIn(min = 48.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            com.neerly.mobile.core.design.InitialsTile(name.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(), size = 72.dp)
+                            Column(Modifier.weight(1f)) {
+                                Text(name, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Medium,
+                                    fontSize = 28.sp, lineHeight = 32.sp, color = NeerlyColors.Ink900)
+                                v?.let { Text(listOfNotNull(it.businessCity.ifBlank { null }, it.businessPincode.ifBlank { null }).joinToString(" · "),
+                                    fontSize = 15.sp, color = NeerlyColors.Ink600) }
+                            }
+                        }
+                        if (v != null) Column {
+                            HorizontalDivider(color = NeerlyColors.Ink200)
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                                val rating = v.avgRating?.setScale(1, java.math.RoundingMode.HALF_UP)?.toPlainString()
+                                ShopStat(if (rating != null) "$rating ★" else "—",
+                                    v.reviewCount?.let { androidx.compose.ui.res.pluralStringResource(R.plurals.cust_shop2_reviews, it, it) }
+                                        ?: androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, v.totalOrders.toInt(), v.totalOrders.toInt()),
+                                    Modifier.weight(1f))
+                                VerticalDivider(color = NeerlyColors.Ink200)
+                                ShopStat(if (v.etaMinutesMin != null && v.etaMinutesMax != null) "${v.etaMinutesMin}–${v.etaMinutesMax}" else "—",
+                                    stringResource(R.string.cust_shop2_min_to_you), Modifier.weight(1f).padding(start = 14.dp))
+                                VerticalDivider(color = NeerlyColors.Ink200)
+                                ShopStat(if (cfg.minOrderValue.signum() > 0) cfg.minOrderValue.asRupees() else stringResource(R.string.cust_shop2_no_min),
+                                    stringResource(R.string.cust_shop2_min_order), Modifier.weight(1f).padding(start = 14.dp))
+                            }
+                            HorizontalDivider(color = NeerlyColors.Ink200)
+                        }
+                        if (v?.fssaiNumber != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(androidx.compose.material.icons.Icons.Filled.Verified, contentDescription = null, tint = NeerlyColors.Ok, modifier = Modifier.size(20.dp))
+                            Text(stringResource(R.string.cust_shop2_verified), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok)
+                            Text("· " + stringResource(R.string.cust_shop_fssai) + " " + v.fssaiNumber, fontSize = 14.sp, color = NeerlyColors.Ink600)
+                        }
+                        if (state.closed && v != null) ClosedPanel(v, state, vm::pingMeWhenOpen)
+                        // Outside today's hours: say so (Home already does), but a slot can still be booked.
+                        else if (v != null && v.openState == "AFTER_HOURS") {
+                            val back = v.backOn?.let { iso -> runCatching { java.time.Instant.parse(iso).atZone(java.time.ZoneId.of("Asia/Kolkata"))
+                                .format(java.time.format.DateTimeFormatter.ofPattern("EEE h:mm a", com.neerly.mobile.core.util.AppLocale.locale)) }.getOrNull() }
+                            com.neerly.mobile.core.design.Notice(
+                                if (back != null) stringResource(R.string.cust_shop2_after_hours, back) else stringResource(R.string.cust_shop2_after_hours_plain),
+                                com.neerly.mobile.core.design.Tone.Warn)
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+                            listOf(stringResource(R.string.cust_shop_tab_water), stringResource(R.string.cust_shop_tab_reviews), stringResource(R.string.cust_shop_tab_about)).forEachIndexed { i, label ->
+                                Column(Modifier.clickable(role = androidx.compose.ui.semantics.Role.Tab) { tab = i; if (i == 1) vm.loadReviews() }
+                                    .semantics { selected = tab == i }.heightIn(min = 48.dp), verticalArrangement = Arrangement.Bottom) {
+                                    Text(label, fontSize = 16.sp, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (tab == i) NeerlyColors.Ink900 else NeerlyColors.Ink600, modifier = Modifier.padding(bottom = 10.dp))
+                                    Box(Modifier.height(3.dp).width(if (tab == i) 44.dp else 0.dp).background(com.neerly.mobile.core.design.Boondh.Amber))
+                                }
+                            }
                         }
                     }
+                    HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = NeerlyColors.Ink200)
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         when (tab) {
                             0 -> if (state.products.isEmpty()) {
                                 com.neerly.mobile.core.design.LoadState(false, null, vm::refresh, stringResource(R.string.cust_shop_nothing_listed),
                                     stringResource(R.string.cust_shop_nothing_listed_body))
-                            } else state.products.forEach { p ->
+                            } else state.products.forEachIndexed { i, p ->
                                 val soldOut = p.status != "AVAILABLE"
-                                // Closed shop: the prices stay readable, nothing can be added (board VendorClosed).
-                                // Sold out: tap for when it's back and where else to get it (board OutOfStock).
-                                com.neerly.mobile.core.design.BoondhCard(onClick = when {
+                                val inCart = vm.quantityInCart(p.id)
+                                // Board Vendor rows: name, what it is, price; Add or the outlined stepper.
+                                // Closed shop: prices readable, nothing added. Sold out: muted + other options.
+                                com.neerly.mobile.core.design.ListRow(divider = i < state.products.lastIndex, onClick = when {
                                     state.closed -> null
                                     soldOut -> ({ vm.openSoldOut(p.id) })
                                     else -> ({ sheetProduct = p })
                                 }) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Column(Modifier.weight(1f)) {
-                                            Text(listOfNotNull(p.brand, p.name).joinToString(" "), fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                                                color = if (soldOut) NeerlyColors.Ink600 else NeerlyColors.Ink900)
-                                            Text(when {
-                                                soldOut -> stringResource(R.string.cust_shop_sold_out)
-                                                p.allowTransferAndReturn -> stringResource(R.string.cust_shop_swap)
-                                                p.depositAmount != null -> stringResource(R.string.cust_shop_deposit, p.depositAmount.asRupees())
-                                                else -> p.description ?: ""
-                                            }, fontSize = 13.sp, color = if (soldOut) NeerlyColors.Warn else NeerlyColors.Ink600)
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text(listOfNotNull(p.brand, p.name).joinToString(" · "), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                                            color = if (soldOut) NeerlyColors.Ink600 else NeerlyColors.Ink900)
+                                        Text(when {
+                                            soldOut -> stringResource(R.string.cust_shop_sold_out)
+                                            !p.description.isNullOrBlank() -> p.description
+                                            p.allowTransferAndReturn -> stringResource(R.string.cust_shop_swap)
+                                            p.depositAmount != null -> stringResource(R.string.cust_shop_deposit, p.depositAmount.asRupees())
+                                            else -> ""
+                                        }, fontSize = 14.sp, color = if (soldOut) NeerlyColors.Err else NeerlyColors.Ink600,
+                                            fontWeight = if (soldOut) FontWeight.SemiBold else FontWeight.Normal)
+                                        if (!soldOut) Text(p.price.asRupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                                    }
+                                    when {
+                                        state.closed -> Unit
+                                        soldOut -> Text(stringResource(R.string.cust_shop2_other_options), color = NeerlyColors.CustomerPrimary,
+                                            fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                        inCart > 0 -> Row(Modifier.border(1.5.dp, NeerlyColors.CustomerPrimary, RoundedCornerShape(12.dp)),
+                                            verticalAlignment = Alignment.CenterVertically) {
+                                            StepButton("−", stringResource(R.string.cust_cart2_less, p.name)) { vm.stepQuantity(p.id, inCart - 1) }
+                                            Text("$inCart", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary,
+                                                modifier = Modifier.widthIn(min = 24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                            StepButton("+", stringResource(R.string.cust_cart2_more, p.name)) { vm.stepQuantity(p.id, inCart + 1) }
                                         }
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(p.price.asRupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                                            val inCart = vm.quantityInCart(p.id)
-                                            if (!soldOut && !state.closed) TextButton(onClick = { sheetProduct = p }, modifier = Modifier.heightIn(min = 44.dp)) {
-                                                Text(if (inCart > 0) stringResource(R.string.cust_shop_in_cart, inCart) else stringResource(R.string.cust_add), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
+                                        else -> OutlinedButton(onClick = { sheetProduct = p }, shape = RoundedCornerShape(12.dp),
+                                            border = androidx.compose.foundation.BorderStroke(1.5.dp, NeerlyColors.Ink200),
+                                            colors = ButtonDefaults.outlinedButtonColors(containerColor = NeerlyColors.Paper),
+                                            modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 96.dp)) {
+                                            Text(stringResource(R.string.cust_add), color = NeerlyColors.CustomerPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -175,8 +240,19 @@ fun VendorDetailScreen(
                     }
                 }
                 if (!cartNow.isEmpty && cartNow.vendorId == vendorId) {
-                    Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper).padding(horizontal = 20.dp, vertical = 12.dp)) {
-                        com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_shop_view_cart, cartNow.totalQuantity, cartNow.subtotal.asRupees()), onViewCart)
+                    // Board Vendor cart bar: what's in it on the left, View cart on the right.
+                    HorizontalDivider(color = NeerlyColors.Ink200)
+                    Row(Modifier.fillMaxWidth().background(NeerlyColors.Canvas).padding(horizontal = 20.dp, vertical = 12.dp)
+                        .background(NeerlyColors.CustomerPrimary, RoundedCornerShape(16.dp))
+                        .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onViewCart)
+                        .padding(horizontal = 18.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_shop2_items, cartNow.totalQuantity, cartNow.totalQuantity),
+                                fontSize = 13.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy)
+                            Text(cartNow.subtotal.asRupees(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
+                        }
+                        Text(stringResource(R.string.cust_shop2_view_cart), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = androidx.compose.ui.graphics.Color.White)
                     }
                 }
             }
@@ -340,5 +416,21 @@ private fun AltRow(title: String, detail: String, price: java.math.BigDecimal, a
         OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 44.dp)) {
             Text(action, color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
         }
+    }
+}
+
+@Composable
+private fun ShopStat(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(modifier.padding(vertical = 14.dp)) {
+        Text(value, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = NeerlyColors.Ink900)
+        Text(label, fontSize = 14.sp, color = NeerlyColors.Ink600)
+    }
+}
+
+@Composable
+private fun StepButton(label: String, description: String, onClick: () -> Unit) {
+    Box(Modifier.size(44.dp).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+        .semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
+        Text(label, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.CustomerPrimary)
     }
 }

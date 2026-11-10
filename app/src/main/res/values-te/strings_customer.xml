@@ -751,4 +751,22 @@
     <string name="cust_cart2_to_pay">చెల్లించాల్సింది</string>
     <string name="cust_co_paying_to">%1$s కి చెల్లింపు</string>
     <string name="cust_co_to_address">%1$s కి · %2$s</string>
+    <string name="cust_shop2_share">ఈ షాప్‌ను షేర్ చేయండి</string>
+    <string name="cust_shop2_share_text">Boondh లో %1$s నుండి నీళ్ళు ఆర్డర్ చేయండి</string>
+    <string name="cust_shop2_min_to_you">నిమిషాల్లో మీకు</string>
+    <string name="cust_shop2_min_order">కనీస ఆర్డర్</string>
+    <string name="cust_shop2_no_min">లేదు</string>
+    <string name="cust_shop2_verified">Boondh ధృవీకరించింది</string>
+    <string name="cust_shop2_other_options">ఇతర ఎంపికలు</string>
+    <string name="cust_shop2_view_cart">కార్ట్ చూడండి</string>
+    <plurals name="cust_shop2_reviews">
+        <item quantity="one">%1$d సమీక్ష</item>
+        <item quantity="other">%1$d సమీక్షలు</item>
+    </plurals>
+    <plurals name="cust_shop2_items">
+        <item quantity="one">%1$d వస్తువు</item>
+        <item quantity="other">%1$d వస్తువులు</item>
+    </plurals>
+    <string name="cust_shop2_after_hours">ఇప్పుడు మూసి ఉంది · %1$s కి తెరుస్తారు. తర్వాతి సమయానికి స్లాట్ బుక్ చేసుకోవచ్చు.</string>
+    <string name="cust_shop2_after_hours_plain">ఇప్పుడు మూసి ఉంది. తర్వాతి సమయానికి స్లాట్ బుక్ చేసుకోవచ్చు.</string>
 </resources>

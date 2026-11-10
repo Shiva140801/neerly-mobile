@@ -751,4 +751,22 @@
     <string name="cust_cart2_to_pay">To pay</string>
     <string name="cust_co_paying_to">Paying %1$s</string>
     <string name="cust_co_to_address">To %1$s · %2$s</string>
+    <string name="cust_shop2_share">Share this shop</string>
+    <string name="cust_shop2_share_text">Order water from %1$s on Boondh</string>
+    <string name="cust_shop2_min_to_you">min to you</string>
+    <string name="cust_shop2_min_order">min order</string>
+    <string name="cust_shop2_no_min">None</string>
+    <string name="cust_shop2_verified">Verified by Boondh</string>
+    <string name="cust_shop2_other_options">Other options</string>
+    <string name="cust_shop2_view_cart">View cart</string>
+    <plurals name="cust_shop2_reviews">
+        <item quantity="one">%1$d review</item>
+        <item quantity="other">%1$d reviews</item>
+    </plurals>
+    <plurals name="cust_shop2_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="cust_shop2_after_hours">Closed now · opens %1$s. You can still book a slot for later.</string>
+    <string name="cust_shop2_after_hours_plain">Closed now. You can still book a slot for later.</string>
 </resources>

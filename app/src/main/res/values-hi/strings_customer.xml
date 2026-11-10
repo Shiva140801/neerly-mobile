@@ -751,4 +751,22 @@
     <string name="cust_cart2_to_pay">चुकाना है</string>
     <string name="cust_co_paying_to">%1$s को भुगतान</string>
     <string name="cust_co_to_address">%1$s पर · %2$s</string>
+    <string name="cust_shop2_share">यह दुकान शेयर करें</string>
+    <string name="cust_shop2_share_text">Boondh पर %1$s से पानी मँगाएँ</string>
+    <string name="cust_shop2_min_to_you">मिनट में आपके पास</string>
+    <string name="cust_shop2_min_order">न्यूनतम ऑर्डर</string>
+    <string name="cust_shop2_no_min">कोई नहीं</string>
+    <string name="cust_shop2_verified">Boondh से सत्यापित</string>
+    <string name="cust_shop2_other_options">दूसरे विकल्प</string>
+    <string name="cust_shop2_view_cart">कार्ट देखें</string>
+    <plurals name="cust_shop2_reviews">
+        <item quantity="one">%1$d समीक्षा</item>
+        <item quantity="other">%1$d समीक्षाएँ</item>
+    </plurals>
+    <plurals name="cust_shop2_items">
+        <item quantity="one">%1$d चीज़</item>
+        <item quantity="other">%1$d चीज़ें</item>
+    </plurals>
+    <string name="cust_shop2_after_hours">अभी बंद है · %1$s खुलेगा। बाद के लिए स्लॉट बुक कर सकते हैं।</string>
+    <string name="cust_shop2_after_hours_plain">अभी बंद है। बाद के लिए स्लॉट बुक कर सकते हैं।</string>
 </resources>
