@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerly.mobile.data.api.NeerlyApi
 import com.neerly.mobile.data.cart.Cart
+import com.neerly.mobile.data.cart.CartItem
 import com.neerly.mobile.data.cart.CartStore
 import com.neerly.mobile.data.dto.QuotePromoRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -85,6 +86,77 @@ class CartViewModel @Inject constructor(
     fun removePromo() {
         store.clearPromo()
         _promo.value = PromoState()
+    }
+
+    // --- "When?" (board Cart) -------------------------------------------------
+
+    /** Back to "Right now" — the picked window is dropped from the cart. */
+    fun deliverNow() = store.setSlot(null)
+
+    // --- Quick adds (board CartMinimum) ----------------------------------------
+
+    private val _quickAdds = MutableStateFlow<List<QuickAdd>>(emptyList())
+    val quickAdds: StateFlow<List<QuickAdd>> = _quickAdds.asStateFlow()
+    private var shelf: List<com.neerly.mobile.data.dto.ProductResponse> = emptyList()
+    private var shelfOf: String? = null
+
+    /** Below the shop's minimum: one more of what's in the cart, and the cheapest thing that fits. */
+    fun loadQuickAdds() {
+        val vendorId = store.snapshot.vendorId ?: return
+        if (shelfOf == vendorId) { _quickAdds.value = QuickAdds.pick(store.snapshot, shelf); return }
+        viewModelScope.launch {
+            runCatching { api.vendorProducts(vendorId) }.onSuccess {
+                shelf = it; shelfOf = vendorId
+                _quickAdds.value = QuickAdds.pick(store.snapshot, it)
+            }
+        }
+    }
+
+    fun quickAdd(q: QuickAdd) {
+        val c = store.snapshot
+        val existing = c.items.firstOrNull { it.productId == q.productId }
+        if (existing != null) updateQuantity(q.productId, existing.quantity + 1)
+        else store.addItem(c.vendorId ?: return, c.vendorName ?: "", CartItem(
+            productId = q.productId, productName = q.name, unitPrice = q.price, quantity = 1,
+            keepContainer = q.keepContainer, depositPerContainer = q.deposit))
+        _quickAdds.value = QuickAdds.pick(store.snapshot, shelf)
+    }
+}
+
+/** One tap on the below-minimum cart (board CartMinimum: "One more 20L jar", "5L can"). */
+data class QuickAdd(
+    val productId: String,
+    val name: String,
+    val price: java.math.BigDecimal,
+    /** True for "One more …" of a line already in the cart. */
+    val oneMore: Boolean,
+    val keepContainer: Boolean = true,
+    val deposit: java.math.BigDecimal? = null
+)
+
+object QuickAdds {
+    /**
+     * At most two: one more of the first line (same container choice as that line), and
+     * the cheapest available product not in the cart. A new product is only offered when
+     * adding it can't attach a deposit the customer didn't choose — those go through the
+     * product sheet, where the keep/swap choice is explicit.
+     */
+    fun pick(cart: com.neerly.mobile.data.cart.Cart, shelf: List<com.neerly.mobile.data.dto.ProductResponse>): List<QuickAdd> {
+        val out = mutableListOf<QuickAdd>()
+        cart.items.firstOrNull { it.quantity < 10 }?.let {
+            out += QuickAdd(it.productId, it.productName, it.unitPrice, oneMore = true, it.keepContainer, it.depositPerContainer)
+        }
+        val inCart = cart.items.map { it.productId }.toSet()
+        shelf.asSequence()
+            .filter { it.status == "AVAILABLE" && it.id !in inCart }
+            .filter { !it.allowKeepContainer || it.depositAmount == null || it.depositAmount.signum() == 0 }
+            .minByOrNull { it.price }
+            ?.let { p ->
+                // Swap-only containers come back at the door; everything else is kept with no deposit.
+                val keep = !(p.allowTransferAndReturn && !p.allowKeepContainer)
+                out += QuickAdd(p.id, p.name, p.price, oneMore = false, keepContainer = keep, deposit = null)
+            }
+        return out
     }
 }
 

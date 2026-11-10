@@ -31,7 +31,8 @@ class CustomerHomeViewModel @Inject constructor(
     private val repo: CustomerRepository,
     private val connectivity: ConnectivityObserver,
     private val cart: com.neerly.mobile.data.cart.CartStore,
-    private val strings: com.neerly.mobile.core.util.Strings
+    private val strings: com.neerly.mobile.core.util.Strings,
+    private val discovery: com.neerly.mobile.data.api.DiscoveryApi
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -57,6 +58,40 @@ class CustomerHomeViewModel @Inject constructor(
         return o.items.isNotEmpty()
     }
 
+    /** Tap a chip to filter; tap it again to clear. */
+    fun toggleFilter(f: HomeFilter) {
+        _state.value = _state.value.copy(filter = if (_state.value.filter == f) null else f)
+    }
+
+    /** Board Home: one-tap "Skip" on tomorrow's subscription strip. */
+    fun skipNextDelivery() {
+        val sub = _state.value.nextSubscription ?: return
+        val date = sub.nextDeliveryDate ?: return
+        if (_state.value.skipping) return
+        _state.value = _state.value.copy(skipping = true, message = null)
+        viewModelScope.launch {
+            runCatching { repo.skipSubscription(sub.id, com.neerly.mobile.data.dto.SkipSubscriptionRequest(date.take(10))) }
+                .onSuccess {
+                    _state.value = _state.value.copy(skipping = false,
+                        message = strings.get(R.string.cust_home_skip_done, com.neerly.mobile.core.design.shortDay(date)))
+                    refresh()
+                }
+                .onFailure { _state.value = _state.value.copy(skipping = false, message = strings.get(R.string.cust_home_skip_failed)) }
+        }
+    }
+
+    /** Board NoSuppliers: "Leave your number, we'll text you the day one goes live." */
+    fun joinWaitlist() {
+        val pincode = _state.value.primaryAddress?.pincode ?: return
+        if (_state.value.onWaitlist || _state.value.joiningWaitlist) return
+        _state.value = _state.value.copy(joiningWaitlist = true, message = null)
+        viewModelScope.launch {
+            runCatching { discovery.joinWaitlist(com.neerly.mobile.data.dto.JoinWaitlistRequest(pincode = pincode)) }
+                .onSuccess { _state.value = _state.value.copy(joiningWaitlist = false, onWaitlist = true) }
+                .onFailure { _state.value = _state.value.copy(joiningWaitlist = false, message = strings.get(R.string.cust_waitlist_failed)) }
+        }
+    }
+
     fun refresh() {
         connectivity.refresh()
         _state.value = _state.value.copy(loading = true, error = null)
@@ -74,7 +109,13 @@ class CustomerHomeViewModel @Inject constructor(
                 val nextSub = runCatching { repo.subscriptions() }.getOrDefault(emptyList())
                     .filter { it.status == "ACTIVE" && it.nextDeliveryDate != null }.minByOrNull { it.nextDeliveryDate!! }
                 val name = runCatching { repo.me().displayName }.getOrNull()
+                // Nobody serves this pincode: is the customer already on its waitlist?
+                val waiting = vendors.isEmpty() && runCatching { discovery.myWaitlist() }.getOrDefault(emptyList())
+                    .any { it.vendorId == null && it.pincode == pincode }
                 HomeUiState(
+                    filter = _state.value.filter,
+                    onWaitlist = waiting,
+                    message = _state.value.message,
                     loading = false,
                     primaryAddress = primary,
                     vendors = vendors,
@@ -98,6 +139,27 @@ class CustomerHomeViewModel @Inject constructor(
     }
 }
 
+/** The Home filter chips (board Home). */
+enum class HomeFilter { OPEN_NOW, TOP_RATED, CHILLED, TANKER }
+
+object HomeFilters {
+    /** Shops taking orders, filtered and ordered by the chip. */
+    fun open(vendors: List<VendorCardResponse>, filter: HomeFilter?): List<VendorCardResponse> =
+        vendors.filter { !it.closedForNow }.let { apply(it, filter) }
+
+    /** Shops shut for now, listed under the open ones with when they're back — never under "Open now". */
+    fun closed(vendors: List<VendorCardResponse>, filter: HomeFilter?): List<VendorCardResponse> =
+        if (filter == HomeFilter.OPEN_NOW) emptyList() else vendors.filter { it.closedForNow }.let { apply(it, filter) }
+
+    private fun apply(list: List<VendorCardResponse>, filter: HomeFilter?): List<VendorCardResponse> = when (filter) {
+        null -> list
+        HomeFilter.OPEN_NOW -> list.filter { it.takingOrders }
+        HomeFilter.TOP_RATED -> list.filter { it.avgRating != null }.sortedByDescending { it.avgRating }
+        HomeFilter.CHILLED -> list.filter { "CHILLED" in it.tags }
+        HomeFilter.TANKER -> list.filter { "TANKER" in it.tags }
+    }
+}
+
 data class HomeUiState(
     val loading: Boolean = true,
     val primaryAddress: AddressResponse? = null,
@@ -107,5 +169,15 @@ data class HomeUiState(
     val usual: com.neerly.mobile.data.dto.OrderResponse? = null,
     val nextSubscription: com.neerly.mobile.data.dto.SubscriptionResponse? = null,
     val name: String? = null,
-    val error: String? = null
-)
+    val error: String? = null,
+    val filter: HomeFilter? = null,
+    /** Signed up for "text me when a shop delivers here". */
+    val onWaitlist: Boolean = false,
+    val joiningWaitlist: Boolean = false,
+    val skipping: Boolean = false,
+    /** One-off line after Skip / sign-up ("Skipped Sun 8 Nov."). */
+    val message: String? = null
+) {
+    val openVendors: List<VendorCardResponse> get() = HomeFilters.open(vendors, filter)
+    val closedVendors: List<VendorCardResponse> get() = HomeFilters.closed(vendors, filter)
+}

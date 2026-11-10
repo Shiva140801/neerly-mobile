@@ -96,9 +96,13 @@ object Routes {
 
     // Week 2 — purchase flow
     const val Cart = "customer/cart"
+    /** Board SlotPicker — the cart's "Pick a slot". */
+    const val SlotPicker = "customer/cart/slot"
     const val Checkout = "customer/checkout"
     const val OrderPlaced = "customer/order/{orderId}/placed/{orderNumber}"
     const val OrderTracking = "customer/order/{orderId}"
+    /** Board NoVendor — "Same order, other shops". */
+    const val OrderOtherShops = "customer/order/{orderId}/other-shops"
     const val OrderHistory = "customer/orders"
 
     // Week 3 — deep flows
@@ -177,6 +181,7 @@ object Routes {
         if (orderId.isNullOrBlank()) "customer/complaint?orderId=" else "customer/complaint?orderId=$orderId"
     fun orderPlaced(orderId: String, orderNumber: String) = "customer/order/$orderId/placed/$orderNumber"
     fun orderTracking(orderId: String) = "customer/order/$orderId"
+    fun orderOtherShops(orderId: String) = "customer/order/$orderId/other-shops"
     fun subscriptionDetail(id: String) = "customer/subscription/$id"
     fun complaintThread(id: String) = "customer/complaint/$id"
     fun help(orderId: String?) = "customer/help?orderId=${orderId.orEmpty()}"
@@ -376,7 +381,9 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onSelectTab = nav::switchTab,
                 onOpenCart = { nav.navigate(Routes.Cart) },
                 onSubscription = { id -> nav.navigate(Routes.subscriptionDetail(id)) },
-                onAddAddress = { nav.navigate(Routes.AddressNew) }
+                onAddAddress = { nav.navigate(Routes.AddressNew) },
+                onChangeAddress = { nav.navigate(Routes.AddressList) },
+                onJoinAsShop = { nav.navigate(Routes.VendorOnboarding) }
             )
         }
         composable(Routes.CustomerSearch) {
@@ -392,7 +399,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 vendorId = vendorId,
                 onBack = { nav.popBackStack() },
                 onAddToCart = { },
-                onViewCart = { nav.navigate(Routes.Cart) }
+                onViewCart = { nav.navigate(Routes.Cart) },
+                onOpenVendor = { id -> nav.navigate(Routes.vendorDetail(id)) }
             )
         }
         composable(Routes.VendorOnboarding) {
@@ -488,7 +496,11 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             )
         }
         composable(Routes.Cart) {
-            CartScreen(onBack = { nav.popBackStack() }, onCheckout = { nav.navigate(Routes.Checkout) })
+            CartScreen(onBack = { nav.popBackStack() }, onCheckout = { nav.navigate(Routes.Checkout) },
+                onPickSlot = { nav.navigate(Routes.SlotPicker) })
+        }
+        composable(Routes.SlotPicker) {
+            com.neerly.mobile.feature.cart.SlotPickerScreen(onBack = { nav.popBackStack() }, onDone = { nav.popBackStack() })
         }
         composable(Routes.Checkout) {
             CheckoutScreen(
@@ -519,7 +531,16 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onBack = { nav.popBackStack() },
                 onRateOrder = { id, number -> nav.navigate(Routes.reviewSubmit(id, number)) },
                 onFileComplaint = { id -> nav.navigate(Routes.help(id)) },
-                onCancel = { id -> nav.navigate(Routes.cancelOrder(id)) }
+                onCancel = { id -> nav.navigate(Routes.cancelOrder(id)) },
+                onOtherShops = { id -> nav.navigate(Routes.orderOtherShops(id)) }
+            )
+        }
+        composable(Routes.OrderOtherShops) {
+            com.neerly.mobile.feature.order.NoVendorScreen(
+                onBack = { nav.popBackStack() },
+                onRerouted = { id -> nav.navigate(Routes.orderTracking(id)) { popUpTo(Routes.OrderTracking) { inclusive = true } } },
+                onPickLaterSlot = { nav.navigate(Routes.Cart); nav.navigate(Routes.SlotPicker) },
+                onDrop = { nav.popBackStack(Routes.OrderTracking, inclusive = true) }
             )
         }
         composable(Routes.OrderHistory) {

@@ -28,7 +28,8 @@ class VendorDetailViewModel @Inject constructor(
     private val api: com.neerly.mobile.data.api.NeerlyApi,
     connectivity: ConnectivityObserver,
     savedState: SavedStateHandle,
-    private val strings: com.neerly.mobile.core.util.Strings
+    private val strings: com.neerly.mobile.core.util.Strings,
+    private val discovery: com.neerly.mobile.data.api.DiscoveryApi
 ) : ViewModel() {
 
     private val vendorId: String = savedState["vendorId"]
@@ -56,7 +57,10 @@ class VendorDetailViewModel @Inject constructor(
                     vendor.await() to products.await()
                 }
             }
-                .onSuccess { (v, p) -> _state.value = VendorDetailUiState(vendor = v, products = p, loading = false) }
+                .onSuccess { (v, p) ->
+                    _state.value = VendorDetailUiState(vendor = v, products = p, loading = false)
+                    if (v.closedForNow) loadClosedExtras()
+                }
                 .onFailure {
                     _state.value = VendorDetailUiState(
                         loading = false,
@@ -68,6 +72,41 @@ class VendorDetailViewModel @Inject constructor(
                 }
         }
     }
+
+    // --- Board VendorClosed: "ping me when they open" + open shops nearby ---------
+
+    private suspend fun pincode(): String? = runCatching {
+        repo.addresses().let { a -> (a.firstOrNull { it.isPrimary } ?: a.firstOrNull())?.pincode }
+    }.getOrNull()
+
+    private fun loadClosedExtras() = viewModelScope.launch {
+        val pinged = runCatching { discovery.myWaitlist() }.getOrDefault(emptyList()).any { it.vendorId == vendorId }
+        val nearby = pincode()?.let { pin ->
+            runCatching { repo.vendors(pin) }.getOrDefault(emptyList())
+                .filter { it.id != vendorId && it.takingOrders }.take(NEARBY)
+        } ?: emptyList()
+        _state.value = _state.value.copy(pingOn = pinged, nearbyOpen = nearby)
+    }
+
+    fun pingMeWhenOpen() {
+        if (_state.value.pingOn || _state.value.pinging) return
+        _state.value = _state.value.copy(pinging = true, message = null)
+        viewModelScope.launch {
+            runCatching { discovery.joinWaitlist(com.neerly.mobile.data.dto.JoinWaitlistRequest(vendorId = vendorId)) }
+                .onSuccess { _state.value = _state.value.copy(pinging = false, pingOn = true) }
+                .onFailure { _state.value = _state.value.copy(pinging = false, message = strings.get(R.string.cust_waitlist_failed)) }
+        }
+    }
+
+    // --- Board OutOfStock: "Want one sooner?" -------------------------------------
+
+    val soldOut = MutableStateFlow<com.neerly.mobile.data.dto.ProductAlternativesResponse?>(null)
+
+    fun openSoldOut(productId: String) = viewModelScope.launch {
+        soldOut.value = runCatching { discovery.productAlternatives(productId, pincode()) }.getOrNull()
+    }
+
+    fun closeSoldOut() { soldOut.value = null }
 
     /** Quantity of [productId] already in the cart, so the sheet opens pre-filled. */
     /** The shop's reviews, for the Reviews tab (loaded on first open). */
@@ -85,6 +124,8 @@ class VendorDetailViewModel @Inject constructor(
      * Returns [AddOutcome.VendorMismatch] when the cart belongs to another
      * vendor so the screen can prompt before clearing it.
      */
+    private companion object { const val NEARBY = 3 }
+
     fun setCartLine(selection: ProductSheetSelection): AddOutcome {
         val v = _state.value.vendor ?: return AddOutcome.VendorMismatch("", "")
         return cart.setLine(v.id, v.businessName, selection.toCartItem())
@@ -118,5 +159,13 @@ data class VendorDetailUiState(
     val vendor: VendorCardResponse? = null,
     val products: List<ProductResponse> = emptyList(),
     val loading: Boolean = true,
-    val error: String? = null
-)
+    val error: String? = null,
+    /** Board VendorClosed. */
+    val pingOn: Boolean = false,
+    val pinging: Boolean = false,
+    val nearbyOpen: List<VendorCardResponse> = emptyList(),
+    val message: String? = null
+) {
+    /** A shop shut for now takes nothing — "not even scheduled ones". */
+    val closed: Boolean get() = vendor?.closedForNow == true
+}

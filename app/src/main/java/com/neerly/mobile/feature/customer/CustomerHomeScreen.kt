@@ -54,6 +54,8 @@ fun CustomerHomeScreen(
     onOpenCart: () -> Unit = {},
     onSubscription: (String) -> Unit = {},
     onAddAddress: () -> Unit = {},
+    onChangeAddress: () -> Unit = {},
+    onJoinAsShop: () -> Unit = {},
     vm: CustomerHomeViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -126,11 +128,20 @@ fun CustomerHomeScreen(
             } }
             state.nextSubscription?.let { sub -> item {
                 com.neerly.mobile.core.design.BoondhCard(onClick = { onSubscription(sub.id) }) {
-                    com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_home_sub_when, com.neerly.mobile.core.design.shortDay(sub.nextDeliveryDate),
-                        com.neerly.mobile.core.design.timeWindow(sub.slotStart, sub.slotEnd)),
-                        stringResource(R.string.cust_home_sub_line, stringResource(R.string.cust_qty_item, sub.quantity, sub.productName ?: stringResource(R.string.cust_jar))))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.weight(1f)) {
+                            com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_home_sub_when, com.neerly.mobile.core.design.shortDay(sub.nextDeliveryDate),
+                                com.neerly.mobile.core.design.timeWindow(sub.slotStart, sub.slotEnd)),
+                                stringResource(R.string.cust_home_sub_line, stringResource(R.string.cust_qty_item, sub.quantity, sub.productName ?: stringResource(R.string.cust_jar))))
+                        }
+                        // Board Home: skipping tomorrow is one tap, not a trip into the plan.
+                        OutlinedButton(onClick = vm::skipNextDelivery, enabled = !state.skipping, modifier = Modifier.heightIn(min = 44.dp)) {
+                            Text(stringResource(R.string.cust_skip), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
                 }
             } }
+            state.message?.let { m -> item { com.neerly.mobile.core.design.Notice(m, com.neerly.mobile.core.design.Tone.Info) } }
             item {
                 OutlinedButton(onClick = onOpenSearch, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     shape = RoundedCornerShape(14.dp), border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink200),
@@ -138,28 +149,108 @@ fun CustomerHomeScreen(
                     Text(stringResource(R.string.cust_home_search), Modifier.weight(1f), color = NeerlyColors.Ink600, fontSize = 15.sp)
                 }
             }
-            item { com.neerly.mobile.core.design.SectionLabel(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_home_suppliers_open, state.vendors.size, state.vendors.size)) }
-            if (state.vendors.isEmpty()) item {
-                com.neerly.mobile.core.design.LoadState(false, null, vm::refresh, stringResource(R.string.cust_home_no_suppliers),
-                    stringResource(R.string.cust_home_no_suppliers_body))
+            val open = state.openVendors
+            val closed = state.closedVendors
+            if (state.vendors.isEmpty()) {
+                item { NoSuppliers(state, vm::joinWaitlist, onChangeAddress, onJoinAsShop) }
+                return@BoondhPage
             }
-            items(state.vendors, key = { it.id }) { v ->
-                com.neerly.mobile.core.design.BoondhCard(onClick = { onVendorClick(v.id) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(Modifier.size(44.dp).background(NeerlyColors.CustomerSoft, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                            Text(v.businessName.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(),
-                                fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
-                        }
-                        Column(Modifier.weight(1f)) {
-                            Text(v.businessName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                            Text(listOfNotNull(v.avgRating?.let { stringResource(R.string.cust_rating_stars, it.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) },
-                                androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, v.totalOrders.toInt(), v.totalOrders.toInt()),
-                                if (v.fssaiNumber != null) stringResource(R.string.cust_fssai_verified) else null).joinToString(" · "),
-                                fontSize = 13.sp, color = NeerlyColors.Ink600)
-                        }
-                    }
+            item { com.neerly.mobile.core.design.SectionLabel(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_home_suppliers_open,
+                state.vendors.count { it.takingOrders }, state.vendors.count { it.takingOrders })) }
+            item { FilterChips(state.filter, vm::toggleFilter) }
+            if (open.isEmpty() && closed.isEmpty()) item {
+                Text(stringResource(R.string.cust_home_no_match), fontSize = 14.sp, color = NeerlyColors.Ink600)
+            }
+            items(open, key = { it.id }) { v -> ShopCard(v, onClick = { onVendorClick(v.id) }) }
+            if (closed.isNotEmpty()) {
+                item { com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_home_closed_section)) }
+                items(closed, key = { "closed-" + it.id }) { v -> ShopCard(v, onClick = { onVendorClick(v.id) }) }
+            }
+        }
+    }
+}
+
+/** Board Home chips: Open now / Top rated / Chilled / Tanker. Tap again to clear. */
+@Composable
+private fun FilterChips(selected: HomeFilter?, onToggle: (HomeFilter) -> Unit) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(HomeFilter.entries) { f ->
+            FilterChip(
+                selected = selected == f,
+                onClick = { onToggle(f) },
+                label = { Text(when (f) {
+                    HomeFilter.OPEN_NOW -> stringResource(R.string.cust_home_chip_open)
+                    HomeFilter.TOP_RATED -> stringResource(R.string.cust_home_chip_top)
+                    HomeFilter.CHILLED -> stringResource(R.string.cust_home_chip_chilled)
+                    HomeFilter.TANKER -> stringResource(R.string.cust_home_chip_tanker)
+                }) },
+                modifier = Modifier.heightIn(min = 48.dp)
+            )
+        }
+    }
+}
+
+/** A shop row (board Home). A closed shop is greyed and says when it's back (boards Home, DarkHome). */
+@Composable
+private fun ShopCard(v: VendorCardResponse, onClick: () -> Unit) {
+    val closedNow = v.closedForNow || !v.takingOrders
+    com.neerly.mobile.core.design.BoondhCard(onClick = onClick) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(44.dp).background(if (closedNow) NeerlyColors.Ink100 else NeerlyColors.CustomerSoft, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center) {
+                Text(v.businessName.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(),
+                    fontWeight = FontWeight.Bold, color = if (closedNow) NeerlyColors.Ink600 else NeerlyColors.CustomerPrimary)
+            }
+            Column(Modifier.weight(1f)) {
+                Text(v.businessName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = if (closedNow) NeerlyColors.Ink600 else NeerlyColors.Ink900)
+                val rating = v.avgRating?.let { r ->
+                    stringResource(R.string.cust_rating_stars, r.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) +
+                        (v.reviewCount?.takeIf { it > 0 }?.let { " ($it)" } ?: "")
+                }
+                val eta = if (v.etaMinutesMin != null && v.etaMinutesMax != null && v.takingOrders)
+                    stringResource(R.string.cust_home_eta, v.etaMinutesMin, v.etaMinutesMax) else null
+                Text(listOfNotNull(rating, eta,
+                    if (v.reviewCount == null) androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, v.totalOrders.toInt(), v.totalOrders.toInt()) else null,
+                    if (v.fssaiNumber != null) stringResource(R.string.cust_fssai_verified) else null).joinToString(" · "),
+                    fontSize = 13.sp, color = NeerlyColors.Ink600)
+                if (closedNow) {
+                    val back = v.backOn?.let(::backLabel)
+                    Text(when {
+                        v.closedLabel != null && back != null -> stringResource(R.string.cust_home_closed_label_back, v.closedLabel, back)
+                        back != null -> stringResource(R.string.cust_home_closed_back, back)
+                        else -> stringResource(R.string.cust_home_closed_now)
+                    }, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Warn)
+                } else v.jarFromPrice?.let {
+                    Text(stringResource(R.string.cust_home_jar_from, it.asRupees()), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
                 }
             }
         }
     }
 }
+
+/** Board NoSuppliers: sign up to be told, try another address, or join as a shop. */
+@Composable
+private fun NoSuppliers(state: HomeUiState, onJoin: () -> Unit, onChangeAddress: () -> Unit, onJoinAsShop: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.cust_home_no_suppliers_area), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+            fontSize = 24.sp, color = NeerlyColors.Ink900)
+        Text(stringResource(R.string.cust_home_no_suppliers_area_body), fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600)
+        if (state.onWaitlist) com.neerly.mobile.core.design.Notice(stringResource(R.string.cust_home_waitlist_done), com.neerly.mobile.core.design.Tone.Ok)
+        else com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_home_waitlist_cta), onJoin, enabled = !state.joiningWaitlist)
+        com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_home_try_address), onChangeAddress)
+        TextButton(onClick = onJoinAsShop, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.cust_home_join_shop), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+/** "6 AM" today, "Wed 6 AM" this week, "11 Nov, 6 AM" later — IST, in the app's language. */
+internal fun backLabel(iso: String): String = runCatching {
+    val zone = java.time.ZoneId.of("Asia/Kolkata")
+    val at = java.time.Instant.parse(iso).atZone(zone)
+    val today = java.time.LocalDate.now(zone)
+    val loc = com.neerly.mobile.core.util.AppLocale.locale
+    val days = java.time.temporal.ChronoUnit.DAYS.between(today, at.toLocalDate())
+    val pattern = when { days == 0L -> "h a"; days in 1..6 -> "EEE h a"; else -> "d MMM, h a" }
+    at.format(java.time.format.DateTimeFormatter.ofPattern(pattern, loc))
+}.getOrDefault("")

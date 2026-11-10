@@ -21,7 +21,9 @@ data class Cart(
     val deliveryFee: BigDecimal = BigDecimal.ZERO,
     val surge: BigDecimal = BigDecimal.ZERO,
     val promoCode: String? = null,
-    val discount: BigDecimal = BigDecimal.ZERO
+    val discount: BigDecimal = BigDecimal.ZERO,
+    /** "When?" — null is "Right now"; otherwise the window picked on the slot picker. */
+    val slot: DeliverySlot? = null
 ) {
     val isEmpty: Boolean get() = items.isEmpty()
 
@@ -67,4 +69,18 @@ data class CartItem(
         if (keepContainer && depositPerContainer != null)
             depositPerContainer.multiply(BigDecimal(quantity)).setScale(2, RoundingMode.HALF_UP)
         else BigDecimal.ZERO
+}
+
+/**
+ * A delivery window the customer picked (board SlotPicker), in shop time (IST).
+ * The server re-checks it at placement, so a stale pick fails loudly, not silently.
+ */
+data class DeliverySlot(
+    val date: java.time.LocalDate,
+    val start: java.time.LocalTime,
+    val end: java.time.LocalTime
+) {
+    private val zone get() = java.time.ZoneId.of("Asia/Kolkata")
+    val startIso: String get() = date.atTime(start).atZone(zone).toInstant().toString()
+    val endIso: String get() = date.atTime(end).atZone(zone).toInstant().toString()
 }

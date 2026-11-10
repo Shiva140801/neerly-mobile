@@ -38,6 +38,8 @@ fun OrderTrackingScreen(
     onRateOrder: (orderId: String, orderNumber: String) -> Unit,
     onFileComplaint: (String) -> Unit,
     onCancel: (String) -> Unit = {},
+    /** Board NoVendor: no shop took it — same order, other shops. */
+    onOtherShops: (orderId: String) -> Unit = {},
     vm: OrderTrackingViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -95,7 +97,12 @@ fun OrderTrackingScreen(
                     if (state.reviewed) Text(stringResource(R.string.cust_tr_rated), fontSize = 14.sp, color = NeerlyColors.Ink600)
                     else com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_tr_rate), { onRateOrder(order.id, order.orderNumber) })
                 }
-                "FAILED", "CANCELLED" -> item { EndedCard(order.status, order.paymentMethod) }
+                "FAILED", "CANCELLED" -> item {
+                    EndedCard(order.status, order.paymentMethod)
+                    // Failed before any driver had it = no shop said yes (board NoVendor).
+                    if (order.status == "FAILED" && order.driverId == null)
+                        com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_nv_see_others), { onOtherShops(order.id) })
+                }
             }
             if (order.status !in OrderTrackingViewModel.TERMINAL && order.status != "DELIVERED") item {
                 com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_tr_cancel), { onCancel(order.id) }, color = NeerlyColors.Err)

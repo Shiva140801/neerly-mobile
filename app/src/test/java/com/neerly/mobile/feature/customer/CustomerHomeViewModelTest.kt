@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -31,6 +32,7 @@ class CustomerHomeViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repo: CustomerRepository = mockk()
+    private val discovery: com.neerly.mobile.data.api.DiscoveryApi = mockk(relaxed = true)
     private val connectivity: ConnectivityObserver = mockk<ConnectivityObserver>(relaxed = true).also {
         every { it.isOnline } returns MutableStateFlow(true)
     }
@@ -72,7 +74,7 @@ class CustomerHomeViewModelTest {
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal("340.00")
         )
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -93,7 +95,7 @@ class CustomerHomeViewModelTest {
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal.ZERO
         )
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
         advanceUntilIdle()
 
         assertNull(vm.state.value.primaryAddress)
@@ -107,7 +109,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.activeOrders() } throws RuntimeException("orders service down")
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
         advanceUntilIdle()
 
         assertEquals(false, vm.state.value.loading)
@@ -119,7 +121,7 @@ class CustomerHomeViewModelTest {
     fun load_addressesFailure_surfacesError() = runTest(dispatcher) {
         coEvery { repo.addresses() } throws RuntimeException("offline")
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -136,7 +138,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.addresses() } throws
             java.io.IOException("Unable to create converter for java.util.List<VendorCardResponse>")
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -150,9 +152,74 @@ class CustomerHomeViewModelTest {
         coEvery { repo.activeOrders() } returns listOf(activeOrder)
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
         advanceUntilIdle()
 
         assertEquals("OUT_FOR_DELIVERY", vm.state.value.activeOrders.single().status)
+    }
+
+    private fun homeWith(vararg vendors: VendorCardResponse): CustomerHomeViewModel {
+        coEvery { repo.addresses() } returns listOf(primary)
+        coEvery { repo.vendors("500081") } returns vendors.toList()
+        coEvery { repo.activeOrders() } returns emptyList()
+        coEvery { repo.wallet() } throws RuntimeException("n/a")
+        coEvery { repo.myOrders(any(), any()) } returns emptyList()
+        coEvery { repo.subscriptions() } returns emptyList()
+        coEvery { repo.me() } throws RuntimeException("n/a")
+        return CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+    }
+
+    @Test
+    fun noSuppliers_joinWaitlist_signsUpThePincodeOnce() = runTest(dispatcher) {
+        coEvery { discovery.myWaitlist() } returns emptyList()
+        coEvery { discovery.joinWaitlist(any()) } returns com.neerly.mobile.data.dto.WaitlistEntryDto(id = "w1", pincode = "500081")
+        val vm = homeWith()
+        advanceUntilIdle()
+        assertFalse(vm.state.value.onWaitlist)
+        vm.joinWaitlist(); advanceUntilIdle()
+        vm.joinWaitlist(); advanceUntilIdle()
+        assertTrue(vm.state.value.onWaitlist)
+        io.mockk.coVerify(exactly = 1) { discovery.joinWaitlist(com.neerly.mobile.data.dto.JoinWaitlistRequest(pincode = "500081")) }
+    }
+
+    @Test
+    fun noSuppliers_alreadyOnTheList_showsDoneOnLoad() = runTest(dispatcher) {
+        coEvery { discovery.myWaitlist() } returns listOf(com.neerly.mobile.data.dto.WaitlistEntryDto(id = "w1", pincode = "500081"))
+        val vm = homeWith()
+        advanceUntilIdle()
+        assertTrue(vm.state.value.onWaitlist)
+    }
+
+    @Test
+    fun filters_closedShopsGoUnderOpenOnes_andOpenNowHidesThem() = runTest(dispatcher) {
+        val chilled = vendor.copy(id = "v2", businessName = "Cool Drops", tags = listOf("CHILLED"), openState = "OPEN", avgRating = BigDecimal("4.9"))
+        val holiday = vendor.copy(id = "v3", businessName = "AquaFresh", openState = "HOLIDAY", closedLabel = "Diwali", backOn = "2026-11-11T00:30:00Z")
+        val vm = homeWith(vendor.copy(openState = "OPEN"), chilled, holiday)
+        advanceUntilIdle()
+        assertEquals(listOf("v1", "v2"), vm.state.value.openVendors.map { it.id })
+        assertEquals(listOf("v3"), vm.state.value.closedVendors.map { it.id })
+        vm.toggleFilter(HomeFilter.OPEN_NOW)
+        assertTrue(vm.state.value.closedVendors.isEmpty())
+        vm.toggleFilter(HomeFilter.CHILLED)
+        assertEquals(listOf("v2"), vm.state.value.openVendors.map { it.id })
+        vm.toggleFilter(HomeFilter.TOP_RATED)
+        assertEquals(listOf("v2", "v1"), vm.state.value.openVendors.map { it.id })
+        vm.toggleFilter(HomeFilter.TOP_RATED)
+        assertEquals(null, vm.state.value.filter)
+    }
+
+    @Test
+    fun skip_tomorrowsSubscription_postsThatDate() = runTest(dispatcher) {
+        val sub = io.mockk.mockk<com.neerly.mobile.data.dto.SubscriptionResponse>(relaxed = true).also {
+            io.mockk.every { it.id } returns "s1"; io.mockk.every { it.status } returns "ACTIVE"
+            io.mockk.every { it.nextDeliveryDate } returns "2026-11-11"
+        }
+        val vm = homeWith(vendor)
+        coEvery { repo.subscriptions() } returns listOf(sub)
+        coEvery { repo.skipSubscription("s1", any()) } returns io.mockk.mockk(relaxed = true)
+        vm.refresh(); advanceUntilIdle()
+        vm.skipNextDelivery(); advanceUntilIdle()
+        io.mockk.coVerify { repo.skipSubscription("s1", com.neerly.mobile.data.dto.SkipSubscriptionRequest("2026-11-11")) }
+        assertTrue(vm.state.value.message!!.isNotBlank())
     }
 }

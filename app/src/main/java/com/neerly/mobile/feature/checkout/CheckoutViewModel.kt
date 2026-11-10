@@ -28,7 +28,7 @@ import javax.inject.Inject
 /**
  * Drives the checkout flow:
  *   1. Load addresses (defaults to primary)
- *   2. User picks payment method + slot (default NOW)
+ *   2. User picks payment method (the delivery slot comes from the cart's "When?")
  *   3. placeOrder → server returns an orderId (status PLACED)
  *   4. If payment method != COD: initiate payment → Razorpay launcher → capture
  *   5. On success, caller navigates to OrderPlacedScreen
@@ -122,8 +122,9 @@ class CheckoutViewModel @Inject constructor(
             orderType = "ON_DEMAND",
             paymentMethod = s.paymentMethod,
             promoCode = snap.promoCode,
-            // "NOW" means on-demand — no requested slot; anything else is an ISO instant.
-            requestedSlotStart = s.slot.takeUnless { it == "NOW" }
+            // Null slot is "Right now" (on-demand); a picked window goes to the shop's run-sheet.
+            requestedSlotStart = snap.slot?.startIso,
+            requestedSlotEnd = snap.slot?.endIso
         )
     }
 
@@ -228,7 +229,6 @@ data class CheckoutUiState(
     val addresses: List<AddressResponse> = emptyList(),
     val selectedAddress: AddressResponse? = null,
     val paymentMethod: String = "UPI",
-    val slot: String = "NOW",
     val placedOrder: OrderResponse? = null,
     val quote: OrderQuoteResponse? = null,
     val quoting: Boolean = false,

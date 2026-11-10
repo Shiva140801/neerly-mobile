@@ -3,6 +3,9 @@ package com.neerly.mobile.feature.cart
 import com.neerly.mobile.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,13 +40,16 @@ import java.math.BigDecimal
 fun CartScreen(
     onBack: () -> Unit,
     onCheckout: () -> Unit,
+    onPickSlot: () -> Unit = {},
     vm: CartViewModel = hiltViewModel()
 ) {
     val cart by vm.cart.collectAsState()
     val promo by vm.promo.collectAsState()
+    val quickAdds by vm.quickAdds.collectAsState()
 
     val cfg = com.neerly.mobile.data.config.LocalAppConfig.current
     val short = (cfg.minOrderValue - cart.subtotal).takeIf { cfg.minOrderValue.signum() > 0 && it.signum() > 0 }
+    androidx.compose.runtime.LaunchedEffect(short != null, cart.vendorId) { if (short != null) vm.loadQuickAdds() }
     // Board 12 (cart) and 43 (below the minimum).
     com.neerly.mobile.core.design.BoondhPage(
         title = if (cart.isEmpty) stringResource(R.string.cust_cart_empty) else stringResource(R.string.cust_cart_title),
@@ -66,6 +72,10 @@ fun CartScreen(
                 onRemove = { vm.removeLine(item.productId) }
             )
         }
+        if (short != null && quickAdds.isNotEmpty()) item {
+            QuickAddsCard(quickAdds, vm::quickAdd, cfg.minOrderValue)
+        }
+        item { WhenCard(cart.slot, onNow = vm::deliverNow, onPickSlot = onPickSlot) }
         item {
             PromoCodeField(
                 orderSubtotal = cart.subtotal,
@@ -79,6 +89,60 @@ fun CartScreen(
         item { PricingBreakdown(cart) }
         item { TextButton(onClick = { vm.clearCart() }, modifier = Modifier.heightIn(min = 44.dp)) {
             Text(stringResource(R.string.cust_cart_empty_action), color = NeerlyColors.Err) } }
+    }
+}
+
+/** Board Cart "When?": right now, or a picked window from the slot picker. */
+@Composable
+private fun WhenCard(slot: com.neerly.mobile.data.cart.DeliverySlot?, onNow: () -> Unit, onPickSlot: () -> Unit) {
+    com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_cart_when))
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        WhenOption(stringResource(R.string.cust_cart_now), stringResource(R.string.cust_cart_now_eta, 20, 30), slot == null, onNow)
+        val picked = slot?.let {
+            val day = it.date.format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM", com.neerly.mobile.core.util.AppLocale.locale))
+            "$day, " + com.neerly.mobile.core.design.timeWindow(it.start.toString(), it.end.toString())
+        }
+        WhenOption(stringResource(R.string.cust_cart_pick_slot), picked ?: stringResource(R.string.cust_cart_slot_hint), slot != null, onPickSlot)
+    }
+}
+
+@Composable
+private fun WhenOption(title: String, detail: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
+            .border(if (selected) 2.dp else 1.dp, if (selected) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200, RoundedCornerShape(14.dp))
+            .clickable(role = androidx.compose.ui.semantics.Role.RadioButton, onClick = onClick)
+            .semantics { this.selected = selected }
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+            Text(detail, fontSize = 13.sp, color = NeerlyColors.Ink600)
+        }
+    }
+}
+
+/** Board CartMinimum "Quick adds". */
+@Composable
+private fun QuickAddsCard(adds: List<QuickAdd>, onAdd: (QuickAdd) -> Unit, minimum: java.math.BigDecimal) {
+    com.neerly.mobile.core.design.BoondhCard {
+        com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_cart_quick_adds))
+        adds.forEach { q ->
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(if (q.oneMore) stringResource(R.string.cust_cart_one_more, q.name) else q.name,
+                    Modifier.weight(1f), fontSize = 15.sp, color = NeerlyColors.Ink900)
+                Text(q.price.asRupees(), fontSize = 14.sp, color = NeerlyColors.Ink600)
+                Spacer(Modifier.width(10.dp))
+                OutlinedButton(onClick = { onAdd(q) }, modifier = Modifier.heightIn(min = 44.dp)) {
+                    Text(stringResource(R.string.cust_add), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+        Text(stringResource(R.string.cust_cart_min_note, minimum.asRupees()), fontSize = 12.sp, color = NeerlyColors.Ink600)
     }
 }
 

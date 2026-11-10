@@ -110,6 +110,11 @@ class CartStore @Inject constructor() {
 
     fun clear() { _state.value = Cart() }
 
+    /** "Right now" (null) or a picked window; kept until the shop changes or the cart empties. */
+    fun setSlot(slot: DeliverySlot?) {
+        _state.value = _state.value.copy(slot = slot)
+    }
+
     /**
      * Quote result from the promo endpoint is stored on the cart — this
      * doesn't itself call the backend (ViewModel does).

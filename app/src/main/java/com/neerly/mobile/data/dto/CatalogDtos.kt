@@ -13,8 +13,27 @@ data class VendorCardResponse(
     val businessPincode: String,
     val avgRating: BigDecimal?,
     val totalOrders: Long,
-    val fssaiNumber: String?
-)
+    val fssaiNumber: String?,
+    val reviewCount: Int? = null,
+    val etaMinutesMin: Int? = null,
+    val etaMinutesMax: Int? = null,
+    val isOpenNow: Boolean? = null,
+    /** OPEN | AFTER_HOURS | CLOSED_TODAY | HOLIDAY | PAUSED (boards Home, VendorClosed). */
+    val openState: String? = null,
+    /** The shop's own words for a holiday or pause ("Diwali"). */
+    val closedLabel: String? = null,
+    /** ISO instant the shop next takes orders. */
+    val backOn: String? = null,
+    /** "20L from ₹60". */
+    val jarFromPrice: BigDecimal? = null,
+    /** CHILLED, TANKER — what the Home filter chips match. */
+    val tags: List<String> = emptyList()
+) {
+    /** Taking orders right now; an older server without openState falls back to isOpenNow. */
+    val takingOrders: Boolean get() = openState?.let { it == "OPEN" } ?: (isOpenNow ?: true)
+    /** Shut for the day or longer — listed under the open shops with when it's back. */
+    val closedForNow: Boolean get() = openState in setOf("HOLIDAY", "PAUSED", "CLOSED_TODAY")
+}
 
 /** The product-template block `ProductResponse` nests, per the backend JSON. */
 @JsonClass(generateAdapter = true)

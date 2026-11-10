@@ -54,6 +54,7 @@ fun VendorDetailScreen(
     onBack: () -> Unit,
     onAddToCart: (productId: String) -> Unit,
     onViewCart: () -> Unit = {},
+    onOpenVendor: (String) -> Unit = {},
     vm: VendorDetailViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -69,6 +70,7 @@ fun VendorDetailScreen(
 
     val cartNow by vm.cartState.collectAsState()
     val reviews by vm.reviews.collectAsState()
+    val soldOut by vm.soldOut.collectAsState()
     var tab by remember { mutableStateOf(0) }
     val cfg = com.neerly.mobile.data.config.LocalAppConfig.current
     Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
@@ -95,6 +97,7 @@ fun VendorDetailScreen(
                             androidx.compose.ui.res.pluralStringResource(R.plurals.cust_orders_count, it.totalOrders.toInt(), it.totalOrders.toInt()), it.businessCity).joinToString(" · "), fontSize = 14.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy) }
                         v?.fssaiNumber?.let { Text(stringResource(R.string.cust_shop_verified_fssai, it), fontSize = 13.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy) }
                     }
+                    if (state.closed && v != null) ClosedPanel(v, state, vm::pingMeWhenOpen)
                     TabRow(selectedTabIndex = tab, containerColor = NeerlyColors.Paper, contentColor = NeerlyColors.CustomerPrimary) {
                         listOf(stringResource(R.string.cust_shop_tab_water), stringResource(R.string.cust_shop_tab_reviews), stringResource(R.string.cust_shop_tab_about)).forEachIndexed { i, label ->
                             Tab(selected = tab == i, onClick = { tab = i; if (i == 1) vm.loadReviews() },
@@ -108,7 +111,13 @@ fun VendorDetailScreen(
                                     stringResource(R.string.cust_shop_nothing_listed_body))
                             } else state.products.forEach { p ->
                                 val soldOut = p.status != "AVAILABLE"
-                                com.neerly.mobile.core.design.BoondhCard(onClick = if (soldOut) null else ({ sheetProduct = p })) {
+                                // Closed shop: the prices stay readable, nothing can be added (board VendorClosed).
+                                // Sold out: tap for when it's back and where else to get it (board OutOfStock).
+                                com.neerly.mobile.core.design.BoondhCard(onClick = when {
+                                    state.closed -> null
+                                    soldOut -> ({ vm.openSoldOut(p.id) })
+                                    else -> ({ sheetProduct = p })
+                                }) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Column(Modifier.weight(1f)) {
                                             Text(listOfNotNull(p.brand, p.name).joinToString(" "), fontSize = 16.sp, fontWeight = FontWeight.Bold,
@@ -123,7 +132,7 @@ fun VendorDetailScreen(
                                         Column(horizontalAlignment = Alignment.End) {
                                             Text(p.price.asRupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
                                             val inCart = vm.quantityInCart(p.id)
-                                            if (!soldOut) TextButton(onClick = { sheetProduct = p }, modifier = Modifier.heightIn(min = 44.dp)) {
+                                            if (!soldOut && !state.closed) TextButton(onClick = { sheetProduct = p }, modifier = Modifier.heightIn(min = 44.dp)) {
                                                 Text(if (inCart > 0) stringResource(R.string.cust_shop_in_cart, inCart) else stringResource(R.string.cust_add), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
                                         }
                                     }
@@ -148,6 +157,19 @@ fun VendorDetailScreen(
                                 v?.fssaiNumber?.let { com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_fssai), it) }
                                 com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_delivery), stringResource(R.string.cust_shop_delivery_line, cfg.deliveryFeeNear.asRupees(), cfg.freeDeliveryAbove.asRupees()))
                                 com.neerly.mobile.core.design.InfoRow(stringResource(R.string.cust_shop_jars), stringResource(R.string.cust_shop_jars_line))
+                            }
+                        }
+                        if (tab == 0 && state.closed && state.nearbyOpen.isNotEmpty()) {
+                            com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_shop_open_nearby))
+                            state.nearbyOpen.forEach { n ->
+                                com.neerly.mobile.core.design.BoondhCard(onClick = { onOpenVendor(n.id) }) {
+                                    val eta = if (n.etaMinutesMin != null && n.etaMinutesMax != null) stringResource(R.string.cust_home_eta, n.etaMinutesMin, n.etaMinutesMax) else null
+                                    com.neerly.mobile.core.design.InfoRow(n.businessName,
+                                        when {
+                                            eta != null && n.jarFromPrice != null -> stringResource(R.string.cust_shop_eta_from, eta, n.jarFromPrice.asRupees())
+                                            else -> eta ?: n.jarFromPrice?.asRupees()
+                                        })
+                                }
                             }
                         }
                     }
@@ -186,6 +208,15 @@ fun VendorDetailScreen(
                     }
                 }
             )
+        }
+    }
+
+    soldOut?.let { alt ->
+        ModalBottomSheet(onDismissRequest = vm::closeSoldOut, containerColor = NeerlyColors.Paper,
+            shape = RoundedCornerShape(topStart = NeerlyRadius.xl, topEnd = NeerlyRadius.xl)) {
+            SoldOutSheet(alt,
+                onOpenShop = { id -> vm.closeSoldOut(); onOpenVendor(id) },
+                onAddHere = { id -> vm.closeSoldOut(); state.products.firstOrNull { it.id == id }?.let { sheetProduct = it } })
         }
     }
 
@@ -236,5 +267,78 @@ private fun VendorDetailError(message: String, onRetry: () -> Unit, onBack: () -
             colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
         ) { Text(stringResource(R.string.cust_try_again)) }
         TextButton(onClick = onBack) { Text(stringResource(R.string.cust_go_back), color = NeerlyColors.Ink500) }
+    }
+}
+
+/** Board VendorClosed: why it's shut, when it's back, and "ping me when they open". */
+@Composable
+private fun ClosedPanel(v: com.neerly.mobile.data.dto.VendorCardResponse, state: VendorDetailUiState, onPing: () -> Unit) {
+    Column(Modifier.fillMaxWidth().background(NeerlyColors.WarnSoft).padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        com.neerly.mobile.core.design.Pill(when {
+            v.openState == "PAUSED" -> stringResource(R.string.cust_shop_paused)
+            v.closedLabel != null -> stringResource(R.string.cust_shop_closed_for, v.closedLabel)
+            else -> stringResource(R.string.cust_shop_closed)
+        }, com.neerly.mobile.core.design.Tone.Warn)
+        v.backOn?.let { iso ->
+            val back = runCatching {
+                java.time.Instant.parse(iso).atZone(java.time.ZoneId.of("Asia/Kolkata"))
+                    .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d MMM, h a", com.neerly.mobile.core.util.AppLocale.locale))
+            }.getOrNull()
+            back?.let { Text(stringResource(R.string.cust_shop_back_on, it), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                fontSize = 22.sp, color = NeerlyColors.Ink900) }
+        }
+        Text(stringResource(R.string.cust_shop_closed_body), fontSize = 14.sp, lineHeight = 20.sp, color = NeerlyColors.Ink700)
+        if (state.pingOn) com.neerly.mobile.core.design.Notice(stringResource(R.string.cust_shop_ping_on), com.neerly.mobile.core.design.Tone.Ok)
+        else com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_shop_ping_me), onPing, enabled = !state.pinging)
+        state.message?.let { com.neerly.mobile.core.design.Notice(it, com.neerly.mobile.core.design.Tone.Bad) }
+    }
+}
+
+/** Board OutOfStock: when it's back, and other ways to get one sooner. */
+@Composable
+private fun SoldOutSheet(
+    alt: com.neerly.mobile.data.dto.ProductAlternativesResponse,
+    onOpenShop: (String) -> Unit,
+    onAddHere: (String) -> Unit
+) {
+    val zone = java.time.ZoneId.of("Asia/Kolkata")
+    val loc = com.neerly.mobile.core.util.AppLocale.locale
+    val since = alt.soldOutSince?.let { iso -> runCatching {
+        val at = java.time.Instant.parse(iso).atZone(zone)
+        if (at.toLocalDate() == java.time.LocalDate.now(zone)) at.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a", loc))
+        else com.neerly.mobile.core.design.shortDay(iso)
+    }.getOrNull() }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        com.neerly.mobile.core.design.Pill(stringResource(R.string.cust_oos_sold_out), com.neerly.mobile.core.design.Tone.Warn)
+        Text(alt.name, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 22.sp, color = NeerlyColors.Ink900)
+        listOfNotNull(
+            since?.let { stringResource(R.string.cust_oos_since, it) },
+            alt.backOn?.let { stringResource(R.string.cust_oos_back, com.neerly.mobile.core.design.shortDay(it)) }
+        ).takeIf { it.isNotEmpty() }?.let { Text(it.joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink600) }
+        com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_oos_sooner))
+        if (alt.otherShops.isEmpty() && alt.sameShop.isEmpty()) Text(stringResource(R.string.cust_oos_none), fontSize = 14.sp, color = NeerlyColors.Ink600)
+        alt.otherShops.forEach { o ->
+            AltRow(title = "${o.name} · ${o.vendorName ?: ""}", detail = stringResource(R.string.cust_oos_other_shop), price = o.price,
+                action = stringResource(R.string.cust_oos_open)) { onOpenShop(o.vendorId) }
+        }
+        alt.sameShop.forEach { o ->
+            AltRow(title = o.name, detail = stringResource(R.string.cust_oos_same_shop), price = o.price,
+                action = stringResource(R.string.cust_add)) { onAddHere(o.productId) }
+        }
+    }
+}
+
+@Composable
+private fun AltRow(title: String, detail: String, price: java.math.BigDecimal, action: String, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+            Text(detail, fontSize = 13.sp, color = NeerlyColors.Ink600)
+        }
+        Text(price.asRupees(), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Spacer(Modifier.width(8.dp))
+        OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 44.dp)) {
+            Text(action, color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
