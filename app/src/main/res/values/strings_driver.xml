@@ -160,7 +160,7 @@
     <string name="drv_money_title">Money</string>
     <string name="drv_money_sub">Today, from your drops</string>
     <string name="drv_earned_today">You earned today</string>
-    <string name="drv_from_cash_orders">From cash orders today</string>
+    <string name="drv_from_cash_orders">Not handed to the shop yet</string>
     <string name="drv_give_shop">Give it to the shop at the end of the day, then record it here. The shop confirms what it received.</string>
     <string name="drv_hand_cash_shop">Hand over cash to the shop</string>
     <string name="drv_by_week">By week</string>

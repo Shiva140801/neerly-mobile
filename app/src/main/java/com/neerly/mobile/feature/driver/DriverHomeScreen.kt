@@ -890,7 +890,9 @@ private fun MoneyTab(s: DriverHomeUiState, onCodReconcile: () -> Unit) {
                 InfoRow(stringResource(R.string.drv_cash_with_you), stringResource(R.string.drv_from_cash_orders), (t?.cashInHand ?: BigDecimal.ZERO).rupees())
                 Text(stringResource(R.string.drv_give_shop),
                     fontSize = 14.sp, color = NeerlyColors.Ink600)
-                SecondaryButton(stringResource(R.string.drv_hand_cash_shop), onCodReconcile, modifier = BIG)
+                // Nothing to hand over → nothing to press (it opened an empty form).
+                SecondaryButton(stringResource(R.string.drv_hand_cash_shop), onCodReconcile, modifier = BIG,
+                    enabled = (t?.cashInHand ?: BigDecimal.ZERO).signum() > 0)
             }
         }
         item { SectionLabel(stringResource(R.string.drv_by_week)) }

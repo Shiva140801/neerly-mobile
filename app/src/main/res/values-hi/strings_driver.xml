@@ -160,7 +160,7 @@
     <string name="drv_money_title">पैसे</string>
     <string name="drv_money_sub">आज, आपके ड्रॉप से</string>
     <string name="drv_earned_today">आज आपकी कमाई</string>
-    <string name="drv_from_cash_orders">आज के नकद ऑर्डर से</string>
+    <string name="drv_from_cash_orders">अभी दुकान को नहीं दिया</string>
     <string name="drv_give_shop">दिन के आखिर में दुकान को दें, फिर यहाँ दर्ज करें। दुकान पुष्टि करती है कि क्या मिला।</string>
     <string name="drv_hand_cash_shop">नकद दुकान को सौंपें</string>
     <string name="drv_by_week">हफ़्ते के हिसाब से</string>
