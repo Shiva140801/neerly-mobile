@@ -50,9 +50,11 @@ import androidx.compose.ui.unit.sp
  */
 
 /** What still works when the connection drops, and what doesn't. */
-private val WorksOffline = listOf(R.string.core_offline_works_status, R.string.core_offline_works_loaded)
+private val WorksOffline = listOf(R.string.core_offline_works_status, R.string.core_offline_works_code,
+    R.string.core_offline_works_call, R.string.core_offline_works_jars, R.string.core_offline_works_loaded)
 
-private val NeedsInternet = listOf(R.string.core_offline_needs_order, R.string.core_offline_needs_payments, R.string.core_offline_needs_live)
+private val NeedsInternet = listOf(R.string.core_offline_needs_order, R.string.core_offline_needs_payments, R.string.core_offline_needs_live,
+    R.string.core_offline_needs_map)
 
 /**
  * Full-screen blocker for a cold start with no data.

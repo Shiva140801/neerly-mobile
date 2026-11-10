@@ -115,4 +115,8 @@
     <string name="core_locden_type">Type my address instead</string>
     <!-- LEGAL REVIEW: operating entity name is pending (the invoice PDF says "Neerly Technologies Pvt Ltd"; the design boards say "Boondh Technologies Pvt Ltd"). -->
     <string name="core_legal_entity" translatable="false">Boondh Technologies Pvt Ltd</string>
+    <string name="core_offline_works_code">Your delivery code</string>
+    <string name="core_offline_works_call">Calling the driver or the shop</string>
+    <string name="core_offline_works_jars">Your jars list</string>
+    <string name="core_offline_needs_map">The live map</string>
 </resources>

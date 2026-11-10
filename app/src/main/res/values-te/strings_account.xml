@@ -558,4 +558,11 @@
         <item quantity="one">%1$d గంటలో జవాబిస్తాం. స్టేటస్ అప్‌డేట్లు నోటిఫికేషన్లలో కనిపిస్తాయి.</item>
         <item quantity="other">%1$d గంటల్లో జవాబిస్తాం. స్టేటస్ అప్‌డేట్లు నోటిఫికేషన్లలో కనిపిస్తాయి.</item>
     </plurals>
+    <string name="acct_details_saved">సేవ్ అయింది. మీ తదుపరి ఆర్డర్ నుండి డ్రైవర్లకు మార్పు కనిపిస్తుంది.</string>
+    <string name="acct_details_undo">రద్దు చేయి</string>
+    <string name="acct_details_back_profile">ప్రొఫైల్‌కు వెనక్కి</string>
+    <string name="acct_details_shown_as">డ్రైవర్లకు ఇలా కనిపిస్తుంది</string>
+    <string name="acct_details_invoices">ఇన్‌వాయిస్‌లు</string>
+    <string name="acct_details_invoices_app">యాప్‌లో · ఈమెయిల్ జోడించలేదు</string>
+    <string name="acct_details_invoices_email">యాప్‌లో · %1$s కి ఈమెయిల్ కూడా</string>
 </resources>

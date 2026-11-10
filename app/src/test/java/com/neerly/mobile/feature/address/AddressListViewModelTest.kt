@@ -46,4 +46,17 @@ class AddressListViewModelTest {
         assertNotNull(vm.state.value.error)
         assertEquals(1, vm.state.value.addresses.size)
     }
+
+    @Test
+    fun refresh_mapsLivePlansToTheirAddress_forTheDeleteWarning() {
+        coEvery { repo.addresses() } returns listOf(addr("a1", "500032"), addr("a2", "500032"))
+        coEvery { repo.vendors(any()) } returns emptyList()
+        fun plan(addr: String, status: String, shop: String) = mockk<com.neerly.mobile.data.dto.SubscriptionResponse> {
+            io.mockk.every { addressId } returns addr; io.mockk.every { this@mockk.status } returns status
+            io.mockk.every { vendorName } returns shop; io.mockk.every { productName } returns null
+        }
+        coEvery { repo.subscriptions() } returns listOf(plan("a1", "ACTIVE", "Pure Drops"), plan("a2", "CANCELLED", "Old Shop"))
+        val vm = AddressListViewModel(repo, com.neerly.mobile.support.TestStrings)
+        assertEquals(mapOf("a1" to listOf("Pure Drops")), vm.state.value.plansByAddress)
+    }
 }

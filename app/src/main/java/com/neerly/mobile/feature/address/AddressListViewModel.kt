@@ -30,6 +30,11 @@ class AddressListViewModel @Inject constructor(
             runCatching { repo.addresses() }
                 .onSuccess { list ->
                     _state.value = _state.value.copy(addresses = list, loading = false, error = null)
+                    // Board AddressEdit: deleting an address a live plan delivers to pauses that plan — warn first.
+                    val plans = runCatching { repo.subscriptions() }.getOrNull().orEmpty()
+                        .filter { it.status in LIVE_PLAN && it.addressId != null }
+                    _state.value = _state.value.copy(plansByAddress = plans.groupBy { it.addressId!! }
+                        .mapValues { (_, p) -> p.map { it.vendorName ?: it.productName ?: "" }.filter(String::isNotBlank) })
                     // "2 suppliers deliver here" (board 34): one lookup per distinct pincode.
                     val counts = list.map { it.pincode }.distinct().associateWith { pin ->
                         runCatching { repo.vendors(pin).size }.getOrNull()
@@ -58,9 +63,13 @@ class AddressListViewModel @Inject constructor(
     }
 }
 
+private val LIVE_PLAN = setOf("ACTIVE", "PAUSED", "PENDING_MANDATE")
+
 data class AddressListUiState(
     val loading: Boolean = true,
     val addresses: List<AddressResponse> = emptyList(),
     val suppliersByPincode: Map<String, Int> = emptyMap(),
+    /** addressId → names of active/paused plans delivering there (shop name, else product). */
+    val plansByAddress: Map<String, List<String>> = emptyMap(),
     val error: String? = null
 )

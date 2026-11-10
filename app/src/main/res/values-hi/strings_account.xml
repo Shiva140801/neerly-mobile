@@ -558,4 +558,11 @@
         <item quantity="one">हम %1$d घंटे में जवाब देंगे। स्टेटस अपडेट सूचनाओं में दिखेंगे।</item>
         <item quantity="other">हम %1$d घंटे में जवाब देंगे। स्टेटस अपडेट सूचनाओं में दिखेंगे।</item>
     </plurals>
+    <string name="acct_details_saved">सेव हो गया। अगले ऑर्डर से ड्राइवर को बदलाव दिखेगा।</string>
+    <string name="acct_details_undo">पहले जैसा करें</string>
+    <string name="acct_details_back_profile">प्रोफ़ाइल पर वापस</string>
+    <string name="acct_details_shown_as">ड्राइवर को ऐसे दिखेगा</string>
+    <string name="acct_details_invoices">इनवॉइस</string>
+    <string name="acct_details_invoices_app">ऐप में · ईमेल नहीं जोड़ा</string>
+    <string name="acct_details_invoices_email">ऐप में · %1$s पर ईमेल भी</string>
 </resources>

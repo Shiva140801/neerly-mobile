@@ -558,4 +558,11 @@
         <item quantity="one">We reply within %1$d hour. You\'ll see status updates in Notifications.</item>
         <item quantity="other">We reply within %1$d hours. You\'ll see status updates in Notifications.</item>
     </plurals>
+    <string name="acct_details_saved">Saved. Drivers see the change from your next order.</string>
+    <string name="acct_details_undo">Undo</string>
+    <string name="acct_details_back_profile">Back to profile</string>
+    <string name="acct_details_shown_as">Shown to drivers as</string>
+    <string name="acct_details_invoices">Invoices</string>
+    <string name="acct_details_invoices_app">In the app · no email added</string>
+    <string name="acct_details_invoices_email">In the app · also emailed to %1$s</string>
 </resources>

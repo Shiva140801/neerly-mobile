@@ -175,32 +175,68 @@ class EditProfileViewModel @Inject constructor(private val api: NeerlyApi, priva
     val me = MutableStateFlow<UserSummary?>(null)
     val saving = MutableStateFlow(false)
     val message = MutableStateFlow<String?>(null)
+    /** Board SavedToast: after a save the page stays, with "Saved… Undo". */
+    val saved = MutableStateFlow(false)
+    private var before: UserSummary? = null
     init { viewModelScope.launch { me.value = runCatching { api.me() }.getOrNull() } }
-    fun save(name: String, email: String, onDone: () -> Unit) { viewModelScope.launch {
+    fun save(name: String, email: String) { viewModelScope.launch {
         saving.value = true; message.value = null
+        val prev = me.value
         runCatching { api.updateProfile(UpdateProfileRequest(displayName = name.trim(), email = email.trim().ifBlank { null })) }
-            .onSuccess { saving.value = false; onDone() }
+            .onSuccess { before = prev; me.value = it; saving.value = false; saved.value = true }
             .onFailure { saving.value = false; message.value = it.userMessage("profile", R.string.acct_details_save_failed, strings) }
     } }
+    /** Puts back what was there before the last save. */
+    fun undo() { val prev = before ?: return; viewModelScope.launch {
+        saving.value = true; message.value = null
+        runCatching { api.updateProfile(UpdateProfileRequest(displayName = prev.displayName, email = prev.email)) }
+            .onSuccess { me.value = it; before = null; saving.value = false; saved.value = false }
+            .onFailure { saving.value = false; message.value = it.userMessage("profile", R.string.acct_details_save_failed, strings) }
+    } }
+    fun dismissSaved() { saved.value = false; before = null }
+}
+
+/** What drivers see: first name and the initial of the last word ("Shiva Sai" → "Shiva S."). */
+internal fun driverFacingName(full: String): String {
+    val parts = full.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+    return when {
+        parts.isEmpty() -> ""
+        parts.size == 1 -> parts[0]
+        else -> "${parts.first()} ${parts.last().first().uppercaseChar()}."
+    }
 }
 
 @Composable
 fun EditProfileScreen(onBack: () -> Unit, onChangePhone: () -> Unit, onDelete: () -> Unit, vm: EditProfileViewModel = hiltViewModel()) {
     val me by vm.me.collectAsState(); val saving by vm.saving.collectAsState(); val msg by vm.message.collectAsState()
+    val saved by vm.saved.collectAsState()
     var name by remember(me) { mutableStateOf(me?.displayName.orEmpty()) }
     var email by remember(me) { mutableStateOf(me?.email.orEmpty()) }
     BoondhPage(stringResource(R.string.acct_details_title), onBack = onBack, backLabel = stringResource(R.string.acct_profile_title),
-        footer = { PrimaryButton(if (saving) stringResource(R.string.acct_saving) else stringResource(R.string.acct_save), { vm.save(name, email, onBack) }, enabled = name.trim().length >= 2 && !saving) }) {
+        footer = {
+            if (saved) {
+                Notice(stringResource(R.string.acct_details_saved), Tone.Ok)
+                SecondaryButton(stringResource(R.string.acct_details_undo), vm::undo, enabled = !saving)
+                PrimaryButton(stringResource(R.string.acct_details_back_profile), onBack)
+            } else PrimaryButton(if (saving) stringResource(R.string.acct_saving) else stringResource(R.string.acct_save), { vm.save(name, email) },
+                enabled = name.trim().length >= 2 && !saving && (name.trim() != me?.displayName.orEmpty() || email.trim() != me?.email.orEmpty()))
+        }) {
         if (me == null) { item { LoadState(true, null, {}) }; return@BoondhPage }
-        item { OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.acct_details_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+        item { OutlinedTextField(name, { name = it; vm.dismissSaved() }, label = { Text(stringResource(R.string.acct_details_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+        driverFacingName(name).takeIf { it.isNotEmpty() }?.let { shown -> item {
+            InfoRow(stringResource(R.string.acct_details_shown_as), shown)
+        } }
         item { BoondhCard {
             InfoRow(stringResource(R.string.acct_details_mobile), me!!.phoneMask)
             TextButton(onClick = onChangePhone, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 44.dp)) {
                 Text(stringResource(R.string.acct_details_change_number), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) }
             Text(stringResource(R.string.acct_details_change_note), fontSize = 13.sp, color = NeerlyColors.Ink600)
         } }
-        item { OutlinedTextField(email, { email = it }, label = { Text(stringResource(R.string.acct_details_email)) }, singleLine = true,
+        item { OutlinedTextField(email, { email = it; vm.dismissSaved() }, label = { Text(stringResource(R.string.acct_details_email)) }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth()) }
+        item { InfoRow(stringResource(R.string.acct_details_invoices),
+            me!!.email?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.acct_details_invoices_email, it) }
+                ?: stringResource(R.string.acct_details_invoices_app)) }
         msg?.let { m -> item { Notice(m, Tone.Bad) } }
         item { TextButton(onClick = onDelete, modifier = Modifier.heightIn(min = 44.dp)) {
             Text(stringResource(R.string.acct_delete_cta), color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold) } }

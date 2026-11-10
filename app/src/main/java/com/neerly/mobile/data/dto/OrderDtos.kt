@@ -111,5 +111,7 @@ data class OrderTrackingResponse(
     val pickupLat: Double? = null,
     val pickupLng: Double? = null,
     val dropLat: Double? = null,
-    val dropLng: Double? = null
+    val dropLng: Double? = null,
+    /** Earlier orders this driver delivered to this customer. */
+    val deliveriesWithCustomer: Int? = null
 )

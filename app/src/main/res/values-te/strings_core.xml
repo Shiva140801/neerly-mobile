@@ -113,4 +113,8 @@
     <string name="core_locden_still_off">బూంద్‌కు లొకేషన్ ఇంకా ఆఫ్‌లోనే ఉంది.</string>
     <string name="core_locden_continue">లొకేషన్ ఆన్ అయింది · కొనసాగండి</string>
     <string name="core_locden_type">బదులుగా నా చిరునామా టైప్ చేస్తాను</string>
+    <string name="core_offline_works_code">మీ డెలివరీ కోడ్</string>
+    <string name="core_offline_works_call">డ్రైవర్ లేదా షాప్‌కు కాల్ చేయడం</string>
+    <string name="core_offline_works_jars">మీ జార్ల జాబితా</string>
+    <string name="core_offline_needs_map">లైవ్ మ్యాప్</string>
 </resources>

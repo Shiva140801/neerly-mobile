@@ -68,7 +68,11 @@ fun AddressListScreen(
         AlertDialog(
             onDismissRequest = { deleting = null },
             title = { Text(stringResource(R.string.cust_addr_remove_title, addressLabel(a.label))) },
-            text = { Text(stringResource(R.string.cust_addr_remove_body, a.flatNumber, a.buildingName)) },
+            text = {
+                val plans = state.plansByAddress[a.id].orEmpty()
+                Text(if (plans.isEmpty()) stringResource(R.string.cust_addr_remove_body, a.flatNumber, a.buildingName)
+                     else stringResource(R.string.cust_addr_remove_body_plan, a.flatNumber, a.buildingName, plans.joinToString(", ")))
+            },
             confirmButton = { TextButton(onClick = { vm.delete(a.id); deleting = null }) { Text(stringResource(R.string.cust_remove), color = NeerlyColors.Err) } },
             dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cust_keep_it)) } }
         )

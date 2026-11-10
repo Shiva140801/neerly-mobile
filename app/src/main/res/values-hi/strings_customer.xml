@@ -501,4 +501,11 @@
         <item quantity="one">%1$s इस जगह तक नहीं पहुँचती, इसलिए जब तक आप दूसरी दुकान नहीं चुनते, वह सब्सक्रिप्शन रुका रहेगा।</item>
         <item quantity="other">%1$s इस जगह तक नहीं पहुँचतीं, इसलिए जब तक आप दूसरी दुकान नहीं चुनते, वे सब्सक्रिप्शन रुके रहेंगे।</item>
     </plurals>
+    <string name="cust_tr_offline_still_coming">चिंता न करें — आपका ऑर्डर आ रहा है। आपका डिलीवरी कोड बिना इंटरनेट भी काम करता है।</string>
+    <string name="cust_tr_offline_still_coming_driver">चिंता न करें — आपका ऑर्डर आ रहा है। %1$s के पास आपका पता है और वे आपको कॉल कर सकते हैं। आपका डिलीवरी कोड बिना इंटरनेट भी काम करता है।</string>
+    <plurals name="cust_tr_delivered_times">
+        <item quantity="one">आपको %1$d बार डिलीवर किया है</item>
+        <item quantity="other">आपको %1$d बार डिलीवर किया है</item>
+    </plurals>
+    <string name="cust_addr_remove_body_plan">%1$s, %2$s अब चेकआउट पर नहीं दिखेगा। रास्ते में चल रहे ऑर्डर यहीं पहुँचेंगे। आपकी %3$s सदस्यता इस पते का उपयोग करती है, इसलिए नया पता चुनने तक वह रुकी रहेगी।</string>
 </resources>

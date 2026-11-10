@@ -501,4 +501,11 @@
         <item quantity="one">%1$s doesn\'t reach this spot, so that subscription pauses until you choose another shop.</item>
         <item quantity="other">%1$s don\'t reach this spot, so those subscriptions pause until you choose another shop.</item>
     </plurals>
+    <string name="cust_tr_offline_still_coming">Don\'t worry — your order is still coming. Your delivery code works without internet.</string>
+    <string name="cust_tr_offline_still_coming_driver">Don\'t worry — your order is still coming. %1$s has your address and can still call you, and your delivery code works without internet.</string>
+    <plurals name="cust_tr_delivered_times">
+        <item quantity="one">Has delivered to you once</item>
+        <item quantity="other">Has delivered to you %1$d times</item>
+    </plurals>
+    <string name="cust_addr_remove_body_plan">%1$s, %2$s won\'t be offered at checkout any more. Orders already on the way still arrive here. Your %3$s subscription uses this address, so it pauses until you pick a new one.</string>
 </resources>

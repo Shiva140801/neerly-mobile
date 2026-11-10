@@ -64,6 +64,14 @@ fun OrderTrackingScreen(
             if (state.loading && order == null) { item { OrderTrackingSkeleton() }; return@BoondhPage }
             if (order == null) { item { com.neerly.mobile.core.design.LoadState(false, state.error ?: cantShow, vm::refresh) }; return@BoondhPage }
             if (!online) state.lastUpdatedLabel?.let { l -> item { StaleDataStamp(l) } }
+            // Board Offline: reassure first — the order doesn't stop because the phone lost signal.
+            if (!online && order.status !in OrderTrackingViewModel.TERMINAL) item {
+                com.neerly.mobile.core.design.Notice(
+                    t?.driverName?.takeIf { order.status in OrderTrackingViewModel.IN_FLIGHT }
+                        ?.let { stringResource(R.string.cust_tr_offline_still_coming_driver, it.substringBefore(' ')) }
+                        ?: stringResource(R.string.cust_tr_offline_still_coming),
+                    com.neerly.mobile.core.design.Tone.Info)
+            }
             if (order.status !in OrderTrackingViewModel.TERMINAL) item {
                 DeliveryCodeCard(state.deliveryCode, state.codeRequesting, state.codeError, vm::requestNewDeliveryCode)
             }
@@ -71,7 +79,9 @@ fun OrderTrackingScreen(
             item { StatusSteps(order.status) }
             if (t?.driverName != null) item {
                 com.neerly.mobile.core.design.BoondhCard {
-                    com.neerly.mobile.core.design.InfoRow(t.driverName!!, listOfNotNull(t.vehicle, t.driverPhoneMask).joinToString(" · "))
+                    com.neerly.mobile.core.design.InfoRow(t.driverName!!, listOfNotNull(
+                        t.deliveriesWithCustomer?.takeIf { it > 0 }?.let { n -> androidx.compose.ui.res.pluralStringResource(R.plurals.cust_tr_delivered_times, n, n) },
+                        t.vehicle, t.driverPhoneMask).joinToString(" · "))
                 }
             }
             if (t != null && (t.driverPhone != null || t.shopPhone != null)) item {

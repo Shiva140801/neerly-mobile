@@ -113,4 +113,8 @@
     <string name="core_locden_still_off">बूँद के लिए लोकेशन अभी भी बंद है।</string>
     <string name="core_locden_continue">लोकेशन चालू है · आगे बढ़ें</string>
     <string name="core_locden_type">इसके बजाय अपना पता टाइप करूँगा</string>
+    <string name="core_offline_works_code">आपका डिलीवरी कोड</string>
+    <string name="core_offline_works_call">ड्राइवर या दुकान को कॉल करना</string>
+    <string name="core_offline_works_jars">आपके जार की सूची</string>
+    <string name="core_offline_needs_map">लाइव मैप</string>
 </resources>
