@@ -379,7 +379,7 @@
     <string name="drv_break_n_min">%1$d min</string>
     <string name="drv_break_window">Break · %1$s</string>
     <string name="drv_break_left">%1$s left</string>
-    <string name="drv_break_till">No new tasks till %1$s. They start again by themselves.</string>
+    <string name="drv_break_till">No new tasks till %1$s. We buzz you 2 minutes before.</string>
     <string name="drv_break_im_back_start">I’m back · start tasks</string>
     <string name="drv_yesterday">Yesterday</string>
     <string name="drv_settle_part">Paid part of it</string>
@@ -388,7 +388,7 @@
     <string name="drv_part_rest">%1$s left for the shop to follow up</string>
     <string name="drv_part_amount_hint">More than ₹0 and less than the bill</string>
     <string name="drv_got_part">Got part · report the rest</string>
-    <string name="drv_round_next">Next · %1$s km · about %2$d min</string>
+    <string name="drv_round_next">Next: %1$s, %2$s</string>
     <string name="drv_round_stop">%1$s km · about %2$d min</string>
     <string name="drv_round_eta_note">Times are a guide: straight-line distance at the shop’s usual speed.</string>
     <string name="drv_short_pays_later">Pays later</string>
@@ -409,4 +409,36 @@
     <string name="drv_joined_done">Done</string>
     <string name="drv_joined_waiting">Waiting</string>
     <string name="drv_no_shop_yet">You’re not on a shop’s team yet. See the Me tab for what’s left.</string>
+    <string name="drv_break_now">left · it’s %1$s</string>
+    <string name="drv_break_next_drop">NEXT DROP AFTER THE BREAK</string>
+    <string name="drv_break_next_cash">Cash %1$s</string>
+    <string name="drv_break_end_shift">End shift instead</string>
+    <string name="drv_sos_short">SOS</string>
+    <string name="drv_step1_label">Step 1 of 3 · At the shop</string>
+    <string name="drv_order_customer">%1$s · %2$s</string>
+    <string name="drv_tick_each_cta">Tick each item as you load</string>
+    <string name="drv_step2_label">Step 2 of 3 · Drop · %1$s</string>
+    <string name="drv_step2_label_n">Drop %1$d of %2$d · %3$s</string>
+    <string name="drv_step3_label">Step 3 of 3 · Hand over</string>
+    <string name="drv_cash_suffix">%1$s · cash %2$s</string>
+    <string name="drv_call_name">Call %1$s</string>
+    <string name="drv_on_duty_for">On duty · %1$s</string>
+    <string name="drv_shop_since">%1$s · since %2$s</string>
+    <string name="drv_your_tasks">Your tasks</string>
+    <string name="drv_round_caps">Today’s round</string>
+    <string name="drv_drops_left_n">%1$d drops left</string>
+    <string name="drv_round_cash">%1$s cash to collect</string>
+    <string name="drv_ring_here">New tasks ring loudly here.</string>
+    <string name="drv_preview_alert">Preview alert</string>
+    <string name="drv_gps_ok">GPS on · internet on</string>
+    <string name="drv_signal_trouble">Signal trouble?</string>
+    <string name="drv_drops_done_stat">drops done</string>
+    <string name="drv_since_day">%1$s, %2$s</string>
+    <plurals name="drv_bring_empties_note">
+        <item quantity="one">Bring %d empty back from this home.</item>
+        <item quantity="other">Bring %d empties back from this home.</item>
+    </plurals>
+    <string name="drv_cash_confirmed">Shop confirmed. Done for today</string>
+    <string name="drv_cash_confirmed_sub">The shop counted the cash and confirmed it. Nothing is with you now.</string>
+    <string name="drv_cash_waiting_shop">Waiting for the shop to count %1$s… They got a buzz on their phone. Stay at the counter till it says confirmed.</string>
 </resources>

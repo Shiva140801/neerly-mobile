@@ -56,7 +56,12 @@ data class TokenPair(
 )
 
 @JsonClass(generateAdapter = true)
-data class SwitchRoleRequest(val newRole: String)
+data class SwitchRoleRequest(
+    val newRole: String,
+    /** So the server remembers the role on this session and the next refresh keeps it. */
+    val refreshToken: String? = null,
+    val deviceId: String? = null
+)
 
 @JsonClass(generateAdapter = true)
 data class SwitchRoleResponse(

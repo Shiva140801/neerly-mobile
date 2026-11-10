@@ -33,10 +33,12 @@ data class CashHandOverState(
     /** What the server counted from today's cash drops — the figure the shop will check. */
     val collected: BigDecimal = BigDecimal.ZERO,
     val drops: Int = 0,
-    /** Today's delivered cash orders — for "which one was short" (D24). */
-    val cashDrops: List<com.neerly.mobile.data.dto.DriverAssignment> = emptyList(),
+    /** Cash drops still with the driver — for "which one was short" (D24). */
+    val cashDrops: List<CashHeldLine> = emptyList(),
     val saving: Boolean = false,
     val saved: Boolean = false,
+    /** DCash: the shop has counted and confirmed — the cash in hand dropped to zero. */
+    val confirmed: Boolean = false,
     val error: String? = null
 )
 
@@ -54,12 +56,21 @@ class DriverCodReconcileViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { ops.today() }
                 .onSuccess { t ->
-                    val cash = runCatching { repo.assignments() }.getOrDefault(emptyList())
-                        .filter { it.paymentMethod == "COD" && it.status == "DELIVERED" }
-                    _state.value = _state.value.copy(loading = false, collected = t.cashInHand, drops = t.drops, cashDrops = cash)
+                    // The delivered cash drops come from the server; active assignments never held them.
+                    val cash = runCatching { platform.cashHeld() }.getOrDefault(emptyList())
+                    _state.value = _state.value.copy(loading = false, collected = t.cashInHand, drops = cash.size, cashDrops = cash)
                 }
                 .onFailure { _state.value = _state.value.copy(loading = false,
                     error = it.userMessage("driver cash", strings.get(R.string.drv_err_load_cash))) }
+        }
+    }
+
+    /** DCash: "Waiting for the shop to count…" until its confirmation clears the cash in hand. */
+    private fun waitForShop() = viewModelScope.launch {
+        repeat(120) {
+            kotlinx.coroutines.delay(SHOP_COUNT_POLL_MS)
+            val left = runCatching { ops.today().cashInHand }.getOrNull() ?: return@repeat
+            if (left.signum() == 0) { _state.value = _state.value.copy(confirmed = true); return@launch }
         }
     }
 
@@ -73,12 +84,15 @@ class DriverCodReconcileViewModel @Inject constructor(
                 val r = platform.reconcile(ReconcileBody(_state.value.collected, handedOver, notes, lines))
                 if (!r.isSuccessful) throw retrofit2.HttpException(r)
             }
-                .onSuccess { _state.value = _state.value.copy(saving = false, saved = true) }
+                .onSuccess { _state.value = _state.value.copy(saving = false, saved = true); waitForShop() }
                 .onFailure { _state.value = _state.value.copy(saving = false,
                     error = it.userMessage("driver cash", strings.get(R.string.drv_err_not_saved))) }
         }
     }
 }
+
+/** Seconds between checks while the shop counts. */
+internal const val SHOP_COUNT_POLL_MS = 5_000L
 
 /** DCashMismatch: one line per customer who paid less, with the reason the driver picked. */
 internal fun codLines(shortLines: Map<String, BigDecimal>, reasons: Map<String, String>): List<CodLine>? =
@@ -100,13 +114,15 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
     var paid by remember { mutableStateOf(mapOf<String, String>()) }
     var why by remember { mutableStateOf(mapOf<String, String>()) }
     val shortLines = paid.mapNotNull { (id, v) -> v.toBigDecimalOrNull()?.let { id to it } }
-        .filter { (id, v) -> s.cashDrops.firstOrNull { it.orderId == id }?.codAmount?.let { v < it } == true }.toMap()
+        .filter { (id, v) -> s.cashDrops.firstOrNull { it.orderId == id }?.collected?.let { v < it } == true }.toMap()
     val short = amount?.let { s.collected - it }?.takeIf { it.signum() > 0 }
-    val explained = shortExplained(s.cashDrops.associate { it.orderId to (it.codAmount ?: BigDecimal.ZERO) }, shortLines)
+    val explained = shortExplained(s.cashDrops.associate { it.orderId to it.collected }, shortLines)
     val reasonsMissing = shortLines.keys.any { it !in why }
-    BoondhPage(title = if (s.saved) stringResource(R.string.drv_cash_recorded) else stringResource(R.string.drv_cash_title), onBack = onBack, backLabel = stringResource(R.string.drv_money_title),
-        subtitle = if (s.saved) stringResource(R.string.drv_cash_saved_sub)
-                   else stringResource(R.string.drv_cash_sub),
+    BoondhPage(title = when { s.confirmed -> stringResource(R.string.drv_cash_confirmed); s.saved -> stringResource(R.string.drv_cash_recorded)
+            else -> stringResource(R.string.drv_cash_title) }, onBack = onBack, backLabel = stringResource(R.string.drv_money_title),
+        subtitle = when { s.confirmed -> stringResource(R.string.drv_cash_confirmed_sub)
+                   s.saved -> stringResource(R.string.drv_cash_waiting_shop, (amount ?: s.collected).rupees())
+                   else -> stringResource(R.string.drv_cash_sub) },
         footer = {
             s.error?.let { Notice(it, Tone.Bad) }
             if (s.saved) PrimaryButton(stringResource(R.string.drv_done), onDone, modifier = Modifier.heightIn(min = 60.dp))
@@ -139,7 +155,7 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
                 } }
                 s.cashDrops.forEach { d -> item(key = d.orderId) {
                     BoondhCard {
-                        InfoRow(d.customerFirstName, d.orderNumber, (d.codAmount ?: BigDecimal.ZERO).rupees())
+                        InfoRow(d.customerFirstName, d.deliveredAt?.let { "${d.orderNumber} · ${clock(it)}" } ?: d.orderNumber, d.collected.rupees())
                         OutlinedTextField(value = paid[d.orderId].orEmpty(),
                             onValueChange = { v -> paid = paid + (d.orderId to v.filter { it.isDigit() || it == '.' }.take(8)) },
                             singleLine = true, placeholder = { Text(stringResource(R.string.drv_paid_in_full)) }, label = { Text(stringResource(R.string.drv_they_paid)) },

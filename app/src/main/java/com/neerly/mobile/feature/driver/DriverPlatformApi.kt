@@ -178,7 +178,21 @@ data class CodLine(val orderId: String, val collected: BigDecimal, val note: Str
 @JsonClass(generateAdapter = true)
 data class ReconcileBody(val collected: BigDecimal, val handedOver: BigDecimal, val notes: String?, val lines: List<CodLine>? = null)
 
+/** `GET /driver/cash/held` — a delivered cash drop whose money is still with the driver. */
+@JsonClass(generateAdapter = true)
+data class CashHeldLine(
+    val orderId: String,
+    val orderNumber: String,
+    val customerFirstName: String,
+    val deliveredAt: String? = null,
+    val settlement: String = "CASH",
+    val bill: BigDecimal = BigDecimal.ZERO,
+    /** What was actually taken — the part, for a part payment. */
+    val collected: BigDecimal = BigDecimal.ZERO
+)
+
 interface DriverPlatformApi {
+    @GET("api/v1/driver/cash/held") suspend fun cashHeld(): List<CashHeldLine>
     @GET("api/v1/driver/shifts/state") suspend fun shiftState(): DriverShiftState
     @POST("api/v1/driver/shifts/break") suspend fun startBreak(@Body body: StartBreakBody = StartBreakBody()): DriverShiftState
     @POST("api/v1/driver/shifts/break/end") suspend fun endBreak(@Body body: Map<String, String> = emptyMap()): DriverShiftState

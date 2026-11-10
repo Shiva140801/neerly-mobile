@@ -370,7 +370,7 @@
     <string name="drv_break_n_min">%1$d నిమి</string>
     <string name="drv_break_window">బ్రేక్ · %1$s</string>
     <string name="drv_break_left">ఇంకా %1$s</string>
-    <string name="drv_break_till">%1$s వరకు కొత్త పనులు రావు. ఆ తర్వాత వాటంతట అవే మొదలవుతాయి.</string>
+    <string name="drv_break_till">%1$s వరకు కొత్త పనులు రావు. 2 నిమిషాల ముందు ఫోన్ వైబ్రేట్ అవుతుంది.</string>
     <string name="drv_break_im_back_start">తిరిగి వచ్చాను · పనులు మొదలు</string>
     <string name="drv_yesterday">నిన్న</string>
     <string name="drv_settle_part">కొంత మాత్రమే ఇచ్చారు</string>
@@ -379,7 +379,7 @@
     <string name="drv_part_rest">మిగిలిన %1$s షాప్ అడుగుతుంది</string>
     <string name="drv_part_amount_hint">₹0 కంటే ఎక్కువ, బిల్లు కంటే తక్కువ</string>
     <string name="drv_got_part">కొంత వచ్చింది · మిగతాది తెలియజేయండి</string>
-    <string name="drv_round_next">తర్వాత · %1$s కి.మీ · సుమారు %2$d నిమి</string>
+    <string name="drv_round_next">తదుపరి: %1$s, %2$s</string>
     <string name="drv_round_stop">%1$s కి.మీ · సుమారు %2$d నిమి</string>
     <string name="drv_round_eta_note">సమయాలు అంచనా మాత్రమే: నేరుగా దూరం, సాధారణ వేగంతో.</string>
     <string name="drv_short_pays_later">తర్వాత ఇస్తారు</string>
@@ -400,4 +400,36 @@
     <string name="drv_joined_done">పూర్తైంది</string>
     <string name="drv_joined_waiting">వేచి ఉంది</string>
     <string name="drv_no_shop_yet">మీరు ఇంకా ఏ షాప్ టీమ్‌లో లేరు. మిగిలినవి “నేను” ట్యాబ్‌లో చూడండి.</string>
+    <string name="drv_break_now">మిగిలింది · ఇప్పుడు %1$s</string>
+    <string name="drv_break_next_drop">బ్రేక్ తర్వాత తదుపరి డెలివరీ</string>
+    <string name="drv_break_next_cash">నగదు %1$s</string>
+    <string name="drv_break_end_shift">బదులుగా షిఫ్ట్ ముగించండి</string>
+    <string name="drv_sos_short">SOS</string>
+    <string name="drv_step1_label">స్టెప్ 1/3 · షాప్ దగ్గర</string>
+    <string name="drv_order_customer">%1$s · %2$s</string>
+    <string name="drv_tick_each_cta">లోడ్ చేసినవాటిని టిక్ చేయండి</string>
+    <string name="drv_step2_label">స్టెప్ 2/3 · డెలివరీ · %1$s</string>
+    <string name="drv_step2_label_n">డెలివరీ %1$d/%2$d · %3$s</string>
+    <string name="drv_step3_label">స్టెప్ 3/3 · అందజేయడం</string>
+    <string name="drv_cash_suffix">%1$s · నగదు %2$s</string>
+    <string name="drv_call_name">%1$s కి కాల్ చేయండి</string>
+    <string name="drv_on_duty_for">డ్యూటీలో · %1$s</string>
+    <string name="drv_shop_since">%1$s · %2$s నుండి</string>
+    <string name="drv_your_tasks">మీ పనులు</string>
+    <string name="drv_round_caps">ఈరోజు రౌండ్</string>
+    <string name="drv_drops_left_n">%1$d డెలివరీలు మిగిలాయి</string>
+    <string name="drv_round_cash">%1$s నగదు వసూలు చేయాలి</string>
+    <string name="drv_ring_here">కొత్త పనులు ఇక్కడ గట్టిగా మోగుతాయి.</string>
+    <string name="drv_preview_alert">అలర్ట్ వినండి</string>
+    <string name="drv_gps_ok">GPS ఆన్ · ఇంటర్నెట్ ఆన్</string>
+    <string name="drv_signal_trouble">సిగ్నల్ సమస్యా?</string>
+    <string name="drv_drops_done_stat">డెలివరీలు పూర్తి</string>
+    <string name="drv_since_day">%1$s, %2$s</string>
+    <plurals name="drv_bring_empties_note">
+        <item quantity="one">ఈ ఇంటి నుండి %d ఖాళీ జార్ తీసుకురండి.</item>
+        <item quantity="other">ఈ ఇంటి నుండి %d ఖాళీ జార్లు తీసుకురండి.</item>
+    </plurals>
+    <string name="drv_cash_confirmed">షాప్ నిర్ధారించింది. ఈరోజుకు పూర్తి</string>
+    <string name="drv_cash_confirmed_sub">షాప్ నగదు లెక్కించి నిర్ధారించింది. ఇప్పుడు మీ దగ్గర ఏమీ లేదు.</string>
+    <string name="drv_cash_waiting_shop">షాప్ %1$s లెక్కించే వరకు ఆగండి… వారి ఫోన్‌కు సందేశం వెళ్లింది. నిర్ధారించే వరకు కౌంటర్ దగ్గరే ఉండండి.</string>
 </resources>

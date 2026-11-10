@@ -20,6 +20,10 @@ import javax.inject.Singleton
  *   - Don't re-refresh if the *same* request has already been retried (response.priorResponse != null)
  *   - Refuse if refresh token is absent or refresh endpoint itself returned 401
  *     (caller should clear TokenStore + route to Welcome)
+ *   - One refresh at a time. Refresh tokens are single-use: when several calls 401
+ *     together, only the first may spend the token; the rest wait, see the access
+ *     token has changed, and just retry with it. Before, each spent the same token,
+ *     the losers failed and wiped the session ("Your session expired").
  *
  * Uses `Lazy<NeerlyApi>` because Retrofit needs the OkHttpClient, which needs
  * the Authenticator, which needs Retrofit — circular without laziness.
@@ -38,6 +42,18 @@ class TokenAuthenticator @Inject constructor(
         // Refresh endpoint itself returning 401 means our refresh token is bad — bail.
         if (response.request.url.encodedPath.endsWith("/api/v1/auth/refresh")) return null
 
+        synchronized(this) {
+            // Someone else refreshed while this call was in flight: use their token.
+            val sent = response.request.header("Authorization")?.removePrefix("Bearer ")
+            val current = tokens.accessToken
+            if (!current.isNullOrBlank() && current != sent) {
+                return response.request.newBuilder().header("Authorization", "Bearer $current").build()
+            }
+            return refreshAndRetry(response)
+        }
+    }
+
+    private fun refreshAndRetry(response: Response): Request? {
         val refresh = tokens.refreshToken ?: return null
         if (refresh.isBlank()) return null
 

@@ -58,7 +58,7 @@ class AuthRepository @Inject constructor(
 
     /** [remember] decides whether this choice skips the role picker next launch. */
     suspend fun switchRole(newRole: String, remember: Boolean = false) {
-        val resp = api.switchRole(com.neerly.mobile.data.dto.SwitchRoleRequest(newRole = newRole))
+        val resp = api.switchRole(com.neerly.mobile.data.dto.SwitchRoleRequest(newRole = newRole, refreshToken = tokens.refreshToken, deviceId = tokens.deviceId()))
         tokens.updateAfterSwitch(
             accessToken = resp.accessToken,
             accessExpiresAt = resp.accessExpiresAt,

@@ -41,6 +41,9 @@ import com.neerly.mobile.R
 import com.neerly.mobile.core.design.*
 import com.neerly.mobile.data.dto.DriverAssignment
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.semantics.heading
 import java.math.BigDecimal
 
 /** Primary actions on the driver app: taller than the customer app's, one per screen. */
@@ -161,11 +164,11 @@ private fun TasksTab(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () ->
         s.choosingShop -> ChooseShopScreen(s, vm)
         !s.isOnDuty -> OffDutyScreen(s, vm)
         s.gps != null -> GpsProblemScreen(s.gps, onAskLocation, onSos)
-        s.onBreak -> OnBreakScreen(s, vm)
-        job != null && s.step == DropStep.LOAD -> PickupScreen(job, s, vm)
+        s.onBreak -> OnBreakScreen(s, vm, onSos)
+        job != null && s.step == DropStep.LOAD -> PickupScreen(job, s, vm, onSos)
         job != null && s.step == DropStep.RIDE -> RideScreen(job, s, vm, onSos)
         job != null && s.step == DropStep.HAND_OVER -> HandOverScreen(job, s, vm, onSos)
-        else -> OnDutyScreen(s, vm)
+        else -> OnDutyScreen(s, vm, onSos, onAskLocation)
     }
 }
 
@@ -216,29 +219,122 @@ private fun ChooseShopScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
     }
 }
 
-/** D02 — on duty, waiting for a task. */
+/** D02 / DOnline — on duty: duty clock, the day's numbers, the round, alert preview, signal. */
 @Composable
-private fun OnDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
-    BoondhPage(title = stringResource(R.string.drv_on_duty), subtitle = s.shift?.startedAt?.let { stringResource(R.string.drv_on_duty_since, clock(it)) }) {
+private fun OnDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit, onSignal: () -> Unit) {
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
+    val started = s.shift?.startedAt?.let { runCatching { java.time.Instant.parse(it) }.getOrNull() }
+    val dutyFor = started?.let { java.time.Duration.ofMillis((now - it.toEpochMilli()).coerceAtLeast(0)) }
+    val shopName = s.shops.firstOrNull { it.shopId == s.shift?.vendorId }?.shopName ?: s.shops.firstOrNull()?.shopName
+    val zone = java.time.ZoneId.systemDefault()
+    // A shift left open from an earlier day says which day, instead of "since 5:59 PM".
+    val sinceLabel = started?.let {
+        val at = it.atZone(zone)
+        if (at.toLocalDate() == java.time.LocalDate.now(zone)) clock(s.shift!!.startedAt)
+        else stringResource(R.string.drv_since_day, at.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", java.util.Locale.ENGLISH)), clock(s.shift!!.startedAt))
+    }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val pending = s.assignments.filter { it.status in setOf("VENDOR_ACCEPTED", "PREPARING", "DISPATCHED", "ARRIVING") }
+    LazyColumn(Modifier.fillMaxSize().background(NeerlyColors.Canvas), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(12.dp).background(NeerlyColors.Ok, RoundedCornerShape(6.dp)))
+                        Spacer(Modifier.width(8.dp))
+                        Text(dutyFor?.let { stringResource(R.string.drv_on_duty_for, hoursMinutes(it)) } ?: stringResource(R.string.drv_on_duty),
+                            fontSize = 22.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok,
+                            modifier = Modifier.semantics { heading() })
+                    }
+                    if (shopName != null && sinceLabel != null) Text(stringResource(R.string.drv_shop_since, shopName, sinceLabel),
+                        fontSize = 15.sp, color = NeerlyColors.Ink600)
+                    else sinceLabel?.let { Text(stringResource(R.string.drv_on_duty_since, it), fontSize = 15.sp, color = NeerlyColors.Ink600) }
+                }
+                SosChip(onSos)
+            }
+        }
         s.error?.let { item { Notice(it, Tone.Bad) } }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Stat("${s.today?.drops ?: 0}", stringResource(R.string.drv_stat_drops_today), Modifier.weight(1f))
-                Stat((s.today?.earned ?: BigDecimal.ZERO).rupeesWhole(), stringResource(R.string.drv_stat_you_earned), Modifier.weight(1f))
-                Stat((s.today?.cashInHand ?: BigDecimal.ZERO).rupeesWhole(), stringResource(R.string.drv_stat_cash_with_you), Modifier.weight(1f))
+            // One card, three columns, like DOnline.
+            Row(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(16.dp))
+                .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(16.dp)).height(IntrinsicSize.Min)) {
+                DutyStat("${s.today?.drops ?: 0}", stringResource(R.string.drv_drops_done_stat), Modifier.weight(1f))
+                VerticalDivider(color = NeerlyColors.Ink200)
+                DutyStat((s.today?.earned ?: BigDecimal.ZERO).rupeesWhole(), stringResource(R.string.drv_stat_you_earned), Modifier.weight(1f))
+                VerticalDivider(color = NeerlyColors.Ink200)
+                DutyStat((s.today?.cashInHand ?: BigDecimal.ZERO).rupeesWhole(), stringResource(R.string.drv_stat_cash_with_you), Modifier.weight(1f))
             }
         }
         item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.drv_your_tasks), fontFamily = FontFamily.Serif, fontSize = 26.sp, color = NeerlyColors.Ink900,
+                    modifier = Modifier.weight(1f).semantics { heading() })
+            }
+        }
+        if (pending.isNotEmpty()) item {
+            val cash = pending.filter { it.paymentMethod == "COD" }.fold(BigDecimal.ZERO) { a, j -> a + (j.codAmount ?: BigDecimal.ZERO) }
+            val next = pending.first()
+            Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark, RoundedCornerShape(16.dp)).padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.drv_round_caps).uppercase(), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = Boondh.Amber)
+                Text(stringResource(R.string.drv_drops_left_n, pending.size), fontFamily = FontFamily.Serif, fontSize = 28.sp, color = NeerlyColors.Paper)
+                if (cash.signum() > 0) Text(stringResource(R.string.drv_round_cash, cash.rupees()), fontSize = 15.sp, color = Boondh.MutedOnNavy)
+                HorizontalDivider(color = Boondh.MutedOnNavy.copy(alpha = 0.3f))
+                Text(stringResource(R.string.drv_round_next, next.customerFirstName, next.deliveryAddress.substringBefore(',')),
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper)
+            }
+        } else item {
             BoondhCard {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Box(Modifier.size(12.dp).background(NeerlyColors.Ok, RoundedCornerShape(6.dp)))
-                    Text(stringResource(R.string.drv_waiting_next), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                }
+                Text(stringResource(R.string.drv_waiting_next), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
                 Text(stringResource(R.string.drv_keep_app_open), fontSize = 14.sp, color = NeerlyColors.Ink600)
             }
         }
         item { BreakPicker(s.working, vm::startBreak) }
+        item {
+            // DOnline: hear what a task sounds like before one rings for real.
+            Row(Modifier.fillMaxWidth().border(1.dp, NeerlyColors.Ink400, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.drv_ring_here), fontSize = 15.sp, color = NeerlyColors.Ink600, modifier = Modifier.weight(1f))
+                TextButton(onClick = { scope.launch { previewRing() } }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.drv_preview_alert), fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
+                }
+            }
+        }
+        item {
+            Row(Modifier.fillMaxWidth().background(NeerlyColors.OkSoft, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(10.dp).background(NeerlyColors.Ok, RoundedCornerShape(5.dp)))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.drv_gps_ok), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ok, modifier = Modifier.weight(1f))
+                TextButton(onClick = onSignal, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.drv_signal_trouble), fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
+                }
+            }
+        }
     }
+}
+
+@Composable
+private fun DutyStat(value: String, label: String, modifier: Modifier) {
+    Column(modifier.padding(16.dp)) {
+        Text(value, fontFamily = FontFamily.Serif, fontSize = 26.sp, color = NeerlyColors.Ink900, maxLines = 1)
+        Text(label, fontSize = 14.sp, color = NeerlyColors.Ink600)
+    }
+}
+
+private fun hoursMinutes(d: java.time.Duration): String {
+    val h = d.toHours(); val m = d.toMinutes() % 60
+    return if (h > 0) "${h}h ${m}m" else "${m}m"
+}
+
+/** The same three beeps a real task rings with (RingActivities), once. */
+private suspend fun previewRing() {
+    val tone = runCatching { android.media.ToneGenerator(android.media.AudioManager.STREAM_RING, 100) }.getOrNull() ?: return
+    repeat(3) { tone.startTone(android.media.ToneGenerator.TONE_PROP_BEEP2, 400); delay(650) }
+    tone.release()
 }
 
 /** DOnBreak: the driver says how long — 15, 30 or 45 minutes (admin default pre-picked). */
@@ -250,10 +346,19 @@ private fun BreakPicker(working: Boolean, onStart: (Int) -> Unit) {
     if (!open) { SecondaryButton(if (working) "…" else stringResource(R.string.drv_take_break), { open = true }, enabled = !working, modifier = BIG); return }
     BoondhCard {
         Text(stringResource(R.string.drv_break_how_long), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Equal-width choices across the card, picked one in turmeric (not the stock lavender chip).
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DriverHomeViewModel.BREAK_CHOICES.forEach { m ->
-                FilterChip(selected = pick == m, onClick = { pick = m }, label = { Text(stringResource(R.string.drv_break_n_min, m), fontSize = 15.sp) },
-                    modifier = Modifier.heightIn(min = 48.dp))
+                val on = pick == m
+                Surface(onClick = { pick = m }, selected = on, shape = RoundedCornerShape(12.dp),
+                    color = if (on) Boondh.Amber else NeerlyColors.Paper,
+                    border = androidx.compose.foundation.BorderStroke(if (on) 2.dp else 1.dp, if (on) Boondh.Amber else NeerlyColors.Ink200),
+                    modifier = Modifier.weight(1f).heightIn(min = 52.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.drv_break_n_min, m), fontSize = 16.sp,
+                            fontWeight = if (on) FontWeight.Bold else FontWeight.Medium, color = NeerlyColors.Ink900)
+                    }
+                }
             }
         }
         PrimaryButton(if (working) "…" else stringResource(R.string.drv_take_break), { onStart(pick) }, enabled = !working, modifier = BIG,
@@ -263,7 +368,7 @@ private fun BreakPicker(working: Boolean, onStart: (Int) -> Unit) {
 
 /** D28 — on break: no new tasks until the driver comes back. */
 @Composable
-private fun OnBreakScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
+private fun OnBreakScreen(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
     val since = s.shiftState?.onBreakSince?.let { runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull() }
@@ -272,25 +377,52 @@ private fun OnBreakScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
     val left = secondsUntil(endsAt, now)
     // The server closes the break at its end time; pick that up so tasks show again.
     LaunchedEffect(left == 0L) { if (left == 0L) { delay(2000); vm.refresh() } }
-    Column(Modifier.fillMaxSize().background(Color(0xFF1A2238)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(stringResource(R.string.drv_on_break_caps), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Boondh.Amber, letterSpacing = 1.sp)
+    // "We buzz you 2 minutes before" — once, while the break screen is up.
+    val context = LocalContext.current
+    var buzzed by remember(endsAt) { mutableStateOf(false) }
+    LaunchedEffect(left != null && left in 1L..BREAK_BUZZ_SECONDS) {
+        if (left != null && left in 1L..BREAK_BUZZ_SECONDS && !buzzed) { buzzed = true; buzz(context) }
+    }
+    Column(Modifier.fillMaxSize().background(Color(0xFF1A2238)).verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.drv_on_break_caps), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Boondh.Amber,
+                letterSpacing = 1.sp, modifier = Modifier.weight(1f))
+            SosChip(onSos)
+        }
         breakWindow(s.shiftState?.onBreakSince, endsAt)?.let {
             Text(stringResource(R.string.drv_break_window, it), fontSize = 16.sp, color = Boondh.MutedOnNavy)
         }
-        Text(left?.let { stringResource(R.string.drv_break_left, minSec(it)) }
+        Text(left?.let { minSec(it) }
             ?: mins?.let { pluralStringResource(R.plurals.drv_on_break_minutes, it.toInt(), it.toInt()) } ?: stringResource(R.string.drv_on_break),
             fontFamily = FontFamily.Serif, fontSize = 30.sp, color = NeerlyColors.Paper,
             modifier = Modifier.semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite })
+        Text(stringResource(R.string.drv_break_now, java.time.format.DateTimeFormatter.ofPattern("h:mm a", java.util.Locale.ENGLISH)
+            .format(java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault()))), fontSize = 14.sp, color = Boondh.MutedOnNavy)
         Text(clockOf(endsAt)?.let { stringResource(R.string.drv_break_till, it) } ?: stringResource(R.string.drv_no_tasks_break),
             fontSize = 16.sp, color = Boondh.MutedOnNavy)
         BoondhCard {
             InfoRow(stringResource(R.string.drv_drops_done_today), trailing = "${s.today?.drops ?: 0}")
             InfoRow(stringResource(R.string.drv_cash_with_you), trailing = (s.today?.cashInHand ?: BigDecimal.ZERO).rupees())
         }
+        // DOnBreak: what's waiting when the break ends.
+        s.assignments.firstOrNull { it.status in setOf("VENDOR_ACCEPTED", "PREPARING", "DISPATCHED", "ARRIVING") }?.let { next ->
+            BoondhCard {
+                SectionLabel(stringResource(R.string.drv_break_next_drop))
+                Text(next.customerFirstName, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                Text(next.deliveryAddress, fontSize = 14.sp, color = NeerlyColors.Ink600)
+                next.codAmount?.takeIf { it.signum() > 0 }?.let {
+                    Text(stringResource(R.string.drv_break_next_cash, it.rupees()), fontSize = 14.sp, color = NeerlyColors.Ink600)
+                }
+            }
+        }
         s.error?.let { Notice(it, Tone.Bad) }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.weight(1f).heightIn(min = 16.dp))
         PrimaryButton(if (s.working) "…" else stringResource(R.string.drv_break_im_back_start), vm::endBreak, enabled = !s.working, modifier = BIG,
             color = Boondh.Amber, contentColor = NeerlyColors.Ink900)
+        TextButton(onClick = vm::askEndShift, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.drv_break_end_shift), color = NeerlyColors.Paper, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 
@@ -357,41 +489,46 @@ private fun MissedScreen(m: MissedTask, onOk: () -> Unit) {
 
 /** D04 — load at the shop; every line ticked before riding. */
 @Composable
-private fun PickupScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHomeViewModel) {
+private fun PickupScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit) {
     val card = s.taskCards[job.orderId]
-    val sealLine = job.product to stringResource(R.string.drv_check_seal)
-    val emptiesLine = pluralStringResource(R.plurals.drv_space_empties, job.emptiesExpected, job.emptiesExpected) to stringResource(R.string.drv_bring_back_home)
-    val cashLine = stringResource(R.string.drv_collect_cash, (job.codAmount ?: BigDecimal.ZERO).rupees()) to stringResource(R.string.drv_customer_pays_door)
     val lines = buildList {
-        add(sealLine)
-        if (job.emptiesExpected > 0) add(emptiesLine)
-        if (job.paymentMethod == "COD") add(cashLine)
+        add(job.product to stringResource(R.string.drv_check_seal))
+        if (job.emptiesExpected > 0) add(pluralStringResource(R.plurals.drv_space_empties, job.emptiesExpected, job.emptiesExpected) to
+            stringResource(R.string.drv_bring_back_home))
+        if (job.paymentMethod == "COD") add(stringResource(R.string.drv_collect_cash, (job.codAmount ?: BigDecimal.ZERO).rupees()) to
+            stringResource(R.string.drv_customer_pays_door))
     }
     var ticked by remember(job.orderId) { mutableStateOf(setOf<Int>()) }
     val ready = job.status == "DISPATCHED"
-    BoondhPage(title = stringResource(R.string.drv_load_title),
-        subtitle = stringResource(R.string.drv_step1, job.orderNumber),
+    val allTicked = ticked.size == lines.size
+    DriverStepPage(eyebrow = stringResource(R.string.drv_step1_label),
+        eyebrowSub = stringResource(R.string.drv_order_customer, job.orderNumber, job.customerFirstName),
+        title = stringResource(R.string.drv_load_title), onSos = onSos,
         footer = {
             if (!ready) Notice(stringResource(R.string.drv_still_packing), Tone.Warn)
-            PrimaryButton(if (s.working) stringResource(R.string.drv_starting) else stringResource(R.string.drv_loaded_start), { vm.loaded(job.orderId) },
-                enabled = ready && ticked.size == lines.size && !s.working, modifier = BIG)
+            // DPickup: the button says what's missing until every line is ticked.
+            PrimaryButton(when { s.working -> stringResource(R.string.drv_starting); !allTicked -> stringResource(R.string.drv_tick_each_cta)
+                    else -> stringResource(R.string.drv_loaded_start) }, { vm.loaded(job.orderId) },
+                enabled = ready && allTicked && !s.working, modifier = BIG)
         }) {
-        item { Text(stringResource(R.string.drv_tick_each), fontSize = 15.sp, color = NeerlyColors.Ink600) }
-        job.shopPhone?.let { item { CallButton(it, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark) } }
         s.error?.let { item { Notice(it, Tone.Bad) } }
-        lines.forEachIndexed { i, (title, sub) -> item(key = i) {
-            val on = i in ticked
-            BoondhCard(Modifier.toggleable(value = on, role = Role.Checkbox) { ticked = if (on) ticked - i else ticked + i }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = on, onCheckedChange = null, modifier = Modifier.size(32.dp))
-                    Spacer(Modifier.width(12.dp))
-                    Column { Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                        Text(sub, fontSize = 14.sp, color = NeerlyColors.Ink600) }
-                }
-            }
+        lines.forEachIndexed { i, (title, sub) -> item(key = "line$i") {
+            com.neerly.mobile.core.design.CheckCard(title, sub, checked = i in ticked,
+                onToggle = { ticked = if (i in ticked) ticked - i else ticked + i })
         } }
-        item { BoondhCard { InfoRow(card?.vendorName ?: stringResource(R.string.drv_the_shop), card?.pickupAddress) } }
+        if (job.emptiesExpected > 0) item {
+            Notice(pluralStringResource(R.plurals.drv_bring_empties_note, job.emptiesExpected, job.emptiesExpected), Tone.Warn)
+        }
         job.notes?.let { item { Notice(stringResource(R.string.drv_customer_note, it), Tone.Info) } }
+        // Where to pick up — the shop's name and address come on the assignment itself.
+        val shopName = job.shopName ?: card?.vendorName
+        val shopAddress = job.pickupAddress ?: card?.pickupAddress
+        if (shopName != null || shopAddress != null || job.shopPhone != null) item {
+            BoondhCard {
+                InfoRow(shopName ?: stringResource(R.string.drv_the_shop), shopAddress)
+                job.shopPhone?.let { CallButton(it, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark) }
+            }
+        }
     }
 }
 
@@ -401,10 +538,15 @@ private fun RideScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHo
     val context = LocalContext.current
     val km = s.here?.let { kmBetween(it, job.deliveryLat to job.deliveryLng) }
     val index = s.assignments.indexOf(job) + 1
-    BoondhPage(title = job.customerFirstName,
-        subtitle = stringResource(R.string.drv_join2,
-            if (s.assignments.size > 1) stringResource(R.string.drv_step2_drop_n, index, s.assignments.size) else stringResource(R.string.drv_step2_drop),
-            if (job.paymentMethod == "COD") stringResource(R.string.drv_cash_caps, (job.codAmount ?: BigDecimal.ZERO).rupees()) else stringResource(R.string.drv_paid_online_caps)),
+    val who = if (job.paymentMethod == "COD") stringResource(R.string.drv_cash_suffix, job.customerFirstName, (job.codAmount ?: BigDecimal.ZERO).rupees())
+        else job.customerFirstName
+    // DNavigate: the address is the title (that's what the driver looks for), the person
+    // and the cash are on the step line, SOS sits top-right.
+    val (firstLine, rest) = splitAddress(job.deliveryAddress)
+    DriverStepPage(
+        eyebrow = if (s.assignments.size > 1) stringResource(R.string.drv_step2_label_n, index, s.assignments.size, who)
+            else stringResource(R.string.drv_step2_label, who),
+        title = firstLine, eyebrowSub = rest, onSos = onSos,
         footer = {
             PrimaryButton(stringResource(R.string.drv_open_maps), { openMaps(context, job.deliveryLat, job.deliveryLng, job.customerFirstName) },
                 modifier = BIG, color = NeerlyColors.CustomerDark)
@@ -414,23 +556,22 @@ private fun RideScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHo
         s.error?.let { item { Notice(it, Tone.Bad) } }
         item {
             BoondhCard {
-                Text(job.deliveryAddress, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                Text(job.emptiesExpected.takeIf { it > 0 }?.let { stringResource(R.string.drv_join2, job.product, pluralStringResource(R.plurals.drv_empties_back, it, it)) } ?: job.product,
+                    fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
                 Text(km?.let { stringResource(R.string.drv_km_from_you, "%.1f".format(it)) } ?: stringResource(R.string.drv_location_to_see),
                     fontSize = 15.sp, color = NeerlyColors.Ink600)
-                Text(job.emptiesExpected.takeIf { it > 0 }?.let { stringResource(R.string.drv_join2, job.product, pluralStringResource(R.plurals.drv_empties_back, it, it)) } ?: job.product,
-                    fontSize = 15.sp, color = NeerlyColors.Ink900)
             }
         }
         job.notes?.let { item { Notice(stringResource(R.string.drv_quote, it), Tone.Info) } }
-        item { Text(stringResource(R.string.drv_customer_call, job.customerPhoneMask),
-            fontSize = 13.sp, color = NeerlyColors.Ink600) }
         if (job.customerPhone != null || job.shopPhone != null) item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CallButton(job.customerPhone, stringResource(R.string.drv_call_customer), color = NeerlyColors.CustomerDark)
-                CallButton(job.shopPhone, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                job.customerPhone?.let { CallButton(it, stringResource(R.string.drv_call_name, job.customerFirstName),
+                    color = NeerlyColors.CustomerDark, modifier = Modifier.fillMaxWidth()) }
+                job.shopPhone?.let { CallButton(it, stringResource(R.string.drv_call_shop_btn), color = NeerlyColors.CustomerDark,
+                    modifier = Modifier.fillMaxWidth()) }
             }
         }
-        item { SosHoldButton(onSos) }
+        item { Text(stringResource(R.string.drv_customer_call, job.customerPhoneMask), fontSize = 13.sp, color = NeerlyColors.Ink600) }
     }
 }
 
@@ -454,8 +595,9 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
     // DPayment "Paid part of it": more than nothing, less than the bill.
     val partAmount = partGot.toBigDecimalOrNull()?.takeIf { it.signum() > 0 && it < due }
     val cashTaken = when { !isCash || settlement == "NOT_COLLECTED" -> null; settlement == "PARTIAL" -> partAmount; else -> due }
-    BoondhPage(title = stringResource(R.string.drv_ask_code_title, job.customerFirstName),
-        subtitle = stringResource(R.string.drv_step3),
+    DriverStepPage(eyebrow = stringResource(R.string.drv_step3_label),
+        eyebrowSub = stringResource(R.string.drv_order_customer, job.orderNumber, job.customerFirstName),
+        title = stringResource(R.string.drv_ask_code_title, job.customerFirstName), onSos = onSos,
         footer = {
             s.deliverError?.let { Notice(it, Tone.Bad) }
             PrimaryButton(when { s.delivering -> stringResource(R.string.drv_saving); isCash && settlement == "CASH" -> stringResource(R.string.drv_got_cash_hand, due.rupees())
@@ -769,4 +911,27 @@ internal fun openMaps(context: android.content.Context, lat: Double, lng: Double
     try { context.startActivity(nav) } catch (_: ActivityNotFoundException) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:$lat,$lng?q=$lat,$lng(${Uri.encode(label)})"))) }
     }
+}
+
+/** Seconds before the break ends at which the phone buzzes (DOnBreak: "We buzz you 2 minutes before"). */
+internal const val BREAK_BUZZ_SECONDS = 120L
+
+private fun buzz(context: android.content.Context) {
+    runCatching {
+        val v = if (android.os.Build.VERSION.SDK_INT >= 31)
+            (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
+        else @Suppress("DEPRECATION") (context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator)
+        v.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 400, 200, 400), -1))
+    }
+}
+
+/**
+ * "204, Lakshmi Residency, Gachibowli 500032" → title "204, Lakshmi Residency", sub "Gachibowli 500032".
+ * A bare flat number alone is no use as a heading, so a short first part takes the next one with it.
+ */
+internal fun splitAddress(address: String): Pair<String, String?> {
+    val parts = address.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+    if (parts.size <= 1) return address.trim() to null
+    val take = if (parts[0].length < 8 && parts.size > 2) 2 else 1
+    return parts.take(take).joinToString(", ") to parts.drop(take).joinToString(", ").ifBlank { null }
 }

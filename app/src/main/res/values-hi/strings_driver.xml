@@ -370,7 +370,7 @@
     <string name="drv_break_n_min">%1$d मिनट</string>
     <string name="drv_break_window">ब्रेक · %1$s</string>
     <string name="drv_break_left">%1$s बाकी</string>
-    <string name="drv_break_till">%1$s तक नए काम नहीं आएँगे। उसके बाद अपने आप शुरू हो जाएँगे।</string>
+    <string name="drv_break_till">%1$s तक नए काम नहीं आएँगे। 2 मिनट पहले फ़ोन वाइब्रेट होगा।</string>
     <string name="drv_break_im_back_start">मैं वापस आ गया · काम शुरू करें</string>
     <string name="drv_yesterday">कल</string>
     <string name="drv_settle_part">कुछ हिस्सा ही दिया</string>
@@ -379,7 +379,7 @@
     <string name="drv_part_rest">बाकी %1$s दुकान माँगेगी</string>
     <string name="drv_part_amount_hint">₹0 से ज़्यादा और बिल से कम</string>
     <string name="drv_got_part">कुछ मिला · बाकी की जानकारी दें</string>
-    <string name="drv_round_next">अगला · %1$s किमी · लगभग %2$d मिनट</string>
+    <string name="drv_round_next">अगला: %1$s, %2$s</string>
     <string name="drv_round_stop">%1$s किमी · लगभग %2$d मिनट</string>
     <string name="drv_round_eta_note">समय सिर्फ़ अंदाज़ा है: सीधी दूरी, सामान्य रफ़्तार से।</string>
     <string name="drv_short_pays_later">बाद में देंगे</string>
@@ -400,4 +400,36 @@
     <string name="drv_joined_done">हो गया</string>
     <string name="drv_joined_waiting">इंतज़ार</string>
     <string name="drv_no_shop_yet">आप अभी किसी दुकान की टीम में नहीं हैं। बाकी कदम “मैं” टैब में देखें।</string>
+    <string name="drv_break_now">बाकी · अभी %1$s बजे हैं</string>
+    <string name="drv_break_next_drop">ब्रेक के बाद अगली डिलीवरी</string>
+    <string name="drv_break_next_cash">नकद %1$s</string>
+    <string name="drv_break_end_shift">इसके बजाय शिफ़्ट खत्म करें</string>
+    <string name="drv_sos_short">SOS</string>
+    <string name="drv_step1_label">स्टेप 1/3 · दुकान पर</string>
+    <string name="drv_order_customer">%1$s · %2$s</string>
+    <string name="drv_tick_each_cta">जो लोड करें उस पर टिक करें</string>
+    <string name="drv_step2_label">स्टेप 2/3 · डिलीवरी · %1$s</string>
+    <string name="drv_step2_label_n">डिलीवरी %1$d/%2$d · %3$s</string>
+    <string name="drv_step3_label">स्टेप 3/3 · सौंपना</string>
+    <string name="drv_cash_suffix">%1$s · नकद %2$s</string>
+    <string name="drv_call_name">%1$s को कॉल करें</string>
+    <string name="drv_on_duty_for">ड्यूटी पर · %1$s</string>
+    <string name="drv_shop_since">%1$s · %2$s से</string>
+    <string name="drv_your_tasks">आपके काम</string>
+    <string name="drv_round_caps">आज का राउंड</string>
+    <string name="drv_drops_left_n">%1$d डिलीवरी बाकी</string>
+    <string name="drv_round_cash">%1$s नकद लेना है</string>
+    <string name="drv_ring_here">नए काम यहाँ ज़ोर से बजते हैं।</string>
+    <string name="drv_preview_alert">अलर्ट सुनें</string>
+    <string name="drv_gps_ok">GPS चालू · इंटरनेट चालू</string>
+    <string name="drv_signal_trouble">सिग्नल की दिक्कत?</string>
+    <string name="drv_drops_done_stat">डिलीवरी पूरी</string>
+    <string name="drv_since_day">%1$s, %2$s</string>
+    <plurals name="drv_bring_empties_note">
+        <item quantity="one">इस घर से %d खाली जार वापस लाएँ।</item>
+        <item quantity="other">इस घर से %d खाली जार वापस लाएँ।</item>
+    </plurals>
+    <string name="drv_cash_confirmed">दुकान ने पुष्टि की। आज का काम पूरा</string>
+    <string name="drv_cash_confirmed_sub">दुकान ने नकद गिनकर पुष्टि कर दी। अब आपके पास कुछ नहीं है।</string>
+    <string name="drv_cash_waiting_shop">दुकान के %1$s गिनने का इंतज़ार… उनके फ़ोन पर सूचना गई है। पुष्टि होने तक काउंटर पर रहें।</string>
 </resources>
