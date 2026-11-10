@@ -44,6 +44,8 @@ fun BoondhPage(
     subtitle: String? = null,
     bottomBar: @Composable () -> Unit = {},
     footer: (@Composable ColumnScope.() -> Unit)? = null,
+    /** Shown at the end of the title row — e.g. the notification bell on Home. */
+    titleAction: (@Composable () -> Unit)? = null,
     content: LazyListScope.() -> Unit
 ) {
     Scaffold(containerColor = NeerlyColors.Canvas, bottomBar = {
@@ -66,9 +68,12 @@ fun BoondhPage(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    PageTitle(title)
-                    subtitle?.let { Text(it, fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600) }
+                Row(verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        PageTitle(title)
+                        subtitle?.let { Text(it, fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600) }
+                    }
+                    titleAction?.invoke()
                 }
             }
             content()
@@ -124,7 +129,7 @@ fun PrimaryButton(text: String, onClick: () -> Unit, enabled: Boolean = true, mo
     Button(onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth().heightIn(min = 52.dp),
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = contentColor)) {
-        Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 
 @Composable
@@ -132,7 +137,8 @@ fun SecondaryButton(text: String, onClick: () -> Unit, enabled: Boolean = true, 
                     color: Color = NeerlyColors.CustomerPrimary) =
     OutlinedButton(onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth().heightIn(min = 52.dp),
         shape = RoundedCornerShape(14.dp), border = BorderStroke(1.dp, NeerlyColors.Ink300)) {
-        Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = color)
+        // One line always: in a row of equal buttons a wrapped label made one taller than its neighbours.
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = color, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 
 enum class Tone { Neutral, Ok, Warn, Bad, Info }

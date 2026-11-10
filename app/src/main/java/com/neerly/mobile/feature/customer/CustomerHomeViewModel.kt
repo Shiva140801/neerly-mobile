@@ -32,7 +32,8 @@ class CustomerHomeViewModel @Inject constructor(
     private val connectivity: ConnectivityObserver,
     private val cart: com.neerly.mobile.data.cart.CartStore,
     private val strings: com.neerly.mobile.core.util.Strings,
-    private val discovery: com.neerly.mobile.data.api.DiscoveryApi
+    private val discovery: com.neerly.mobile.data.api.DiscoveryApi,
+    private val api: com.neerly.mobile.data.api.NeerlyApi
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -92,6 +93,14 @@ class CustomerHomeViewModel @Inject constructor(
         }
     }
 
+    /** Re-read on every return to Home so the badge clears after the feed is opened. */
+    fun refreshUnread() {
+        viewModelScope.launch {
+            runCatching { api.unreadCount("CUSTOMER")["unread"]?.toInt() ?: 0 }
+                .onSuccess { n -> _state.value = _state.value.copy(unread = n) }
+        }
+    }
+
     fun refresh() {
         connectivity.refresh()
         _state.value = _state.value.copy(loading = true, error = null)
@@ -100,7 +109,7 @@ class CustomerHomeViewModel @Inject constructor(
                 val addresses = repo.addresses()
                 val primary = addresses.firstOrNull { it.isPrimary } ?: addresses.firstOrNull()
                 val pincode = primary?.pincode ?: "500032"
-                val vendors = repo.vendors(pincode)
+                val vendors = repo.vendors(pincode, primary?.latitude, primary?.longitude)
                 val active = runCatching { repo.activeOrders() }.getOrDefault(emptyList())
                 val wallet = runCatching { repo.wallet() }.getOrNull()
                 // "Your usual": the last delivered order, one tap to repeat it.
@@ -113,6 +122,7 @@ class CustomerHomeViewModel @Inject constructor(
                 val waiting = vendors.isEmpty() && runCatching { discovery.myWaitlist() }.getOrDefault(emptyList())
                     .any { it.vendorId == null && it.pincode == pincode }
                 HomeUiState(
+                    unread = _state.value.unread,
                     filter = _state.value.filter,
                     onWaitlist = waiting,
                     message = _state.value.message,
@@ -162,6 +172,8 @@ object HomeFilters {
 
 data class HomeUiState(
     val loading: Boolean = true,
+    /** Unread updates for the bell (board Home: "Notifications, 3 unread"). */
+    val unread: Int = 0,
     val primaryAddress: AddressResponse? = null,
     val vendors: List<VendorCardResponse> = emptyList(),
     val activeOrders: List<OrderResponse> = emptyList(),

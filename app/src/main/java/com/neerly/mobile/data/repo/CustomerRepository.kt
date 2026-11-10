@@ -48,7 +48,8 @@ class CustomerRepository @Inject constructor(private val api: NeerlyApi) {
     suspend fun deleteAddress(id: String) = api.deleteAddress(id)
 
     // Home / browse
-    suspend fun vendors(pincode: String): List<VendorCardResponse> = api.vendors(pincode).content
+    suspend fun vendors(pincode: String, lat: Double? = null, lng: Double? = null): List<VendorCardResponse> =
+        api.vendors(pincode, lat = lat, lng = lng).content
     suspend fun vendor(id: String): VendorCardResponse = api.vendor(id)
     suspend fun vendorProducts(vendorId: String): List<ProductResponse> = api.vendorProducts(vendorId)
     suspend fun search(q: String): List<ProductResponse> = api.search(q)

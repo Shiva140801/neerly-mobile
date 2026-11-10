@@ -29,6 +29,7 @@ import java.math.BigDecimal
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CustomerHomeViewModelTest {
+    private val notifApi: com.neerly.mobile.data.api.NeerlyApi = io.mockk.mockk(relaxed = true)
 
     private val dispatcher = StandardTestDispatcher()
     private val repo: CustomerRepository = mockk()
@@ -67,14 +68,14 @@ class CustomerHomeViewModelTest {
     @Test
     fun load_happyPath_populatesVendorsAndPrimaryAddress() = runTest(dispatcher) {
         coEvery { repo.addresses() } returns listOf(primary)
-        coEvery { repo.vendors("500081") } returns listOf(vendor)
+        coEvery { repo.vendors("500081", any(), any()) } returns listOf(vendor)
         coEvery { repo.activeOrders() } returns emptyList()
         coEvery { repo.wallet() } returns WalletResponse(
             userId = "c1", balance = BigDecimal("340.00"),
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal("340.00")
         )
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -88,14 +89,14 @@ class CustomerHomeViewModelTest {
     @Test
     fun load_noAddresses_fallsBackToDefaultPincode() = runTest(dispatcher) {
         coEvery { repo.addresses() } returns emptyList()
-        coEvery { repo.vendors("500032") } returns listOf(vendor)
+        coEvery { repo.vendors("500032", any(), any()) } returns listOf(vendor)
         coEvery { repo.activeOrders() } returns emptyList()
         coEvery { repo.wallet() } returns WalletResponse(
             userId = "c1", balance = BigDecimal.ZERO,
             heldAmount = BigDecimal.ZERO, availableAmount = BigDecimal.ZERO
         )
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
         advanceUntilIdle()
 
         assertNull(vm.state.value.primaryAddress)
@@ -105,11 +106,11 @@ class CustomerHomeViewModelTest {
     @Test
     fun load_activeOrdersFailureIsTolerated_homeStillLoads() = runTest(dispatcher) {
         coEvery { repo.addresses() } returns listOf(primary)
-        coEvery { repo.vendors(any()) } returns listOf(vendor)
+        coEvery { repo.vendors(any(), any(), any()) } returns listOf(vendor)
         coEvery { repo.activeOrders() } throws RuntimeException("orders service down")
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
         advanceUntilIdle()
 
         assertEquals(false, vm.state.value.loading)
@@ -121,7 +122,7 @@ class CustomerHomeViewModelTest {
     fun load_addressesFailure_surfacesError() = runTest(dispatcher) {
         coEvery { repo.addresses() } throws RuntimeException("offline")
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -138,7 +139,7 @@ class CustomerHomeViewModelTest {
         coEvery { repo.addresses() } throws
             java.io.IOException("Unable to create converter for java.util.List<VendorCardResponse>")
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
         advanceUntilIdle()
 
         val s = vm.state.value
@@ -148,11 +149,11 @@ class CustomerHomeViewModelTest {
     @Test
     fun activeOrder_included_whenNonTerminal() = runTest(dispatcher) {
         coEvery { repo.addresses() } returns listOf(primary)
-        coEvery { repo.vendors(any()) } returns emptyList()
+        coEvery { repo.vendors(any(), any(), any()) } returns emptyList()
         coEvery { repo.activeOrders() } returns listOf(activeOrder)
         coEvery { repo.wallet() } returns WalletResponse("c1", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
 
-        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        val vm = CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
         advanceUntilIdle()
 
         assertEquals("OUT_FOR_DELIVERY", vm.state.value.activeOrders.single().status)
@@ -160,13 +161,13 @@ class CustomerHomeViewModelTest {
 
     private fun homeWith(vararg vendors: VendorCardResponse): CustomerHomeViewModel {
         coEvery { repo.addresses() } returns listOf(primary)
-        coEvery { repo.vendors("500081") } returns vendors.toList()
+        coEvery { repo.vendors("500081", any(), any()) } returns vendors.toList()
         coEvery { repo.activeOrders() } returns emptyList()
         coEvery { repo.wallet() } throws RuntimeException("n/a")
         coEvery { repo.myOrders(any(), any()) } returns emptyList()
         coEvery { repo.subscriptions() } returns emptyList()
         coEvery { repo.me() } throws RuntimeException("n/a")
-        return CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery)
+        return CustomerHomeViewModel(repo, connectivity, com.neerly.mobile.data.cart.CartStore(), com.neerly.mobile.support.TestStrings, discovery, notifApi)
     }
 
     @Test

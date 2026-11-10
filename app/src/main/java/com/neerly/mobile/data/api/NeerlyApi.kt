@@ -154,7 +154,10 @@ interface NeerlyApi {
     suspend fun vendors(
         @Query("pincode") pincode: String,
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20
+        @Query("size") size: Int = 20,
+        /** The delivery point — the server answers with each shop's distance (board Home "2.1 km"). */
+        @Query("lat") lat: Double? = null,
+        @Query("lng") lng: Double? = null
     ): PageResponse<VendorCardResponse>
 
     @GET("api/v1/customer/vendors/{id}")
@@ -570,6 +573,10 @@ interface NeerlyApi {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
     ): List<NotificationResponse>
+
+    /** `{"unread": N}` for the bell on Home; [role] scopes it to the active role's updates. */
+    @GET("api/v1/notifications/unread-count")
+    suspend fun unreadCount(@Query("role") role: String? = null): Map<String, Long>
 
     @POST("api/v1/notifications/{id}/read")
     suspend fun markRead(@Path("id") id: String)

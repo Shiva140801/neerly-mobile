@@ -15,6 +15,8 @@ data class VendorCardResponse(
     val totalOrders: Long,
     val fssaiNumber: String?,
     val reviewCount: Int? = null,
+    /** Straight-line km from the delivery point, when the app sent one. */
+    val distanceKm: Double? = null,
     val etaMinutesMin: Int? = null,
     val etaMinutesMax: Int? = null,
     val isOpenNow: Boolean? = null,
