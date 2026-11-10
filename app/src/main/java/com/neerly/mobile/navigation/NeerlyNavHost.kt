@@ -103,6 +103,9 @@ object Routes {
     const val OrderTracking = "customer/order/{orderId}"
     /** Board NoVendor — "Same order, other shops". */
     const val OrderOtherShops = "customer/order/{orderId}/other-shops"
+    /** Boards SlotPickerRedeliver ("time") / AddressPickerRedeliver ("place") after a failed drop. */
+    const val Redeliver = "customer/order/{orderId}/redeliver/{mode}"
+    fun redeliver(orderId: String, mode: String) = "customer/order/$orderId/redeliver/$mode"
     const val OrderHistory = "customer/orders"
 
     // Week 3 — deep flows
@@ -532,6 +535,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onRateOrder = { id, number -> nav.navigate(Routes.reviewSubmit(id, number)) },
                 onFileComplaint = { id -> nav.navigate(Routes.help(id)) },
                 onCancel = { id -> nav.navigate(Routes.cancelOrder(id)) },
+                onRedeliver = { id, mode -> nav.navigate(Routes.redeliver(id, mode)) },
+                onOpenOrder = { id -> nav.navigate(Routes.orderTracking(id)) },
                 onOtherShops = { id -> nav.navigate(Routes.orderOtherShops(id)) }
             )
         }
@@ -541,6 +546,13 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onRerouted = { id -> nav.navigate(Routes.orderTracking(id)) { popUpTo(Routes.OrderTracking) { inclusive = true } } },
                 onPickLaterSlot = { nav.navigate(Routes.Cart); nav.navigate(Routes.SlotPicker) },
                 onDrop = { nav.popBackStack(Routes.OrderTracking, inclusive = true) }
+            )
+        }
+        composable(Routes.Redeliver) {
+            com.neerly.mobile.feature.order.redeliver.RedeliverScreen(
+                onBack = { nav.popBackStack() },
+                onSeeOrder = { id, _ -> nav.navigate(Routes.orderTracking(id)) { popUpTo(Routes.OrderTracking) { inclusive = true } } },
+                onAddAddress = { nav.navigate(Routes.AddressNew) }
             )
         }
         composable(Routes.OrderHistory) {

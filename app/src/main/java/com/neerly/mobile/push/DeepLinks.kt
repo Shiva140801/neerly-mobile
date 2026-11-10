@@ -17,7 +17,8 @@ object DeepLinks {
         val p = path.split('/')
         fun at(i: Int) = p.getOrNull(i)?.ifBlank { null }
         return when (at(0)) {
-            "order" -> at(1)?.let { "customer/order/$it" } ?: "customer/orders"
+            // boondh://order/{id}/redeliver — C5 "Pick a new time" opens the re-delivery slot picker.
+            "order" -> at(1)?.let { id -> if (at(2) == "redeliver") "customer/order/$id/redeliver/time" else "customer/order/$id" } ?: "customer/orders"
             "orders" -> "customer/orders"
             "shops", "home" -> "customer/home"
             "shop" -> at(1)?.let { "customer/vendor/$it" } ?: "customer/home"
@@ -119,7 +120,10 @@ object DeepLinks {
     fun forAction(action: PushAction, type: PushType, p: PushPayload): String {
         val order = p["orderId"]
         return when (action) {
-            PushAction.REPORT, PushAction.I_WAS_HOME -> "${SCHEME}complaint-new?orderId=${order.orEmpty()}"
+            PushAction.REPORT -> "${SCHEME}complaint-new?orderId=${order.orEmpty()}"
+            // The order's DeliveryFailed card files "I was home" as the dispute it is.
+            PushAction.I_WAS_HOME -> order?.let { "${SCHEME}order/$it" }
+            PushAction.NEW_TIME -> order?.let { "${SCHEME}order/$it/redeliver" }
             PushAction.OTHER_SHOPS -> "${SCHEME}shops"
             PushAction.ADD_MONEY -> "${SCHEME}wallet"
             PushAction.DECLINE -> order?.let { "${SCHEME}seller/new-order/$it?decline=1" }

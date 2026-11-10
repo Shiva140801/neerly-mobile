@@ -48,9 +48,12 @@ class WalletViewModel @Inject constructor(
                 Triple(balance, txns, held)
             }
                 .onSuccess { (b, t, held) ->
+                    // Keep the AddMoneyDone result across the refresh a top-up triggers — a fresh
+                    // state used to wipe "₹500 added" the moment it appeared.
                     _state.value = WalletUiState(loading = false, balance = b, transactions = t,
                         jarsOut = held.sumOf { it.containerCount },
-                        depositHeld = held.fold(BigDecimal.ZERO) { acc, d -> acc + d.amount })
+                        depositHeld = held.fold(BigDecimal.ZERO) { acc, d -> acc + d.amount },
+                        added = _state.value.added?.copy(newBalance = b.availableAmount))
                 }
                 .onFailure {
                     _state.value = WalletUiState(
@@ -82,7 +85,8 @@ class WalletViewModel @Inject constructor(
             }
             when (outcome) {
                 com.neerly.mobile.feature.checkout.PaymentOutcome.Captured -> {
-                    _state.value = _state.value.copy(toppingUp = false, notice = strings.get(com.neerly.mobile.R.string.acct_wallet_topup_done, amount.toPlainString()))
+                    _state.value = _state.value.copy(toppingUp = false,
+                        added = TopUpDone(amount = amount, newBalance = null, at = java.time.Instant.now(), coverage = walletCoverage()))
                     refresh()
                 }
                 is com.neerly.mobile.feature.checkout.PaymentOutcome.Unconfirmed ->
@@ -92,7 +96,29 @@ class WalletViewModel @Inject constructor(
             }
         }
     }
+
+    /** Board AddMoneyDone "Back to wallet". */
+    fun dismissAdded() { _state.value = _state.value.copy(added = null) }
+
+    /** The first active subscription paid from the wallet: "₹730 covers the next 6". */
+    private suspend fun walletCoverage(): WalletCoverage? = runCatching { repo.subscriptions() }.getOrNull()
+        ?.firstOrNull { it.status == "ACTIVE" && it.paymentMethod == "WALLET" && it.unitPrice != null }
+        ?.let { WalletCoverage(it.vendorName, it.unitPrice!! * BigDecimal(it.quantityPerDelivery.coerceAtLeast(1))) }
 }
+
+/** Board AddMoneyDone. [newBalance] fills in once the wallet has been re-read. */
+data class TopUpDone(
+    val amount: BigDecimal,
+    val newBalance: BigDecimal?,
+    val at: java.time.Instant,
+    val coverage: WalletCoverage?
+) {
+    /** Deliveries the balance pays for in full, for the coverage line. */
+    val deliveriesCovered: Int? get() = coverage?.perDelivery?.takeIf { it.signum() > 0 }
+        ?.let { per -> newBalance?.divide(per, 0, java.math.RoundingMode.DOWN)?.toInt() }
+}
+
+data class WalletCoverage(val shopName: String?, val perDelivery: BigDecimal)
 
 data class WalletUiState(
     val loading: Boolean = true,
@@ -103,5 +129,7 @@ data class WalletUiState(
     val jarsOut: Int = 0,
     val depositHeld: BigDecimal = BigDecimal.ZERO,
     val transactions: List<WalletTransaction> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    /** Set after a top-up captured: the AddMoneyDone page. */
+    val added: TopUpDone? = null
 )

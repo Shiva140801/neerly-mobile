@@ -55,8 +55,35 @@ data class OrderResponse(
      * The delivery code — present only on the place-order response. The server keeps a
      * hash, so this is the one chance to keep it (see OrderLocalStore).
      */
-    val otp: String? = null
+    val otp: String? = null,
+    /** Where it was going — the re-delivery address picker marks it "Tried here". */
+    val addressId: String? = null,
+    /** Set when the driver couldn't hand it over (board DeliveryFailed). */
+    val failedDelivery: FailedDeliveryView? = null,
+    /** This order re-delivers that failed one. */
+    val redeliveryOf: String? = null
 )
+
+/** Mirrors backend `FailedDeliveryView`: why a drop failed and what's still possible. */
+@JsonClass(generateAdapter = true)
+data class FailedDeliveryView(
+    /** NOT_HOME | WRONG_ADDRESS | REFUSED | UNSAFE | OTHER */
+    val reason: String? = null,
+    val note: String? = null,
+    val photoKey: String? = null,
+    val failedAt: String? = null,
+    /** AWAITING | DISPUTED | REDELIVERED | CLOSED */
+    val state: String? = null,
+    val decideBy: String? = null,
+    val keptIfCancelled: BigDecimal = BigDecimal.ZERO,
+    val refundIfCancelled: BigDecimal = BigDecimal.ZERO,
+    val redeliveredAs: String? = null,
+    /** What trying again or sending it elsewhere costs. */
+    val newTripFee: BigDecimal? = null
+) {
+    /** The customer can still pick try-again, somewhere else or cancel. */
+    val open: Boolean get() = state == "AWAITING" || state == "DISPUTED"
+}
 
 /** Mirrors backend `OrderQuoteResponse` — what placement will charge, before it does. */
 @JsonClass(generateAdapter = true)

@@ -85,6 +85,23 @@ fun CheckoutScreen(
     val billLabel = stringResource(R.string.cust_co_bill)
     val addAddressNotice = stringResource(R.string.cust_co_add_address_notice)
     val addAddress = stringResource(R.string.cust_add_address)
+    // Boards PaymentPending / PaymentFailed take over the page until the payment settles.
+    when (val page = state.paymentPage) {
+        is PaymentPage.Pending -> {
+            PaymentPendingPage(page, snapshot.vendorName ?: yourShop, state.paying,
+                onApproved = vm::checkPaymentNow, onPayAnotherWay = vm::closePaymentPage,
+                onCancel = { vm.cancelUnpaid(onBack) })
+            return
+        }
+        is PaymentPage.Failed -> {
+            PaymentFailedPage(page, state.paying, state.paymentProblem,
+                onOtherUpi = { context.findActivity()?.let { vm.retryWith(it, "UPI") } },
+                onCard = { context.findActivity()?.let { vm.retryWith(it, "CARD") } },
+                onCash = vm::payCashInstead, onBack = vm::closePaymentPage)
+            return
+        }
+        null -> Unit
+    }
     // Board 13 — how would you like to pay?
     com.neerly.mobile.core.design.BoondhPage(
         title = stringResource(R.string.cust_co_title), onBack = onBack, backLabel = stringResource(R.string.cust_co_back_cart),

@@ -38,6 +38,9 @@ fun OrderTrackingScreen(
     onRateOrder: (orderId: String, orderNumber: String) -> Unit,
     onFileComplaint: (String) -> Unit,
     onCancel: (String) -> Unit = {},
+    /** Board DeliveryFailed: "time" (try again later) or "place" (somewhere else). */
+    onRedeliver: (orderId: String, mode: String) -> Unit = { _, _ -> },
+    onOpenOrder: (String) -> Unit = {},
     /** Board NoVendor: no shop took it — same order, other shops. */
     onOtherShops: (orderId: String) -> Unit = {},
     vm: OrderTrackingViewModel = hiltViewModel()
@@ -98,10 +101,18 @@ fun OrderTrackingScreen(
                     else com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_tr_rate), { onRateOrder(order.id, order.orderNumber) })
                 }
                 "FAILED", "CANCELLED" -> item {
-                    EndedCard(order.status, order.paymentMethod)
-                    // Failed before any driver had it = no shop said yes (board NoVendor).
-                    if (order.status == "FAILED" && order.driverId == null)
-                        com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_nv_see_others), { onOtherShops(order.id) })
+                    val failed = order.failedDelivery
+                    if (order.status == "FAILED" && failed != null)
+                        com.neerly.mobile.feature.order.redeliver.FailedDeliveryCard(order, failed,
+                            shopName = order.vendorName ?: stringResource(R.string.cust_the_shop),
+                            onTryAgain = { onRedeliver(order.id, "time") }, onElsewhere = { onRedeliver(order.id, "place") },
+                            onOpenOrder = onOpenOrder, onChanged = vm::refresh)
+                    else {
+                        EndedCard(order.status, order.paymentMethod)
+                        // Failed before any driver had it = no shop said yes (board NoVendor).
+                        if (order.status == "FAILED" && order.driverId == null)
+                            com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_nv_see_others), { onOtherShops(order.id) })
+                    }
                 }
             }
             if (order.status !in OrderTrackingViewModel.TERMINAL && order.status != "DELIVERED") item {

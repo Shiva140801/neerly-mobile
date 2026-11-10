@@ -260,4 +260,90 @@ class CheckoutViewModelTest {
         assertEquals("o1", done?.id)
         assertNull(vm.state.value.awaitingPaymentFor)
     }
+
+    // ---- Boards PaymentPending / PaymentFailed ----
+
+    private val payments: PaymentStatusApi = mockk(relaxed = true)
+    private fun view(state: String, reason: String? = null) = PaymentStatusView(
+        paymentId = "pay1", orderId = "o1", state = state, method = "UPI", amount = BigDecimal("220.00"),
+        failureReason = reason, createdAt = "2026-04-25T09:00:00Z", holdUntil = "2026-04-25T09:15:00Z")
+
+    private suspend fun upiCheckout(outcome: PaymentOutcome): CheckoutViewModel {
+        coEvery { repo.addresses() } returns listOf(primary)
+        coEvery { api.placeOrder(any(), any()) } returns sampleOrder
+        coEvery { api.initiatePayment(any()) } returns upiInit
+        coEvery { gateway.pay(any(), any(), any(), any(), any()) } returns outcome
+        return CheckoutViewModel(repo, api, cart, orderStore, gateway, com.neerly.mobile.support.TestStrings, payments)
+    }
+
+    @Test
+    fun bankDecline_opensFailedPage_withTheBanksReason_andKeepsTheOrderForRetry() = runTest(dispatcher) {
+        coEvery { payments.clientError("pay1", any()) } returns view("FAILED", "Daily UPI limit reached")
+        val vm = upiCheckout(PaymentOutcome.Declined("Payment failed", code = 1, description = "Daily UPI limit reached"))
+        advanceUntilIdle()
+        vm.selectPaymentMethod("UPI")
+        vm.placeAndPay(activity) { }
+        advanceUntilIdle()
+
+        val page = vm.state.value.paymentPage as PaymentPage.Failed
+        assertEquals("Daily UPI limit reached", page.bankSaid)
+        assertEquals("2026-04-25T09:15:00Z", page.holdUntil)
+        assertEquals("o1", vm.state.value.awaitingPaymentFor?.id)
+        coVerify { payments.clientError("pay1", ClientPaymentError(1, "Daily UPI limit reached")) }
+    }
+
+    @Test
+    fun closedUpiSheet_waitsOnPendingPage_andFinishesWhenTheServerSaysPaid() = runTest(dispatcher) {
+        // Once for the page's timer, once for the first poll, then the UPI app says yes.
+        coEvery { payments.status("pay1") } returnsMany listOf(view("PENDING"), view("PENDING"), view("PAID"))
+        val vm = upiCheckout(PaymentOutcome.Declined("Payment cancelled", code = 0))
+        advanceUntilIdle()
+        vm.selectPaymentMethod("UPI")
+        var done: OrderResponse? = null
+        vm.placeAndPay(activity) { done = it }
+        dispatcher.scheduler.runCurrent()
+        assertTrue(vm.state.value.paymentPage is PaymentPage.Pending)
+        coVerify(exactly = 0) { payments.clientError(any(), any()) }   // not a failure yet
+
+        vm.checkPaymentNow()
+        advanceUntilIdle()
+        assertEquals("o1", done?.id)
+        assertNull(vm.state.value.paymentPage)
+        assertTrue(cart.snapshot.isEmpty)
+    }
+
+    @Test
+    fun cashInstead_switchesTheOrder_andCompletesAsCash() = runTest(dispatcher) {
+        coEvery { payments.clientError(any(), any()) } returns view("FAILED", "Declined")
+        coEvery { payments.payCash("o1") } returns retrofit2.Response.success(Unit)
+        val vm = upiCheckout(PaymentOutcome.Declined("Payment failed", code = 1, description = "Declined"))
+        advanceUntilIdle()
+        var done: OrderResponse? = null
+        vm.placeAndPay(activity) { done = it }
+        advanceUntilIdle()
+
+        vm.payCashInstead()
+        advanceUntilIdle()
+        assertEquals("COD", done?.paymentMethod)
+        assertNull(vm.state.value.paymentPage)
+        assertNull(vm.state.value.awaitingPaymentFor)
+        assertTrue(cart.snapshot.isEmpty)
+    }
+
+    @Test
+    fun noInternet_staysAnInlineNote() = runTest(dispatcher) {
+        val vm = upiCheckout(PaymentOutcome.Declined("No internet", code = CheckoutViewModel.NETWORK_ERROR))
+        advanceUntilIdle()
+        vm.placeAndPay(activity) { }
+        advanceUntilIdle()
+        assertNull(vm.state.value.paymentPage)
+        assertEquals("No internet", vm.state.value.paymentProblem)
+    }
+
+    @Test
+    fun bankReason_readsPlainTextAndIgnoresBlank() {
+        assertEquals("Daily UPI limit reached", CheckoutViewModel.bankReason("  Daily UPI limit reached "))
+        assertNull(CheckoutViewModel.bankReason("   "))
+        assertNull(CheckoutViewModel.bankReason(null))
+    }
 }

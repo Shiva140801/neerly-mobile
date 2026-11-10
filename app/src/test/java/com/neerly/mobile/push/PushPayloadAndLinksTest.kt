@@ -47,6 +47,9 @@ class PushPayloadAndLinksTest {
         assertEquals("driver/home", DeepLinks.route("boondh://driver"))
         assertEquals("driver/sos?send=false", DeepLinks.route("boondh://driver/sos/s1"))
         assertEquals("customer/complaint?orderId=o1", DeepLinks.route("boondh://complaint-new?orderId=o1"))
+        // C5 "Pick a new time" opens the re-delivery slot picker; plain order links don't.
+        assertEquals("customer/order/o1/redeliver/time", DeepLinks.route("boondh://order/o1/redeliver"))
+        assertEquals("customer/order/o1", DeepLinks.route("boondh://order/o1"))
         assertNull(DeepLinks.route("https://evil.example/order/1"))
         assertNull(DeepLinks.route("boondh://nowhere"))
     }

@@ -43,7 +43,9 @@ class CheckoutViewModel @Inject constructor(
     private val cart: CartStore,
     private val orderStore: OrderLocalStore,
     private val gateway: GatewayPayments,
-    private val strings: com.neerly.mobile.core.util.Strings
+    private val strings: com.neerly.mobile.core.util.Strings,
+    /** Boards PaymentPending / PaymentFailed; null in tests that don't exercise them. */
+    private val payments: PaymentStatusApi? = null
 ) : ViewModel() {
 
     /**
@@ -191,8 +193,10 @@ class CheckoutViewModel @Inject constructor(
     }
 
     private fun payOnline(activity: Activity, order: OrderResponse, onDone: (OrderResponse) -> Unit) {
-        _state.value = _state.value.copy(paying = true, error = null, paymentProblem = null)
+        _state.value = _state.value.copy(paying = true, error = null, paymentProblem = null, paymentPage = null)
+        pageDone = onDone
         viewModelScope.launch {
+            var paymentId: String? = null
             val outcome = runCatching {
                 // The amount is only echoed back: the backend charges the order's own total
                 // and refuses anything else.
@@ -200,6 +204,7 @@ class CheckoutViewModel @Inject constructor(
                     InitiatePaymentRequest(orderId = order.id, amount = order.totalAmount,
                         method = _state.value.paymentMethod)
                 )
+                paymentId = init.paymentId
                 gateway.pay(activity, init, customerName = "", customerContact = null,
                     description = strings.get(R.string.cust_co_payment_desc, order.orderNumber))
             }.getOrElse {
@@ -216,11 +221,149 @@ class CheckoutViewModel @Inject constructor(
                         paymentProblem = (outcome as? PaymentOutcome.Unconfirmed)?.message)
                     onDone(order)
                 }
-                is PaymentOutcome.Declined -> _state.value = _state.value.copy(
-                    paying = false, awaitingPaymentFor = order, paymentProblem = outcome.message)
+                is PaymentOutcome.Declined -> {
+                    _state.value = _state.value.copy(
+                        paying = false, awaitingPaymentFor = order, paymentProblem = outcome.message)
+                    paymentId?.let { showPaymentPage(order, it, outcome) }
+                }
             }
         }
     }
+
+    private var pageDone: ((OrderResponse) -> Unit)? = null
+    private var pollJob: Job? = null
+
+    /**
+     * Razorpay closed unpaid. A UPI request the customer closed may still be approved in
+     * their UPI app (board PaymentPending); a bank refusal gets its own page with the
+     * bank's reason and other ways to pay (board PaymentFailed). Anything else — no
+     * internet, or no word from Razorpay — stays the inline note under the button.
+     */
+    private suspend fun showPaymentPage(order: OrderResponse, paymentId: String, outcome: PaymentOutcome.Declined) {
+        val api = payments ?: return
+        val code = outcome.code ?: return
+        if (code == NETWORK_ERROR) return
+        val bank = bankReason(outcome.description)
+        val method = _state.value.paymentMethod
+        if (code == PAYMENT_CANCELED && method == "UPI") {
+            // Not a failure yet: the collect request may still be approved, so nothing is
+            // reported — the webhook decides.
+            val view = runCatching { api.status(paymentId) }.getOrNull()
+            _state.value = _state.value.copy(paymentPage = PaymentPage.Pending(order, paymentId, view?.holdUntil))
+            startPolling(order, paymentId)
+            return
+        }
+        val view = runCatching { api.clientError(paymentId, ClientPaymentError(code, bank)) }.getOrNull()
+        _state.value = _state.value.copy(paymentPage =
+            PaymentPage.Failed(order, paymentId, method, view?.failureReason ?: bank, view?.holdUntil))
+    }
+
+    /** Pending: the server hears the UPI app's answer through the webhook — check every few seconds. */
+    private fun startPolling(order: OrderResponse, paymentId: String) {
+        pollJob?.cancel()
+        pollJob = viewModelScope.launch {
+            while (_state.value.paymentPage is PaymentPage.Pending) {
+                checkPayment(order, paymentId)
+                kotlinx.coroutines.delay(POLL_MS)
+            }
+        }
+    }
+
+    /** "I've approved it" — look now instead of waiting for the next poll. */
+    fun checkPaymentNow() {
+        val page = _state.value.paymentPage as? PaymentPage.Pending ?: return
+        viewModelScope.launch { checkPayment(page.order, page.paymentId) }
+    }
+
+    private suspend fun checkPayment(order: OrderResponse, paymentId: String) {
+        val view = runCatching { payments?.status(paymentId) }.getOrNull() ?: return
+        when (view.state) {
+            "PAID" -> {
+                cart.clear()
+                _state.value = _state.value.copy(paymentPage = null, awaitingPaymentFor = null,
+                    paymentProblem = null, paymentCaptured = true)
+                pageDone?.invoke(order)
+            }
+            "FAILED" -> if (_state.value.paymentPage is PaymentPage.Pending) {
+                _state.value = _state.value.copy(paymentPage =
+                    PaymentPage.Failed(order, paymentId, view.method, view.failureReason, view.holdUntil))
+            }
+        }
+    }
+
+    /** PaymentFailed / PaymentPending "Pay another way": back to the methods, same order. */
+    fun closePaymentPage() {
+        pollJob?.cancel()
+        _state.value = _state.value.copy(paymentPage = null)
+    }
+
+    /** PaymentFailed: try again with [method] — the same order, a new payment. */
+    fun retryWith(activity: Activity, method: String) {
+        val order = _state.value.awaitingPaymentFor ?: return
+        pollJob?.cancel()
+        _state.value = _state.value.copy(paymentMethod = method, paymentPage = null)
+        payOnline(activity, order, pageDone ?: {})
+    }
+
+    /** PaymentFailed "Cash on delivery": the order becomes a cash order and goes ahead. */
+    fun payCashInstead() {
+        val order = _state.value.awaitingPaymentFor ?: return
+        val api = payments ?: return
+        _state.value = _state.value.copy(paying = true, paymentProblem = null)
+        viewModelScope.launch {
+            runCatching { api.payCash(order.id).also { if (!it.isSuccessful) throw retrofit2.HttpException(it) } }
+                .onSuccess {
+                    pollJob?.cancel()
+                    cart.clear()
+                    _state.value = _state.value.copy(paying = false, paymentPage = null, awaitingPaymentFor = null,
+                        paymentMethod = "COD")
+                    pageDone?.invoke(order.copy(paymentMethod = "COD"))
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(paying = false,
+                        paymentProblem = it.userMessage(context = "pay cash instead", fallback = strings.get(R.string.cust_payst_cash_failed)))
+                }
+        }
+    }
+
+    /** PaymentPending "Cancel": drop the unpaid order; the cart stays for another go. */
+    fun cancelUnpaid(onCancelled: () -> Unit) {
+        val order = _state.value.awaitingPaymentFor ?: return
+        pollJob?.cancel()
+        viewModelScope.launch {
+            runCatching { api.cancelOrder(order.id, com.neerly.mobile.data.dto.CancelOrderRequest("Payment not completed")) }
+            _state.value = _state.value.copy(paymentPage = null, awaitingPaymentFor = null, paymentProblem = null)
+            requestId = UUID.randomUUID().toString()
+            onCancelled()
+        }
+    }
+
+    companion object {
+        /** Razorpay Checkout result codes. */
+        const val PAYMENT_CANCELED = 0
+        const val NETWORK_ERROR = 2
+        const val POLL_MS = 5_000L
+
+        /** Razorpay's error is a JSON string; the bank's words are error.description. */
+        fun bankReason(raw: String?): String? {
+            val text = raw?.trim()?.takeIf { it.isNotBlank() } ?: return null
+            if (!text.startsWith("{")) return text
+            return runCatching {
+                val err = org.json.JSONObject(text).optJSONObject("error")
+                err?.optString("description")?.takeIf { it.isNotBlank() && it != "null" }
+            }.getOrNull()
+        }
+    }
+}
+
+/** Boards PaymentPending and PaymentFailed, shown over checkout. */
+sealed interface PaymentPage {
+    val order: OrderResponse
+    val paymentId: String
+    /** Waiting for the customer to approve the UPI request in their UPI app. */
+    data class Pending(override val order: OrderResponse, override val paymentId: String, val holdUntil: String?) : PaymentPage
+    data class Failed(override val order: OrderResponse, override val paymentId: String, val method: String,
+                      val bankSaid: String?, val holdUntil: String?) : PaymentPage
 }
 
 data class CheckoutUiState(
@@ -239,5 +382,7 @@ data class CheckoutUiState(
     val awaitingPaymentFor: OrderResponse? = null,
     /** Why the last online payment didn't complete, in words for the customer. */
     val paymentProblem: String? = null,
+    /** A full page over checkout: PaymentPending or PaymentFailed. */
+    val paymentPage: PaymentPage? = null,
     val error: String? = null
 )

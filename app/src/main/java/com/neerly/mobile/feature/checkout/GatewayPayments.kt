@@ -34,8 +34,11 @@ class GatewayResults @Inject constructor() {
 sealed interface PaymentOutcome {
     /** The backend verified the signature and captured the money. */
     data object Captured : PaymentOutcome
-    /** The customer backed out, or the bank declined. Nothing was taken. */
-    data class Declined(val message: String) : PaymentOutcome
+    /**
+     * The customer backed out, or the bank declined. Nothing was taken. [code] and
+     * [description] are Razorpay's own, when it said anything (board PaymentFailed).
+     */
+    data class Declined(val message: String, val code: Int? = null, val description: String? = null) : PaymentOutcome
     /**
      * Razorpay says paid but we couldn't confirm it with our server (network).
      * The webhook settles it; the app must not offer to pay again.
@@ -74,7 +77,7 @@ class GatewayPayments @Inject constructor(
             customerEmail = null, customerContact = customerContact, description = description
         )
         return when (val r = results.stream.first()) {
-            is GatewayResult.NotPaid -> PaymentOutcome.Declined(declineCopy(r))
+            is GatewayResult.NotPaid -> PaymentOutcome.Declined(declineCopy(r), r.code, r.description)
             is GatewayResult.Paid -> {
                 val signature = r.signature
                     ?: return PaymentOutcome.Unconfirmed(strings.get(R.string.cust_pay_received_confirming))

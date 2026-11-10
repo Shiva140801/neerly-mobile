@@ -565,4 +565,13 @@
     <string name="acct_details_invoices">Invoices</string>
     <string name="acct_details_invoices_app">In the app · no email added</string>
     <string name="acct_details_invoices_email">In the app · also emailed to %1$s</string>
+    <!-- WP-4/5: payment states, cash cancel, failed delivery and re-delivery -->
+    <string name="acct_added_title">Added to wallet</string>
+    <string name="acct_added_new_balance">New balance</string>
+    <string name="acct_added_back">Back to wallet</string>
+    <string name="acct_added_order">Order water</string>
+    <plurals name="acct_added_covers">
+        <item quantity="one">Your %1$s subscription takes %2$s from the wallet on each delivery. %3$s covers the next %4$d.</item>
+        <item quantity="other">Your %1$s subscription takes %2$s from the wallet on each delivery. %3$s covers the next %4$d.</item>
+    </plurals>
 </resources>

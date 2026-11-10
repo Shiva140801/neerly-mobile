@@ -565,4 +565,13 @@
     <string name="acct_details_invoices">ఇన్‌వాయిస్‌లు</string>
     <string name="acct_details_invoices_app">యాప్‌లో · ఈమెయిల్ జోడించలేదు</string>
     <string name="acct_details_invoices_email">యాప్‌లో · %1$s కి ఈమెయిల్ కూడా</string>
+    <!-- WP-4/5: payment states, cash cancel, failed delivery and re-delivery -->
+    <string name="acct_added_title">వాలెట్‌కు జోడించారు</string>
+    <string name="acct_added_new_balance">కొత్త బ్యాలెన్స్</string>
+    <string name="acct_added_back">వాలెట్‌కు తిరిగి</string>
+    <string name="acct_added_order">నీరు ఆర్డర్ చేయండి</string>
+    <plurals name="acct_added_covers">
+        <item quantity="one">మీ %1$s సబ్‌స్క్రిప్షన్ ప్రతి డెలివరీకి వాలెట్ నుండి %2$s తీసుకుంటుంది. %3$s తదుపరి %4$d కి సరిపోతుంది.</item>
+        <item quantity="other">మీ %1$s సబ్‌స్క్రిప్షన్ ప్రతి డెలివరీకి వాలెట్ నుండి %2$s తీసుకుంటుంది. %3$s తదుపరి %4$d డెలివరీలకు సరిపోతుంది.</item>
+    </plurals>
 </resources>

@@ -55,6 +55,10 @@ fun WalletScreen(
     com.neerly.mobile.core.design.OnReturn(vm::refresh)
     val context = LocalContext.current
     var addOpen by remember { mutableStateOf(false) }
+    state.added?.let { done ->
+        AddMoneyDonePage(done, onBack = vm::dismissAdded, onOrderWater = { vm.dismissAdded(); onSelectTab(CustomerTab.Home) })
+        return
+    }
 
     Scaffold(
         containerColor = NeerlyColors.Canvas,
@@ -219,3 +223,40 @@ private fun titleFor(t: WalletTransaction): String = when (t.type) {
 }
 
 private fun shortDate(iso: String): String = shortDay(iso)
+
+/** Board AddMoneyDone: what was added, the new balance, and how far it goes. */
+@Composable
+private fun AddMoneyDonePage(done: TopUpDone, onBack: () -> Unit, onOrderWater: () -> Unit) {
+    val at = remember(done.at) {
+        java.time.format.DateTimeFormatter.ofPattern("EEE d MMM, h:mm a", com.neerly.mobile.core.util.AppLocale.locale)
+            .withZone(java.time.ZoneId.of("Asia/Kolkata")).format(done.at)
+    }
+    com.neerly.mobile.core.design.BoondhPage(
+        title = stringResource(R.string.acct_added_title),
+        footer = {
+            com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.acct_added_back), onBack)
+            com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.acct_added_order), onOrderWater)
+        }
+    ) {
+        item {
+            Text(done.amount.rupees(), fontFamily = FontFamily.Serif, fontWeight = FontWeight.Medium,
+                fontSize = 44.sp, color = NeerlyColors.Ok)
+        }
+        item {
+            com.neerly.mobile.core.design.BoondhCard {
+                com.neerly.mobile.core.design.InfoRow(stringResource(R.string.acct_added_new_balance),
+                    subtitle = at, trailing = done.newBalance?.rupees() ?: "…")
+            }
+        }
+        done.coverage?.let { c ->
+            val n = done.deliveriesCovered
+            if (n != null) item {
+                com.neerly.mobile.core.design.Notice(
+                    androidx.compose.ui.res.pluralStringResource(R.plurals.acct_added_covers, n,
+                        c.shopName ?: stringResource(R.string.cust_the_shop), c.perDelivery.rupees(),
+                        done.newBalance!!.rupees(), n),
+                    com.neerly.mobile.core.design.Tone.Info)
+            }
+        }
+    }
+}

@@ -565,4 +565,13 @@
     <string name="acct_details_invoices">इनवॉइस</string>
     <string name="acct_details_invoices_app">ऐप में · ईमेल नहीं जोड़ा</string>
     <string name="acct_details_invoices_email">ऐप में · %1$s पर ईमेल भी</string>
+    <!-- WP-4/5: payment states, cash cancel, failed delivery and re-delivery -->
+    <string name="acct_added_title">वॉलेट में जोड़ा गया</string>
+    <string name="acct_added_new_balance">नया बैलेंस</string>
+    <string name="acct_added_back">वॉलेट पर वापस</string>
+    <string name="acct_added_order">पानी ऑर्डर करें</string>
+    <plurals name="acct_added_covers">
+        <item quantity="one">आपकी %1$s सब्सक्रिप्शन हर डिलीवरी पर वॉलेट से %2$s लेती है। %3$s अगली %4$d डिलीवरी के लिए काफ़ी है।</item>
+        <item quantity="other">आपकी %1$s सब्सक्रिप्शन हर डिलीवरी पर वॉलेट से %2$s लेती है। %3$s अगली %4$d डिलीवरी के लिए काफ़ी है।</item>
+    </plurals>
 </resources>
