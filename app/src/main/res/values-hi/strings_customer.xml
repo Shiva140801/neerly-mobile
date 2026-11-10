@@ -732,4 +732,23 @@
     <string name="cust_placed_failed_refund">इस ऑर्डर के लिए कुछ नहीं लिया गया। अगर पैसे कटे हैं, तो वहीं वापस आएँगे जहाँ से चुकाए थे।</string>
     <string name="cust_tr_code_title">डिलीवरी कोड</string>
     <string name="cust_tr_need_help_short">मदद चाहिए?</string>
+    <string name="cust_cart2_have_promo">प्रोमो कोड है?</string>
+    <string name="cust_cart2_when">कब?</string>
+    <string name="cust_cart2_where_to">कहाँ भेजें?</string>
+    <string name="cust_cart2_add">जोड़ें</string>
+    <string name="cust_cart2_change">बदलें</string>
+    <string name="cust_cart2_floor_lift">मंज़िल %1$d, लिफ़्ट है</string>
+    <string name="cust_cart2_floor_no_lift">मंज़िल %1$d, लिफ़्ट नहीं</string>
+    <string name="cust_cart2_deliver_where">कहाँ डिलीवर करें</string>
+    <string name="cust_cart2_add_new">+ नया पता जोड़ें</string>
+    <string name="cust_cart2_swap_at_door">दरवाज़े पर अदला-बदली</string>
+    <string name="cust_cart2_each">%1$s प्रति</string>
+    <string name="cust_cart2_less">%1$s एक कम</string>
+    <string name="cust_cart2_more">%1$s एक और</string>
+    <string name="cust_cart2_water">पानी</string>
+    <string name="cust_cart2_deposit">जार डिपॉज़िट</string>
+    <string name="cust_cart2_swapping">(अदला-बदली)</string>
+    <string name="cust_cart2_to_pay">चुकाना है</string>
+    <string name="cust_co_paying_to">%1$s को भुगतान</string>
+    <string name="cust_co_to_address">%1$s पर · %2$s</string>
 </resources>

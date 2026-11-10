@@ -509,7 +509,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         }
         composable(Routes.Cart) {
             CartScreen(onBack = { nav.popBackStack() }, onCheckout = { nav.navigate(Routes.Checkout) },
-                onPickSlot = { nav.navigate(Routes.SlotPicker) })
+                onPickSlot = { nav.navigate(Routes.SlotPicker) }, onAddAddress = { nav.navigate(Routes.AddressNew) })
         }
         composable(Routes.SlotPicker) {
             com.neerly.mobile.feature.cart.SlotPickerScreen(onBack = { nav.popBackStack() }, onDone = { nav.popBackStack() })

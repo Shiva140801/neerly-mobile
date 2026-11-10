@@ -732,4 +732,23 @@
     <string name="cust_placed_failed_refund">ఈ ఆర్డర్‌కు ఏమీ వసూలు చేయలేదు. మీ ఖాతా నుంచి డబ్బు వెళ్లి ఉంటే, మీరు చెల్లించిన చోటికే తిరిగి వస్తుంది.</string>
     <string name="cust_tr_code_title">డెలివరీ కోడ్</string>
     <string name="cust_tr_need_help_short">సహాయం కావాలా?</string>
+    <string name="cust_cart2_have_promo">ప్రోమో కోడ్ ఉందా?</string>
+    <string name="cust_cart2_when">ఎప్పుడు?</string>
+    <string name="cust_cart2_where_to">ఎక్కడికి పంపాలి?</string>
+    <string name="cust_cart2_add">చేర్చండి</string>
+    <string name="cust_cart2_change">మార్చండి</string>
+    <string name="cust_cart2_floor_lift">%1$d వ అంతస్తు, లిఫ్ట్ ఉంది</string>
+    <string name="cust_cart2_floor_no_lift">%1$d వ అంతస్తు, లిఫ్ట్ లేదు</string>
+    <string name="cust_cart2_deliver_where">ఎక్కడికి డెలివరీ</string>
+    <string name="cust_cart2_add_new">+ కొత్త చిరునామా చేర్చండి</string>
+    <string name="cust_cart2_swap_at_door">డోర్ వద్ద మార్పిడి</string>
+    <string name="cust_cart2_each">ఒక్కోటి %1$s</string>
+    <string name="cust_cart2_less">%1$s ఒకటి తగ్గించండి</string>
+    <string name="cust_cart2_more">%1$s ఇంకొకటి</string>
+    <string name="cust_cart2_water">నీళ్ళు</string>
+    <string name="cust_cart2_deposit">జార్ డిపాజిట్</string>
+    <string name="cust_cart2_swapping">(మార్పిడి)</string>
+    <string name="cust_cart2_to_pay">చెల్లించాల్సింది</string>
+    <string name="cust_co_paying_to">%1$s కి చెల్లింపు</string>
+    <string name="cust_co_to_address">%1$s కి · %2$s</string>
 </resources>

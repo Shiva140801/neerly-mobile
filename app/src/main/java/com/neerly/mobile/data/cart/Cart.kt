@@ -23,7 +23,9 @@ data class Cart(
     val promoCode: String? = null,
     val discount: BigDecimal = BigDecimal.ZERO,
     /** "When?" — null is "Right now"; otherwise the window picked on the slot picker. */
-    val slot: DeliverySlot? = null
+    val slot: DeliverySlot? = null,
+    /** Address picked in the cart (board Cart "Home · Change"); checkout starts from it. */
+    val addressId: String? = null
 ) {
     val isEmpty: Boolean get() = items.isEmpty()
 

@@ -732,4 +732,23 @@
     <string name="cust_placed_failed_refund">Nothing was charged for this order. If money left your account, it comes back to where you paid from.</string>
     <string name="cust_tr_code_title">Delivery code</string>
     <string name="cust_tr_need_help_short">Need help?</string>
+    <string name="cust_cart2_have_promo">Have a promo code?</string>
+    <string name="cust_cart2_when">When?</string>
+    <string name="cust_cart2_where_to">Where should it go?</string>
+    <string name="cust_cart2_add">Add</string>
+    <string name="cust_cart2_change">Change</string>
+    <string name="cust_cart2_floor_lift">Floor %1$d, lift</string>
+    <string name="cust_cart2_floor_no_lift">Floor %1$d, no lift</string>
+    <string name="cust_cart2_deliver_where">Deliver to</string>
+    <string name="cust_cart2_add_new">+ Add a new address</string>
+    <string name="cust_cart2_swap_at_door">Swap at door</string>
+    <string name="cust_cart2_each">%1$s each</string>
+    <string name="cust_cart2_less">One less %1$s</string>
+    <string name="cust_cart2_more">One more %1$s</string>
+    <string name="cust_cart2_water">Water</string>
+    <string name="cust_cart2_deposit">Jar deposit</string>
+    <string name="cust_cart2_swapping">(swapping)</string>
+    <string name="cust_cart2_to_pay">To pay</string>
+    <string name="cust_co_paying_to">Paying %1$s</string>
+    <string name="cust_co_to_address">To %1$s · %2$s</string>
 </resources>

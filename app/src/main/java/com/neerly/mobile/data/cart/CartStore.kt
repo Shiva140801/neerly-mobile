@@ -110,6 +110,11 @@ class CartStore @Inject constructor() {
 
     fun clear() { _state.value = Cart() }
 
+    /** Where it goes — picked on the cart, used by checkout's quote and order. */
+    fun setAddress(addressId: String?) {
+        _state.value = _state.value.copy(addressId = addressId)
+    }
+
     /** "Right now" (null) or a picked window; kept until the shop changes or the cart empties. */
     fun setSlot(slot: DeliverySlot?) {
         _state.value = _state.value.copy(slot = slot)

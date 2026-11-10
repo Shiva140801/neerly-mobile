@@ -121,6 +121,50 @@ class CartViewModel @Inject constructor(
             keepContainer = q.keepContainer, depositPerContainer = q.deposit))
         _quickAdds.value = QuickAdds.pick(store.snapshot, shelf)
     }
+
+    // ---- Board Cart: where it goes, and the bill for that address --------------------
+    private val _addresses = MutableStateFlow<List<com.neerly.mobile.data.dto.AddressResponse>>(emptyList())
+    val addresses: StateFlow<List<com.neerly.mobile.data.dto.AddressResponse>> = _addresses.asStateFlow()
+    private val _quote = MutableStateFlow<com.neerly.mobile.data.dto.OrderQuoteResponse?>(null)
+    /** Null until the server has priced this basket for the chosen address. */
+    val quote: StateFlow<com.neerly.mobile.data.dto.OrderQuoteResponse?> = _quote.asStateFlow()
+    private var quoteJob: kotlinx.coroutines.Job? = null
+
+    init {
+        viewModelScope.launch {
+            runCatching { api.addresses() }.onSuccess { list ->
+                _addresses.value = list
+                if (store.snapshot.addressId == null || list.none { it.id == store.snapshot.addressId }) {
+                    store.setAddress((list.firstOrNull { it.isPrimary } ?: list.firstOrNull())?.id)
+                }
+            }
+        }
+        // Re-price whenever the basket, the slot or the address changes.
+        store.state.map { Triple(it.items, it.addressId, it.promoCode to it.slot) }
+            .onEach { refreshQuote() }.launchIn(viewModelScope)
+    }
+
+    fun selectAddress(id: String) = store.setAddress(id)
+
+    private fun refreshQuote() {
+        val c = store.snapshot
+        val addressId = c.addressId
+        val vendorId = c.vendorId
+        if (c.isEmpty || addressId == null || vendorId == null) { _quote.value = null; return }
+        quoteJob?.cancel()
+        quoteJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(250) // a stepper burst sends one quote
+            _quote.value = runCatching {
+                api.quoteOrder(com.neerly.mobile.data.dto.PlaceOrderRequest(
+                    vendorId = vendorId, addressId = addressId,
+                    items = c.items.map { com.neerly.mobile.data.dto.OrderItemRequest(it.productId, it.quantity,
+                        if (it.keepContainer) "KEEP" else "TRANSFER_AND_RETURN") },
+                    orderType = "ON_DEMAND", paymentMethod = "COD", promoCode = c.promoCode,
+                    requestedSlotStart = c.slot?.startIso, requestedSlotEnd = c.slot?.endIso))
+            }.getOrNull()
+        }
+    }
+
 }
 
 /** One tap on the below-minimum cart (board CartMinimum: "One more 20L jar", "5L can"). */

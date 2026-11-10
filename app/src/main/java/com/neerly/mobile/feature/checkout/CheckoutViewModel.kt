@@ -71,7 +71,9 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.addresses() }
                 .onSuccess { addrs ->
-                    val primary = addrs.firstOrNull { it.isPrimary } ?: addrs.firstOrNull()
+                    // The cart's pick wins; otherwise the primary address.
+                    val picked = cart.snapshot.addressId?.let { id -> addrs.firstOrNull { it.id == id } }
+                    val primary = picked ?: addrs.firstOrNull { it.isPrimary } ?: addrs.firstOrNull()
                     _state.value = _state.value.copy(
                         loading = false,
                         addresses = addrs,
@@ -84,6 +86,7 @@ class CheckoutViewModel @Inject constructor(
     }
 
     fun selectAddress(id: String) {
+        cart.setAddress(id)
         val a = _state.value.addresses.firstOrNull { it.id == id }
         _state.value = _state.value.copy(selectedAddress = a)
         refreshQuote()

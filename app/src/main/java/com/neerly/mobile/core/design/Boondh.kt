@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +36,12 @@ object Boondh {
     val MutedOnNavy = Color(0xFFC9CEE6)
 }
 
-/** A full page: back link, serif title, optional line under it, scrolling content, optional bottom bar. */
+/**
+ * A full page as the boards draw it: a chevron back control (its label is read aloud,
+ * not shown), serif title — beside the chevron when [inlineTitle] (Cart, Checkout) or
+ * under it (Complaints, Addresses) — an optional [topAction] at the top right ("New
+ * issue", "Mark all read"), scrolling content and a footer on the canvas behind a hairline.
+ */
 @Composable
 fun BoondhPage(
     title: String,
@@ -46,12 +52,17 @@ fun BoondhPage(
     footer: (@Composable ColumnScope.() -> Unit)? = null,
     /** Shown at the end of the title row — e.g. the notification bell on Home. */
     titleAction: (@Composable () -> Unit)? = null,
+    /** Title next to the chevron, smaller (boards Cart, Checkout). */
+    inlineTitle: Boolean = false,
+    /** Top-right action on the chevron row (boards Complaints, Notifications). */
+    topAction: (@Composable () -> Unit)? = null,
     content: LazyListScope.() -> Unit
 ) {
     Scaffold(containerColor = NeerlyColors.Canvas, bottomBar = {
         Column {
             if (footer != null) {
-                Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper).padding(horizontal = 20.dp, vertical = 12.dp),
+                HorizontalDivider(color = NeerlyColors.Ink200)
+                Column(Modifier.fillMaxWidth().background(NeerlyColors.Canvas).padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp), content = footer)
             }
             bottomBar()
@@ -62,22 +73,36 @@ fun BoondhPage(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.fillMaxSize().padding(padding)
         ) {
-            if (onBack != null) item {
-                TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 44.dp)) {
-                    Text("‹ $backLabel", color = NeerlyColors.CustomerPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            val inline = inlineTitle && onBack != null
+            if (onBack != null && !inline) item {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    BackChevron(onBack, backLabel)
+                    Spacer(Modifier.weight(1f))
+                    topAction?.invoke()
                 }
             }
             item {
-                Row(verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        PageTitle(title)
-                        subtitle?.let { Text(it, fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600) }
+                Row(verticalAlignment = if (inline) Alignment.CenterVertically else Alignment.Top) {
+                    if (inline) { BackChevron(onBack!!, backLabel); Spacer(Modifier.width(4.dp)) }
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (inline) 2.dp else 6.dp)) {
+                        PageTitle(title, size = if (inline) 26 else 30)
+                        subtitle?.let { Text(it, fontSize = if (inline) 14.sp else 15.sp, lineHeight = 21.sp, color = NeerlyColors.Ink600) }
                     }
                     titleAction?.invoke()
+                    if (inline) topAction?.invoke()
                 }
             }
             content()
         }
+    }
+}
+
+/** The boards' back control: a bare chevron, 48 dp target, labelled for TalkBack. */
+@Composable
+fun BackChevron(onBack: () -> Unit, label: String) {
+    IconButton(onClick = onBack, modifier = Modifier.offset(x = (-12).dp).size(48.dp)) {
+        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            contentDescription = label, tint = NeerlyColors.Ink900, modifier = Modifier.size(30.dp))
     }
 }
 

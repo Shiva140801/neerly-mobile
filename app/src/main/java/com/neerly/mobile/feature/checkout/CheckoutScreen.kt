@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -73,16 +77,15 @@ fun CheckoutScreen(
     val walletSub = state.walletBalance?.let { b ->
         if (total != null && b < total) stringResource(R.string.cust_co_wallet_short, b.asRupees(), (total - b).asRupees())
         else stringResource(R.string.cust_co_wallet_available, b.asRupees()) } ?: stringResource(R.string.cust_co_wallet_sub)
+    // Board Checkout order: UPI, wallet, card, cash — each with its own glyph tile.
     val methods = listOf(
         Triple("UPI", stringResource(R.string.cust_co_upi), stringResource(R.string.cust_co_upi_sub)),
-        Triple("CARD", stringResource(R.string.cust_co_card), stringResource(R.string.cust_co_card_sub)),
         Triple("WALLET", stringResource(R.string.cust_co_wallet), walletSub),
+        Triple("CARD", stringResource(R.string.cust_co_card), stringResource(R.string.cust_co_card_sub)),
         Triple("COD", stringResource(R.string.cust_co_cash), stringResource(R.string.cust_co_cash_sub))
     )
     val yourShop = stringResource(R.string.cust_your_shop)
     val swapTip = stringResource(R.string.cust_co_swap_tip)
-    val deliverTo = stringResource(R.string.cust_co_deliver_to)
-    val billLabel = stringResource(R.string.cust_co_bill)
     val addAddressNotice = stringResource(R.string.cust_co_add_address_notice)
     val addAddress = stringResource(R.string.cust_add_address)
     // Boards PaymentPending / PaymentFailed take over the page until the payment settles.
@@ -102,10 +105,11 @@ fun CheckoutScreen(
         }
         null -> Unit
     }
-    // Board 13 — how would you like to pay?
+    // Board Checkout: chevron + title, navy "Paying <shop> ₹X", the four ways to pay with
+    // the radio on the right, the jar-swap note. Address and bill now live on the cart.
     com.neerly.mobile.core.design.BoondhPage(
         title = stringResource(R.string.cust_co_title), onBack = onBack, backLabel = stringResource(R.string.cust_co_back_cart),
-        subtitle = total?.let { stringResource(R.string.cust_co_paying_shop, snapshot.vendorName ?: yourShop, it.asRupees()) },
+        inlineTitle = true,
         footer = {
             state.error?.let { com.neerly.mobile.core.design.Notice(it, com.neerly.mobile.core.design.Tone.Bad) }
             state.paymentProblem?.let { com.neerly.mobile.core.design.Notice(it, com.neerly.mobile.core.design.Tone.Bad) }
@@ -116,42 +120,62 @@ fun CheckoutScreen(
             }, enabled = !state.placing && !state.paying && total != null && state.selectedAddress != null &&
                 !snapshot.isEmpty && !(state.paymentMethod == "WALLET" && walletShort))
             // Razorpay only handles UPI/card; on cash or wallet the line would be untrue.
-            if (state.paymentMethod in setOf("UPI", "CARD")) Text(stringResource(R.string.cust_co_secured), fontSize = 12.sp, color = NeerlyColors.Ink600,
+            if (state.paymentMethod in setOf("UPI", "CARD")) Text(stringResource(R.string.cust_co_secured), fontSize = 13.sp, color = NeerlyColors.Ink600,
                 modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     ) {
         if (state.loading && state.addresses.isEmpty()) { item { CartSkeleton() }; return@BoondhPage }
+        item {
+            Row(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark, RoundedCornerShape(16.dp)).padding(horizontal = 18.dp, vertical = 18.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.cust_co_paying_to, snapshot.vendorName ?: yourShop), Modifier.weight(1f),
+                    fontSize = 15.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy)
+                if (total != null) Text(total.asRupees(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                    fontSize = 30.sp, fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
+                else if (state.quoting) Text(stringResource(R.string.cust_co_working_total), fontSize = 13.sp,
+                    color = com.neerly.mobile.core.design.Boondh.MutedOnNavy)
+            }
+        }
+        state.selectedAddress?.let { a -> item {
+            Text(stringResource(R.string.cust_co_to_address, com.neerly.mobile.feature.address.addressLabel(a.label),
+                listOf(a.flatNumber, a.buildingName).filter { it.isNotBlank() }.joinToString(", ").ifBlank { a.street }),
+                fontSize = 14.sp, color = NeerlyColors.Ink600)
+        } }
+        if (state.quote == null && !state.quoting && !state.loading && state.selectedAddress != null) item {
+            BillCard(null, false, onRetry = vm::refreshQuote)
+        }
         methods.forEach { (code, title, sub) ->
             item {
                 val on = state.paymentMethod == code
-                com.neerly.mobile.core.design.BoondhCard(
-                    Modifier.border(if (on) 2.dp else 0.dp, if (on) NeerlyColors.CustomerPrimary else androidx.compose.ui.graphics.Color.Transparent, RoundedCornerShape(14.dp)),
-                    onClick = { vm.selectPaymentMethod(code) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = on, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = NeerlyColors.CustomerPrimary))
-                        Spacer(Modifier.width(8.dp))
-                        Column { Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                            Text(sub, fontSize = 13.sp, color = if (code == "WALLET" && walletShort) NeerlyColors.Warn else NeerlyColors.Ink600) }
+                Row(Modifier.fillMaxWidth()
+                    .background(NeerlyColors.Paper, RoundedCornerShape(16.dp))
+                    .border(if (on) 2.dp else 1.dp, if (on) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200, RoundedCornerShape(16.dp))
+                    .clickable(role = androidx.compose.ui.semantics.Role.RadioButton) { vm.selectPaymentMethod(code) }
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Box(Modifier.size(48.dp).background(NeerlyColors.Ink100, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                        Icon(when (code) {
+                            "UPI" -> androidx.compose.material.icons.Icons.Outlined.PhoneAndroid
+                            "WALLET" -> androidx.compose.material.icons.Icons.Outlined.AccountBalanceWallet
+                            "CARD" -> androidx.compose.material.icons.Icons.Outlined.CreditCard
+                            else -> androidx.compose.material.icons.Icons.Outlined.Payments
+                        }, contentDescription = null, tint = NeerlyColors.Ink900)
                     }
+                    Column(Modifier.weight(1f)) {
+                        Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                        Text(sub, fontSize = 14.sp, color = if (code == "WALLET" && walletShort) NeerlyColors.Warn else NeerlyColors.Ink600)
+                    }
+                    RadioButton(selected = on, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = NeerlyColors.CustomerPrimary))
                 }
             }
         }
-        item { com.neerly.mobile.core.design.SectionLabel(deliverTo) }
         if (state.addresses.isEmpty() && !state.loading) {
             item { com.neerly.mobile.core.design.Notice(addAddressNotice, com.neerly.mobile.core.design.Tone.Warn) }
             item { com.neerly.mobile.core.design.SecondaryButton(addAddress, onAddAddress) }
-        } else {
-            items(state.addresses.size) { idx ->
-                val a = state.addresses[idx]
-                AddressChip(addr = a, selected = state.selectedAddress?.id == a.id, onClick = { vm.selectAddress(a.id) })
-            }
         }
-        if (state.paymentMethod != "WALLET") item {
-            Text(swapTip,
-                fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
+        if (state.paymentMethod != "WALLET" && snapshot.items.any { !it.keepContainer }) item {
+            com.neerly.mobile.core.design.Notice(swapTip, com.neerly.mobile.core.design.Tone.Warn)
         }
-        item { com.neerly.mobile.core.design.SectionLabel(billLabel) }
-        item { BillCard(state.quote, state.quoting, onRetry = vm::refreshQuote) }
     }
 }
 
