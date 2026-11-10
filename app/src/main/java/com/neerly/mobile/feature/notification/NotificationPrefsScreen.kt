@@ -58,16 +58,14 @@ fun NotificationPrefsScreen(
         }
         if (s.loading) { item { LoadState(true, null, vm::refresh) }; return@BoondhPage }
         s.error?.let { e -> item { Notice(e, Tone.Bad) } }
+        // Board NotifPrefs: rows straight on the canvas between hairlines, green switches;
+        // the locked one reads as ON (muted), not as a greyed-out OFF.
         item {
-            BoondhCard {
-                NotificationPrefsViewModel.Topic.entries.forEachIndexed { i, t ->
-                    if (i > 0) HorizontalDivider(color = NeerlyColors.Ink200)
+            Column {
+                NotificationPrefsViewModel.Topic.entries.forEach { t ->
                     TopicRow(stringResource(t.title), stringResource(t.sub), vm.isOn(t), t.locked) { vm.toggle(t, it) }
+                    HorizontalDivider(color = NeerlyColors.Ink200)
                 }
-            }
-        }
-        item {
-            BoondhCard {
                 InfoRow(stringResource(R.string.push_prefs_phone), stringResource(R.string.push_prefs_phone_sub),
                     onClick = { context.startActivity(PushPermissions.appNotificationSettings(context)) })
             }
@@ -77,13 +75,17 @@ fun NotificationPrefsScreen(
 
 @Composable
 private fun TopicRow(title: String, sub: String, on: Boolean, locked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(vertical = 6.dp).alpha(if (locked) 0.6f else 1f)
+    Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(vertical = 10.dp)
         .semantics { contentDescription = "$title. $sub" },
         verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-            Text(sub, fontSize = 13.sp, color = NeerlyColors.Ink600)
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            Text(sub, fontSize = 15.sp, color = NeerlyColors.Ink600)
         }
-        Switch(checked = on, onCheckedChange = onChange, enabled = !locked)
+        Switch(checked = on || locked, onCheckedChange = onChange, enabled = !locked,
+            colors = androidx.compose.material3.SwitchDefaults.colors(
+                checkedTrackColor = NeerlyColors.Ok, checkedThumbColor = NeerlyColors.Paper,
+                disabledCheckedTrackColor = NeerlyColors.Ok.copy(alpha = 0.55f), disabledCheckedThumbColor = NeerlyColors.Paper,
+                uncheckedTrackColor = NeerlyColors.Ink200, uncheckedThumbColor = NeerlyColors.Paper, uncheckedBorderColor = NeerlyColors.Ink200))
     }
 }
