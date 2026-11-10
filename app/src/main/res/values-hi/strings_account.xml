@@ -575,4 +575,8 @@
         <item quantity="other">आपकी %1$s सब्सक्रिप्शन हर डिलीवरी पर वॉलेट से %2$s लेती है। %3$s अगली %4$d डिलीवरी के लिए काफ़ी है।</item>
     </plurals>
     <string name="acct_sub_skip_next">अगली छोड़ें</string>
+    <plurals name="acct_wallet_due_today">
+        <item quantity="one">%1$d आज लौटाना है</item>
+        <item quantity="other">%1$d आज लौटाने हैं</item>
+    </plurals>
 </resources>

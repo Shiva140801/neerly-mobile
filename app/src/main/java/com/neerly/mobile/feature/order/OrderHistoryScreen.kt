@@ -86,7 +86,10 @@ private fun ActiveCard(o: OrderResponse, code: String?, onTrack: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark, RoundedCornerShape(NeerlyRadius.lg)).clickable(onClick = onTrack)
         .padding(horizontal = 18.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.cust_oh_on_way).uppercase(), Modifier.weight(1f), fontSize = 13.sp, fontWeight = FontWeight.Bold,
+            // The label follows the order: "On the way" only once a driver has it.
+            Text((if (o.status in setOf("DISPATCHED", "ARRIVING")) stringResource(R.string.cust_oh_on_way)
+                else if (o.status in setOf("VENDOR_ACCEPTED", "PREPARING")) stringResource(R.string.cust_home_being_packed)
+                else stringResource(R.string.cust_home_finding_shop)).uppercase(), Modifier.weight(1f), fontSize = 13.sp, fontWeight = FontWeight.Bold,
                 letterSpacing = 1.2.sp, color = Boondh.Amber)
             Text(o.orderNumber, fontSize = 13.sp, color = Boondh.MutedOnNavy)
         }

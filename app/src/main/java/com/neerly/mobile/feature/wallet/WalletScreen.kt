@@ -6,6 +6,8 @@ import com.neerly.mobile.R
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -49,6 +51,7 @@ fun WalletScreen(
     onSelectTab: (CustomerTab) -> Unit = {},
     onWithdraw: () -> Unit = {},
     onJars: () -> Unit = {},
+    onRefunds: () -> Unit = {},
     vm: WalletViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -82,10 +85,16 @@ fun WalletScreen(
                 item { BalanceCard(state.balance!!, onAdd = { addOpen = true }, onWithdraw = onWithdraw) }
                 state.notice?.let { msg -> item { Text(msg, color = NeerlyColors.Ok, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) } }
                 state.error?.let { msg -> item { Text(msg, color = NeerlyColors.Err, fontSize = 14.sp) } }
-                if (state.jarsOut > 0) item { JarCard(state.jarsOut, state.depositHeld, onJars) }
+                if (state.jarsOut > 0) item { JarCard(state.jarsOut, state.depositHeld, state.jarsDueToday, onJars) }
+                // Board Wallet: the list header carries a "Refunds" link.
                 item {
-                    Text(stringResource(R.string.acct_wallet_recent), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp,
-                        color = NeerlyColors.Ink600, modifier = Modifier.semantics { heading() })
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.acct_wallet_recent), Modifier.weight(1f).semantics { heading() }, fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = NeerlyColors.Ink600)
+                        androidx.compose.material3.TextButton(onClick = onRefunds, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.acct_profile_refunds), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        }
+                    }
                 }
                 if (state.transactions.isEmpty()) {
                     item { Text(stringResource(R.string.acct_wallet_empty), fontSize = 14.sp, color = NeerlyColors.Ink600) }
@@ -146,20 +155,23 @@ private fun BalanceCard(b: WalletResponse, onAdd: () -> Unit, onWithdraw: () -> 
 }
 
 @Composable
-private fun JarCard(jars: Int, held: BigDecimal, onClick: () -> Unit) {
+private fun JarCard(jars: Int, held: BigDecimal, dueToday: Int, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth()
             .background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
+            .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(14.dp))
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        com.neerly.mobile.core.design.JarGlyph(Modifier.size(width = 30.dp, height = 40.dp), body = NeerlyColors.Paper, outline = NeerlyColors.Ink900, cap = NeerlyColors.CustomerPrimary)
         Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.acct_wallet_held, held.rupees()), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-            Text(pluralStringResource(R.plurals.acct_wallet_jars_with_you, jars, jars),
-                fontSize = 13.sp, color = NeerlyColors.Ink600)
+            Text(stringResource(R.string.acct_wallet_held, held.rupees()), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            Text(listOfNotNull(pluralStringResource(R.plurals.acct_wallet_jars_with_you, jars, jars),
+                if (dueToday > 0) pluralStringResource(R.plurals.acct_wallet_due_today, dueToday, dueToday) else null).joinToString(" · "),
+                fontSize = 14.sp, color = NeerlyColors.Ink600)
         }
-        Text("›", fontSize = 22.sp, color = NeerlyColors.Ink600)
+        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = NeerlyColors.Ink600)
     }
 }
 

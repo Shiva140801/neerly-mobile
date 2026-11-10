@@ -575,4 +575,8 @@
         <item quantity="other">Your %1$s subscription takes %2$s from the wallet on each delivery. %3$s covers the next %4$d.</item>
     </plurals>
     <string name="acct_sub_skip_next">Skip next</string>
+    <plurals name="acct_wallet_due_today">
+        <item quantity="one">%1$d due back today</item>
+        <item quantity="other">%1$d due back today</item>
+    </plurals>
 </resources>

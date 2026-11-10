@@ -575,4 +575,8 @@
         <item quantity="other">మీ %1$s సబ్‌స్క్రిప్షన్ ప్రతి డెలివరీకి వాలెట్ నుండి %2$s తీసుకుంటుంది. %3$s తదుపరి %4$d డెలివరీలకు సరిపోతుంది.</item>
     </plurals>
     <string name="acct_sub_skip_next">తదుపరిది వద్దు</string>
+    <plurals name="acct_wallet_due_today">
+        <item quantity="one">%1$d ఈరోజు తిరిగి ఇవ్వాలి</item>
+        <item quantity="other">%1$d ఈరోజు తిరిగి ఇవ్వాలి</item>
+    </plurals>
 </resources>

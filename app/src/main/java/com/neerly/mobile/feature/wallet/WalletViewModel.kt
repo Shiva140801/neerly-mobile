@@ -53,6 +53,9 @@ class WalletViewModel @Inject constructor(
                     _state.value = WalletUiState(loading = false, balance = b, transactions = t,
                         jarsOut = held.sumOf { it.containerCount },
                         depositHeld = held.fold(BigDecimal.ZERO) { acc, d -> acc + d.amount },
+                        jarsDueToday = held.count { d -> d.returnDeadline?.let { runCatching {
+                            !java.time.Instant.parse(it).atZone(java.time.ZoneId.of("Asia/Kolkata")).toLocalDate()
+                                .isAfter(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))) }.getOrDefault(false) } == true },
                         added = _state.value.added?.copy(newBalance = b.availableAmount))
                 }
                 .onFailure {
@@ -128,6 +131,8 @@ data class WalletUiState(
     val balance: WalletResponse? = null,
     val jarsOut: Int = 0,
     val depositHeld: BigDecimal = BigDecimal.ZERO,
+    /** Jars due back today or late — "1 due back today" on board Wallet. */
+    val jarsDueToday: Int = 0,
     val transactions: List<WalletTransaction> = emptyList(),
     val error: String? = null,
     /** Set after a top-up captured: the AddMoneyDone page. */
