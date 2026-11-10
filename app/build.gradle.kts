@@ -6,7 +6,12 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    // alias(libs.plugins.google.services)  // enable once google-services.json is added
+}
+
+// Firebase (push + phone auth) needs app/google-services.json, which is gitignored.
+// Apply the plugin only when the file is present so CI and fresh clones still build.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
