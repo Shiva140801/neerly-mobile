@@ -108,11 +108,15 @@ fun VendorJarsScreen(
                 InfoRow(stringResource(R.string.vend_lost), trailing = "${s.lost}", trailingColor = if (s.lost > 0) NeerlyColors.Err else NeerlyColors.Ink900)
             }
         }
+        // Three side-by-side buttons wrapped to two lines at uneven heights on a phone;
+        // tappable rows read the same at any width and in Telugu/Hindi.
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SecondaryButton(stringResource(R.string.vend_count_shop_short), onCount, modifier = Modifier.weight(1f), color = NeerlyColors.VendorPrimary)
-                SecondaryButton(stringResource(R.string.vend_pickups_n, s.openReturns), onPickups, modifier = Modifier.weight(1f), color = NeerlyColors.VendorPrimary)
-                SecondaryButton(if (s.openClaims > 0) stringResource(R.string.vend_damage_n, s.openClaims) else stringResource(R.string.vend_damage), onDamage, modifier = Modifier.weight(1f), color = NeerlyColors.VendorPrimary)
+            BoondhCard {
+                InfoRow(stringResource(R.string.vend_count_the_shop), onClick = onCount)
+                HorizontalDivider(color = NeerlyColors.Ink200)
+                InfoRow(stringResource(R.string.vend_pickups), trailing = "${s.openReturns}", onClick = onPickups)
+                HorizontalDivider(color = NeerlyColors.Ink200)
+                InfoRow(stringResource(R.string.vend_damage), trailing = s.openClaims.takeIf { it > 0 }?.toString(), onClick = onDamage)
             }
         }
         item { SectionLabel(stringResource(R.string.vend_by_jar_type)) }
