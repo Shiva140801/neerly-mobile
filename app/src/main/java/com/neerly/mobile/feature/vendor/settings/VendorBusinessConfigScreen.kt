@@ -29,6 +29,9 @@ import java.time.ZoneOffset
 fun VendorBusinessConfigScreen(onBack: () -> Unit, vm: VendorBusinessConfigViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     var picking by remember { mutableStateOf(false) }
+    var pausing by remember { mutableStateOf(false) }
+    if (pausing) com.neerly.mobile.feature.vendor.dashboard.PauseSheet(working = false, onDismiss = { pausing = false },
+        onPause = { choice, reason -> vm.pause(choice, reason); pausing = false })
     var label by remember { mutableStateOf("") }
     var range by remember { mutableStateOf<Pair<LocalDate, LocalDate>?>(null) }
     val today = LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))
@@ -41,13 +44,17 @@ fun VendorBusinessConfigScreen(onBack: () -> Unit, vm: VendorBusinessConfigViewM
         s.status?.takeIf { !it.isOpen }?.let { st -> item {
             BoondhCard {
                 Pill(stringResource(R.string.vend_closed_orders), Tone.Warn)
-                Text(listOfNotNull(st.pausedUntil?.let { stringResource(R.string.vend_until_day, shortDay(it)) }, st.pausedReason).joinToString(" · ")
+                Text(listOfNotNull(st.pausedUntil?.let { stringResource(R.string.vend_closed_orders_until, com.neerly.mobile.feature.vendor.dashboard.pauseEndLabel(it)) }, st.pausedReason).joinToString(" · ")
                     .ifBlank { stringResource(R.string.vend_until_reopen) },
                     fontSize = 14.sp, color = NeerlyColors.Ink700)
                 PrimaryButton(stringResource(R.string.vend_open_again), vm::reopen)
             }
         } }
 
+        // Board VHoliday: "Days off" and "A few hours" live together.
+        if (s.status?.isOpen != false) item {
+            BoondhCard { InfoRow(stringResource(R.string.vend_pause_few_hours), stringResource(R.string.vend_pause_few_hours_sub), onClick = { pausing = true }) }
+        }
         item { SectionLabel(stringResource(R.string.vend_closed_days)) }
         val upcoming = s.holidays.filter { it.date >= today.toString() }.sortedBy { it.date }
         item {

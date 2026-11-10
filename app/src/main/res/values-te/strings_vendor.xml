@@ -1082,4 +1082,6 @@
         <item quantity="one">ఈ రాత్రి లెక్కించాల్సిన డ్రైవర్ %1$d · %2$s</item>
         <item quantity="other">ఈ రాత్రి లెక్కించాల్సిన డ్రైవర్లు %1$d · %2$s</item>
     </plurals>
+    <string name="vend_pause_few_hours">కొన్ని గంటలు</string>
+    <string name="vend_pause_few_hours_sub">1–10 గంటలు లేదా ఈ రోజంతా కొత్త ఆర్డర్లు ఆపండి</string>
 </resources>

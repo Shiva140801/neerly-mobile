@@ -125,6 +125,14 @@ class VendorBusinessConfigViewModel @Inject constructor(
         }
     }
 
+    fun pause(choice: com.neerly.mobile.feature.vendor.dashboard.PauseChoice, reason: String?) {
+        viewModelScope.launch {
+            runCatching { repo.pause(choice, reason) }
+                .onSuccess { _state.value = _state.value.copy(status = it) }
+                .onFailure { _state.value = _state.value.copy(error = it.userMessage("vendor close", strings.get(R.string.vend_err_close_shop))) }
+        }
+    }
+
     fun reopen() {
         viewModelScope.launch {
             runCatching { repo.reopen() }

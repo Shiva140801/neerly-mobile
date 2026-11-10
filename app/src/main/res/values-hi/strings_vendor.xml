@@ -1082,4 +1082,6 @@
         <item quantity="one">आज रात %1$d ड्राइवर का हिसाब बाक़ी · %2$s</item>
         <item quantity="other">आज रात %1$d ड्राइवरों का हिसाब बाक़ी · %2$s</item>
     </plurals>
+    <string name="vend_pause_few_hours">कुछ घंटे</string>
+    <string name="vend_pause_few_hours_sub">1–10 घंटे या आज पूरे दिन के लिए नए ऑर्डर रोकें</string>
 </resources>
