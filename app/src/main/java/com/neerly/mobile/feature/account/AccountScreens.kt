@@ -4,6 +4,10 @@ import android.content.Intent
 import androidx.compose.ui.res.stringResource
 import com.neerly.mobile.R
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -68,22 +72,37 @@ private fun refundTo(mode: String) = if (mode == "WALLET") stringResource(R.stri
 fun RefundsScreen(onBack: () -> Unit, onOpen: (String) -> Unit, onSetting: () -> Unit, vm: RefundsViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     val dest = s.me?.let { if (it.refundDestination == "WALLET") stringResource(R.string.acct_refunds_go_wallet) else stringResource(R.string.acct_refunds_go_source) }
-    BoondhPage(stringResource(R.string.acct_profile_refunds), onBack = onBack, subtitle = dest) {
-        item { TextButton(onClick = onSetting, contentPadding = PaddingValues(0.dp)) {
-            Text(stringResource(R.string.acct_refunds_change_dest), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) } }
+    // Board Refunds: where refunds go as a card with Change; on-the-way framed in indigo;
+    // done ones as hairline rows with the amount in green.
+    BoondhPage(stringResource(R.string.acct_profile_refunds), onBack = onBack) {
+        dest?.let { d -> item {
+            Row(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
+                .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(14.dp))
+                .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onSetting)
+                .padding(horizontal = 16.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(d, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                Text(stringResource(R.string.cust_cart2_change), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
+            }
+        } }
         if (s.loading || s.error != null || s.refunds.isEmpty()) {
             item { LoadState(s.loading, s.error, vm::load, stringResource(R.string.acct_refunds_empty), stringResource(R.string.acct_refunds_empty_body)) }
             return@BoondhPage
         }
         val (onWay, done) = s.refunds.partition { !refundDone(it) }
         if (onWay.isNotEmpty()) { item { SectionLabel(stringResource(R.string.acct_refunds_on_way)) }
-            items(onWay, key = { it.id }) { r -> BoondhCard(onClick = { onOpen(r.id) }) {
+            items(onWay, key = { it.id }) { r -> BoondhCard(Modifier.border(2.dp, if (r.status == "FAILED") NeerlyColors.Err else NeerlyColors.CustomerPrimary, RoundedCornerShape(14.dp)),
+                onClick = { onOpen(r.id) }) {
                 InfoRow(refundTitle(r), stringResource(R.string.acct_refunds_row_asked, refundTo(r.refundMode), shortDay(r.requestedAt)), r.amount.rupees())
-                Pill(if (r.status == "FAILED") stringResource(R.string.acct_refunds_attention) else stringResource(R.string.acct_refunds_on_way), if (r.status == "FAILED") Tone.Bad else Tone.Warn)
+                if (r.status == "FAILED") Pill(stringResource(R.string.acct_refunds_attention), Tone.Bad)
             } } }
-        if (done.isNotEmpty()) { item { SectionLabel(stringResource(R.string.acct_refunds_done)) }
-            items(done, key = { it.id }) { r -> BoondhCard(onClick = { onOpen(r.id) }) {
-                InfoRow(refundTitle(r), stringResource(R.string.acct_refunds_row_done, refundTo(r.refundMode), shortDay(r.completedAt ?: r.requestedAt)), r.amount.rupees(), NeerlyColors.Ok)
+        if (done.isNotEmpty()) { item { SectionLabel(stringResource(R.string.acct_refunds_done), Modifier.padding(top = 8.dp)) }
+            items(done, key = { it.id }) { r -> ListRow(onClick = { onOpen(r.id) }, divider = r != done.last()) {
+                Column(Modifier.weight(1f)) {
+                    Text(refundTitle(r), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    Text(stringResource(R.string.acct_refunds_row_done, refundTo(r.refundMode), shortDay(r.completedAt ?: r.requestedAt)),
+                        fontSize = 14.sp, color = NeerlyColors.Ink600)
+                }
+                Text(r.amount.rupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok)
             } } }
     }
 }
