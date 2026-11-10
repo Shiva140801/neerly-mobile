@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -183,10 +184,19 @@ private fun OffDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
                 s.shops.forEach { InfoRow(it.shopName, it.address) }
             }
         }
+        if (!s.loading && s.shops.isEmpty()) item { Notice(stringResource(R.string.drv_no_shop_yet), Tone.Info) }
         s.today?.takeIf { it.drops > 0 }?.let { t -> item {
             BoondhCard {
                 SectionLabel(stringResource(R.string.drv_today_so_far))
                 InfoRow(pluralStringResource(R.plurals.drv_drops_n, t.drops, t.drops), trailing = t.earned.rupees())
+            }
+        } }
+        // DOff: "Yesterday · 15 drops · you earned ₹610".
+        s.today?.takeIf { it.yesterdayDrops > 0 }?.let { t -> item {
+            BoondhCard {
+                SectionLabel(stringResource(R.string.drv_yesterday))
+                InfoRow(pluralStringResource(R.plurals.drv_drops_n, t.yesterdayDrops, t.yesterdayDrops),
+                    trailing = t.yesterdayEarned.rupees())
             }
         } }
     }
@@ -227,7 +237,27 @@ private fun OnDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
                 Text(stringResource(R.string.drv_keep_app_open), fontSize = 14.sp, color = NeerlyColors.Ink600)
             }
         }
-        item { SecondaryButton(if (s.working) "…" else stringResource(R.string.drv_take_break), vm::startBreak, enabled = !s.working, modifier = BIG) }
+        item { BreakPicker(s.working, vm::startBreak) }
+    }
+}
+
+/** DOnBreak: the driver says how long — 15, 30 or 45 minutes (admin default pre-picked). */
+@Composable
+private fun BreakPicker(working: Boolean, onStart: (Int) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    val default = com.neerly.mobile.data.config.LocalAppConfig.current.driverBreakMinutes
+    var pick by remember(default) { mutableIntStateOf(DriverHomeViewModel.BREAK_CHOICES.minByOrNull { kotlin.math.abs(it - default) } ?: 30) }
+    if (!open) { SecondaryButton(if (working) "…" else stringResource(R.string.drv_take_break), { open = true }, enabled = !working, modifier = BIG); return }
+    BoondhCard {
+        Text(stringResource(R.string.drv_break_how_long), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DriverHomeViewModel.BREAK_CHOICES.forEach { m ->
+                FilterChip(selected = pick == m, onClick = { pick = m }, label = { Text(stringResource(R.string.drv_break_n_min, m), fontSize = 15.sp) },
+                    modifier = Modifier.heightIn(min = 48.dp))
+            }
+        }
+        PrimaryButton(if (working) "…" else stringResource(R.string.drv_take_break), { onStart(pick) }, enabled = !working, modifier = BIG,
+            color = Boondh.Amber, contentColor = NeerlyColors.Ink900)
     }
 }
 
@@ -238,18 +268,28 @@ private fun OnBreakScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
     val since = s.shiftState?.onBreakSince?.let { runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull() }
     val mins = since?.let { ((now - it) / 60000).coerceAtLeast(0) }
+    val endsAt = s.shiftState?.breakEndsAt
+    val left = secondsUntil(endsAt, now)
+    // The server closes the break at its end time; pick that up so tasks show again.
+    LaunchedEffect(left == 0L) { if (left == 0L) { delay(2000); vm.refresh() } }
     Column(Modifier.fillMaxSize().background(Color(0xFF1A2238)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text(stringResource(R.string.drv_on_break_caps), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Boondh.Amber, letterSpacing = 1.sp)
-        Text(mins?.let { pluralStringResource(R.plurals.drv_on_break_minutes, it.toInt(), it.toInt()) } ?: stringResource(R.string.drv_on_break),
-            fontFamily = FontFamily.Serif, fontSize = 30.sp, color = NeerlyColors.Paper)
-        Text(stringResource(R.string.drv_no_tasks_break), fontSize = 16.sp, color = Boondh.MutedOnNavy)
+        breakWindow(s.shiftState?.onBreakSince, endsAt)?.let {
+            Text(stringResource(R.string.drv_break_window, it), fontSize = 16.sp, color = Boondh.MutedOnNavy)
+        }
+        Text(left?.let { stringResource(R.string.drv_break_left, minSec(it)) }
+            ?: mins?.let { pluralStringResource(R.plurals.drv_on_break_minutes, it.toInt(), it.toInt()) } ?: stringResource(R.string.drv_on_break),
+            fontFamily = FontFamily.Serif, fontSize = 30.sp, color = NeerlyColors.Paper,
+            modifier = Modifier.semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite })
+        Text(clockOf(endsAt)?.let { stringResource(R.string.drv_break_till, it) } ?: stringResource(R.string.drv_no_tasks_break),
+            fontSize = 16.sp, color = Boondh.MutedOnNavy)
         BoondhCard {
             InfoRow(stringResource(R.string.drv_drops_done_today), trailing = "${s.today?.drops ?: 0}")
             InfoRow(stringResource(R.string.drv_cash_with_you), trailing = (s.today?.cashInHand ?: BigDecimal.ZERO).rupees())
         }
         s.error?.let { Notice(it, Tone.Bad) }
         Spacer(Modifier.weight(1f))
-        PrimaryButton(if (s.working) "…" else stringResource(R.string.drv_im_back), vm::endBreak, enabled = !s.working, modifier = BIG,
+        PrimaryButton(if (s.working) "…" else stringResource(R.string.drv_break_im_back_start), vm::endBreak, enabled = !s.working, modifier = BIG,
             color = Boondh.Amber, contentColor = NeerlyColors.Ink900)
     }
 }
@@ -404,19 +444,25 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
     var empties by remember(job.orderId) { mutableIntStateOf(job.emptiesExpected) }
     val isCash = job.paymentMethod == "COD"
     var settlement by remember(job.orderId) { mutableStateOf("CASH") }
+    var partGot by remember(job.orderId) { mutableStateOf("") }
     var pending by remember { mutableStateOf<java.io.File?>(null) }
     val camera = rememberCameraCapture { ok ->
         pending?.let { vm.photoTaken(it, ok) }
     }
     val due = job.codAmount ?: BigDecimal.ZERO
     val photoNeeded = com.neerly.mobile.data.config.LocalAppConfig.current.deliveryPhotoRequired
+    // DPayment "Paid part of it": more than nothing, less than the bill.
+    val partAmount = partGot.toBigDecimalOrNull()?.takeIf { it.signum() > 0 && it < due }
+    val cashTaken = when { !isCash || settlement == "NOT_COLLECTED" -> null; settlement == "PARTIAL" -> partAmount; else -> due }
     BoondhPage(title = stringResource(R.string.drv_ask_code_title, job.customerFirstName),
         subtitle = stringResource(R.string.drv_step3),
         footer = {
             s.deliverError?.let { Notice(it, Tone.Bad) }
-            PrimaryButton(when { s.delivering -> stringResource(R.string.drv_saving); isCash && settlement == "CASH" -> stringResource(R.string.drv_got_cash_hand, due.rupees()); else -> stringResource(R.string.drv_hand_over_done) },
-                { vm.deliver(code, empties, if (isCash) settlement else null, if (isCash && settlement != "NOT_COLLECTED") due else null, shortReason, photoNeeded) },
+            PrimaryButton(when { s.delivering -> stringResource(R.string.drv_saving); isCash && settlement == "CASH" -> stringResource(R.string.drv_got_cash_hand, due.rupees())
+                    isCash && settlement == "PARTIAL" -> stringResource(R.string.drv_got_part); else -> stringResource(R.string.drv_hand_over_done) },
+                { vm.deliver(code, empties, if (isCash) settlement else null, cashTaken, shortReason, photoNeeded) },
                 enabled = !s.delivering && code.length == DriverHomeViewModel.CODE_LENGTH && (s.photo is DoorPhoto.Ready || !photoNeeded) &&
+                    (!isCash || settlement != "PARTIAL" || partAmount != null) &&
                     (empties >= job.emptiesExpected || shortReason != null),
                 modifier = BIG, color = NeerlyColors.Ok)
             TextButton(onClick = vm::openNotHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
@@ -474,6 +520,7 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
             item { SectionLabel(stringResource(R.string.drv_collect_cash, due.rupees())) }
             listOf("CASH" to (R.string.drv_settle_cash to R.string.drv_settle_cash_sub),
                    "UPI_AT_DOOR" to (R.string.drv_settle_upi to R.string.drv_settle_upi_sub),
+                   "PARTIAL" to (R.string.drv_settle_part to R.string.drv_settle_part_sub),
                    "NOT_COLLECTED" to (R.string.drv_settle_none to R.string.drv_settle_none_sub)).forEach { (v, t) ->
                 item(key = v) {
                     val on = settlement == v
@@ -486,6 +533,17 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
                                 Text(stringResource(t.second), fontSize = 13.sp, color = NeerlyColors.Ink600) }
                         }
                     }
+                }
+            }
+            if (settlement == "PARTIAL") item(key = "partial-amount") {
+                BoondhCard {
+                    OutlinedTextField(value = partGot, onValueChange = { v -> partGot = v.filter { it.isDigit() || it == '.' }.take(8) },
+                        singleLine = true, prefix = { Text("₹") }, label = { Text(stringResource(R.string.drv_part_they_gave)) },
+                        supportingText = { Text(partAmount?.let { stringResource(R.string.drv_part_rest, (due - it).rupees()) }
+                            ?: stringResource(R.string.drv_part_amount_hint)) },
+                        isError = partGot.isNotEmpty() && partAmount == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
                 }
             }
         }
@@ -636,6 +694,10 @@ private fun DoneScreen(d: DropDone, s: DriverHomeUiState, vm: DriverHomeViewMode
 private fun RoundTab(s: DriverHomeUiState, onOpen: () -> Unit) {
     val open = s.assignments.filter { it.status != "DELIVERED" }
     val empties = open.sumOf { it.emptiesExpected }
+    // DRoute: "Next · 0.6 km · about 4 min" — chained from where the driver is (or the shop).
+    val speed = com.neerly.mobile.data.config.LocalAppConfig.current.driverAvgSpeedKmh
+    val start = s.here ?: open.firstOrNull()?.let { j -> j.pickupLat?.let { lat -> j.pickupLng?.let { lat to it } } }
+    val etas = roundEtas(start, open.map { j -> (j.deliveryLat to j.deliveryLng).takeIf { it.first != 0.0 || it.second != 0.0 } }, speed)
     BoondhPage(title = stringResource(R.string.drv_round_title),
         subtitle = if (open.isEmpty()) stringResource(R.string.drv_round_nothing) else stringResource(R.string.drv_round_sub, open.size, s.today?.drops ?: 0)) {
         if (open.isNotEmpty()) item {
@@ -645,6 +707,7 @@ private fun RoundTab(s: DriverHomeUiState, onOpen: () -> Unit) {
             }
         }
         if (open.isEmpty()) item { LoadState(false, null, {}, stringResource(R.string.drv_no_drops_yet), stringResource(R.string.drv_accepted_line_up)) }
+        if (etas.any { it != null }) item { Text(stringResource(R.string.drv_round_eta_note), fontSize = 12.sp, color = NeerlyColors.Ink600) }
         open.forEachIndexed { i, j -> item(key = j.orderId) {
             BoondhCard(onClick = onOpen) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -654,6 +717,12 @@ private fun RoundTab(s: DriverHomeUiState, onOpen: () -> Unit) {
                         Text(j.deliveryAddress, fontSize = 14.sp, color = NeerlyColors.Ink600)
                         Text(stringResource(R.string.drv_join2, j.product, if (j.paymentMethod == "COD") stringResource(R.string.drv_cash_amount_lower, (j.codAmount ?: BigDecimal.ZERO).rupees()) else stringResource(R.string.drv_paid_online_lower)),
                             fontSize = 14.sp, color = NeerlyColors.Ink900)
+                        etas.getOrNull(i)?.let { e ->
+                            val km = "%.1f".format(java.util.Locale.ENGLISH, e.km)
+                            Text(if (i == 0) stringResource(R.string.drv_round_next, km, e.minutes) else stringResource(R.string.drv_round_stop, km, e.minutes),
+                                fontSize = 14.sp, fontWeight = if (i == 0) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (i == 0) NeerlyColors.Ink900 else NeerlyColors.Ink600)
+                        }
                     }
                     Pill(when (j.status) { "ARRIVING" -> stringResource(R.string.drv_status_at_door); "DISPATCHED" -> if (j.orderId in s.loadedOrders) stringResource(R.string.drv_status_on_way) else stringResource(R.string.drv_status_load); else -> stringResource(R.string.drv_status_packed) },
                         if (i == 0) Tone.Info else Tone.Neutral)

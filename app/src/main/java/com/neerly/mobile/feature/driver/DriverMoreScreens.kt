@@ -140,7 +140,11 @@ fun DriverMeContent(
     BoondhPage(title = me?.name?.ifBlank { null } ?: stringResource(R.string.drv_me), subtitle = listOfNotNull(me?.phoneMasked, if (onDuty) stringResource(R.string.drv_on_duty_short) else stringResource(R.string.drv_off_duty_short)).joinToString(" · ")) {
         if (s.loading) { item { LoadState(true, null, {}) }; return@BoondhPage }
         s.error?.let { item { Notice(it, Tone.Bad) } }
-        me?.let { m -> item { VerificationCard(m.verification, onDocuments) } }
+        me?.let { m ->
+            // DJoined: until Boondh has checked the papers and a shop has added them, show the steps left.
+            if (m.verification != "VERIFIED" || m.shops.isEmpty()) item { JoinedTimeline(m.name, m.verification, m.shops.isNotEmpty(), onDocuments) }
+            else item { VerificationCard(m.verification, onDocuments) }
+        }
         item {
             BoondhCard {
                 InfoRow(stringResource(R.string.drv_my_shops), me?.shops?.joinToString(" · ") { it.shopName }?.ifBlank { null } ?: stringResource(R.string.drv_no_team_yet))
@@ -183,6 +187,35 @@ fun DriverMeContent(
                 if (c.onShift) stringResource(R.string.drv_logout_end_duty) else null
             ).joinToString(" ")) },
             confirmButton = { TextButton(onClick = vm::dismissLogout) { Text(stringResource(R.string.drv_ok)) } })
+    }
+}
+
+/** DJoined — "You're on Boondh": account → papers → Boondh checks → a shop adds you. */
+@Composable
+private fun JoinedTimeline(name: String?, verification: String, inATeam: Boolean, onDocuments: () -> Unit) {
+    val papersSent = verification == "IN_REVIEW" || verification == "VERIFIED"
+    val steps = listOf(
+        Triple(stringResource(R.string.drv_joined_step_account), null as String?, true),
+        Triple(stringResource(R.string.drv_joined_step_papers), null, papersSent),
+        Triple(stringResource(R.string.drv_joined_step_verify), stringResource(R.string.drv_joined_step_verify_sub), verification == "VERIFIED"),
+        Triple(stringResource(R.string.drv_joined_step_shop), stringResource(R.string.drv_joined_step_shop_sub), inATeam)
+    )
+    BoondhCard(onClick = if (papersSent) null else onDocuments) {
+        Text(name?.substringBefore(' ')?.ifBlank { null }?.let { stringResource(R.string.drv_joined_title, it) }
+            ?: stringResource(R.string.drv_joined_title_plain), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Text(stringResource(R.string.drv_joined_body), fontSize = 14.sp, color = NeerlyColors.Ink600)
+        steps.forEachIndexed { i, (title, sub, done) ->
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.semantics(mergeDescendants = true) {}) {
+                Text(if (done) "✓" else "${i + 1}", fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                    color = if (done) NeerlyColors.Ok else NeerlyColors.Ink600, modifier = Modifier.width(24.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                    sub?.let { Text(it, fontSize = 13.sp, color = NeerlyColors.Ink600) }
+                }
+                Pill(if (done) stringResource(R.string.drv_joined_done) else stringResource(R.string.drv_joined_waiting), if (done) Tone.Ok else Tone.Neutral)
+            }
+        }
     }
 }
 

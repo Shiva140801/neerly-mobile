@@ -153,10 +153,14 @@ internal fun stepFallback(status: String) = status.lowercase().replace('_', ' ')
 @Composable
 private fun CancelledCard(o: VendorOrderView) {
     BoondhCard {
+        SectionLabel(stringResource(R.string.vend_stock_back_itself))
         o.items.forEach { InfoRow(stringResource(R.string.vend_bill_line, it.quantity, it.productName), stringResource(R.string.vend_back_on_shelf)) }
         HorizontalDivider(color = NeerlyColors.Ink200)
         InfoRow(stringResource(R.string.vend_customer_paid), trailing = if (o.paidOnline) o.orderValue.rupees() else stringResource(R.string.vend_nothing_cash))
         if (o.cancellationFee.signum() > 0) InfoRow(stringResource(R.string.vend_late_cancel_fee), stringResource(R.string.vend_late_cancel_fee_sub), o.cancellationFee.rupees())
+        // VCustCancelled: what goes back to the customer (what they paid, less the trip fee kept).
+        if (o.paidOnline) InfoRow(stringResource(R.string.vend_refunded_customer), stringResource(R.string.vend_refunded_customer_sub),
+            (o.orderValue - o.cancellationFee).max(java.math.BigDecimal.ZERO).rupees())
         InfoRow(stringResource(R.string.vend_bill_paid), stringResource(if (o.tripPay.signum() > 0) R.string.vend_for_trip else R.string.vend_nothing_delivered), o.tripPay.rupees(), NeerlyColors.Ok)
     }
 }

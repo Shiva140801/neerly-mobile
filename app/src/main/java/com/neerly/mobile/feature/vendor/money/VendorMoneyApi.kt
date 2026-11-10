@@ -73,6 +73,14 @@ interface VendorMoneyApi {
     @GET("api/v1/vendor/payouts/{id}")
     suspend fun payout(@Path("id") id: String): VendorPayout
 
+    /** VPayoutDetail "Order list (CSV)" — every order this payout settled. */
+    @GET("api/v1/vendor/payouts/{id}/orders.csv")
+    suspend fun payoutCsv(@retrofit2.http.Path("id") id: String): okhttp3.ResponseBody
+
+    /** VPayoutDetail "GST invoice" — Boondh's fee invoice for the payout (HTML). */
+    @GET("api/v1/vendor/payouts/{id}/fee-invoice")
+    suspend fun payoutFeeInvoice(@retrofit2.http.Path("id") id: String): okhttp3.ResponseBody
+
     @GET("api/v1/vendor/earnings/summary")
     suspend fun unpaid(): UnpaidSummary
 

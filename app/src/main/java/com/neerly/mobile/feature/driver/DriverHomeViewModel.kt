@@ -220,7 +220,7 @@ class DriverHomeViewModel @Inject constructor(
     // ---- Breaks (D18 / D28) and ending the shift ------------------------------------------
 
     /** No tasks are offered while on break; the server holds the clock. */
-    fun startBreak() = shiftCall("start break") { platform.startBreak() }
+    fun startBreak(minutes: Int? = null) = shiftCall("start break") { platform.startBreak(StartBreakBody(minutes)) }
     fun endBreak() = shiftCall("end break") { platform.endBreak() }
 
     private fun shiftCall(what: String, call: suspend () -> DriverShiftState) {
@@ -503,7 +503,9 @@ class DriverHomeViewModel @Inject constructor(
         const val OFFER_POLL_MS = 5_000L
         /** The server issues 6-digit delivery codes (the boards draw 4; the server is the source of truth). */
         const val CODE_LENGTH = 6
-        val SETTLEMENTS = setOf("CASH", "UPI_AT_DOOR", "NOT_COLLECTED")
+        val SETTLEMENTS = setOf("CASH", "UPI_AT_DOOR", "PARTIAL", "NOT_COLLECTED")
+        /** Break lengths the driver can pick (DOnBreak); the server default is admin-set. */
+        val BREAK_CHOICES = listOf(15, 30, 45)
     }
 }
 

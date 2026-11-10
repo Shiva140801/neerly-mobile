@@ -27,6 +27,33 @@ class VendorCatalogViewModelsTest {
     @Before fun setUp() { Dispatchers.setMain(UnconfinedTestDispatcher()) }
     @After fun tearDown() { Dispatchers.resetMain() }
 
+    private val case2l = ShopTemplate("t2", "BOTTLE_2L", "2L Bottle", containerType = "BOTTLE")
+    private val tanker = ShopTemplate("t3", "TANKER_5000L", "5000L Tanker", containerType = "TANKER")
+
+    @Test
+    fun units_followTheContainer_andOnlyJarsComeBack() {
+        assertEquals(SellUnit.JAR, sellUnit(tpl.copy(containerType = "JAR")))
+        assertEquals(SellUnit.CASE, sellUnit(case2l))
+        assertEquals(SellUnit.TRIP, sellUnit(tanker))
+        assertTrue(returnable(tpl)); assertFalse(returnable(case2l)); assertFalse(returnable(tanker))
+    }
+
+    @Test
+    fun startBlank_picksSomethingNotSoldYet_andASealedCaseNeedsNoReturnWay() {
+        coEvery { api.templates() } returns listOf(tpl, case2l, tanker)
+        coEvery { api.products() } returns listOf(product())                 // already sells the 20L jar
+        val vm = VendorAddProductViewModel(api, com.neerly.mobile.support.TestStrings)
+        vm.startBlank()
+        assertTrue(vm.state.value.blank)
+        assertEquals("BOTTLE_2L", vm.state.value.picked?.categoryCode)
+        vm.update { copy(price = "180", swap = false, keep = false) }
+        val body = vm.request()!!
+        assertEquals("BOTTLE_2L", body.templateCategoryCode)
+        assertFalse(body.allowKeepContainer); assertFalse(body.allowTransferAndReturn)
+        vm.pick(tpl)                                                       // a jar needs a way back
+        assertNull(vm.request())
+    }
+
     @Test
     fun switchOff_withBackOnDay_sendsThatDayAndShowsTheServerCopy() {
         coEvery { api.products() } returns listOf(product())

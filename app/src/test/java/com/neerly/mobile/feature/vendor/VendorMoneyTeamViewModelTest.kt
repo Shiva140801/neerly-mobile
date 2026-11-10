@@ -32,6 +32,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
+import okhttp3.ResponseBody.Companion.toResponseBody
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VendorMoneyTeamViewModelTest {
@@ -59,6 +60,33 @@ class VendorMoneyTeamViewModelTest {
         assertEquals(BigDecimal("25"), s.tripPayTotal)
         vm.select(EarningsPeriod.WEEK)
         assertEquals(BigDecimal("500"), vm.state.value.bucket?.net)
+    }
+
+    @Test
+    fun payoutFiles_csvIsHandedToTheScreen_invoiceShownInPlace_failureSaysSo() {
+        coEvery { repo.earnings() } returns EarningsSummary(b("88.2"), b("500"), b("900"), "2026-11-09T04:30:00Z", BigDecimal("900"))
+        coEvery { money.unpaid() } throws RuntimeException("none")
+        coEvery { money.payouts(any(), any()) } returns listOf(payout("p2", "COMPLETED"))
+        coEvery { money.lines(any(), any()) } returns EarningPage(emptyList())
+        coEvery { money.payout("p2") } returns payout("p2", "COMPLETED")
+        coEvery { money.payoutCsv("p2") } returns "Order,Delivered on\r\n".toResponseBody(null)
+        coEvery { money.payoutFeeInvoice("p2") } throws RuntimeException("boom") andThen "<html>Tax invoice</html>".toResponseBody(null)
+        val vm = VendorEarningsViewModel(repo, money, com.neerly.mobile.support.TestStrings)
+        vm.openPayout("p2")
+
+        vm.downloadCsv()
+        assertEquals("boondh-payout-2026-10-26-2026-11-01.csv", vm.state.value.csv?.fileName)
+        assertTrue(vm.state.value.csv!!.text.startsWith("Order,"))
+        vm.csvHandled()
+        assertNull(vm.state.value.csv)
+
+        vm.openInvoice()
+        assertNotNull(vm.state.value.payoutError)
+        assertNull(vm.state.value.invoiceHtml)
+        vm.openInvoice()
+        assertEquals("<html>Tax invoice</html>", vm.state.value.invoiceHtml)
+        vm.closePayout()
+        assertNull(vm.state.value.invoiceHtml)
     }
 
     @Test

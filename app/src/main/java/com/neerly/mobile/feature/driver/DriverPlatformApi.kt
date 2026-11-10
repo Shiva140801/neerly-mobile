@@ -28,8 +28,15 @@ data class DriverShiftState(
     val startedAt: String? = null,
     val state: String = "ON_DUTY",            // ON_DUTY / ON_BREAK
     val onBreakSince: String? = null,
-    val breakSecondsToday: Long = 0
+    val breakSecondsToday: Long = 0,
+    /** DOnBreak: when the break ends by itself, and the length picked. */
+    val breakEndsAt: String? = null,
+    val breakMinutes: Int? = null
 ) { val onBreak get() = state == "ON_BREAK" }
+
+/** Body of `POST /driver/shifts/break` — null minutes = the admin default. */
+@JsonClass(generateAdapter = true)
+data class StartBreakBody(val minutes: Int? = null)
 
 @JsonClass(generateAdapter = true)
 data class PendingDrop(val orderId: String, val orderNumber: String, val status: String, val shopName: String? = null)
@@ -164,14 +171,16 @@ data class DeliverBody(
 )
 
 @JsonClass(generateAdapter = true)
-data class CodLine(val orderId: String, val collected: BigDecimal, val note: String? = null)
+data class CodLine(val orderId: String, val collected: BigDecimal, val note: String? = null,
+                   /** DCashMismatch: PAYS_LATER, GAVE_LESS or DISPUTES_BILL. */
+                   val reason: String? = null)
 
 @JsonClass(generateAdapter = true)
 data class ReconcileBody(val collected: BigDecimal, val handedOver: BigDecimal, val notes: String?, val lines: List<CodLine>? = null)
 
 interface DriverPlatformApi {
     @GET("api/v1/driver/shifts/state") suspend fun shiftState(): DriverShiftState
-    @POST("api/v1/driver/shifts/break") suspend fun startBreak(@Body body: Map<String, String> = emptyMap()): DriverShiftState
+    @POST("api/v1/driver/shifts/break") suspend fun startBreak(@Body body: StartBreakBody = StartBreakBody()): DriverShiftState
     @POST("api/v1/driver/shifts/break/end") suspend fun endBreak(@Body body: Map<String, String> = emptyMap()): DriverShiftState
     @GET("api/v1/driver/shifts/end-check") suspend fun endCheck(): EndCheck
     @POST("api/v1/driver/shifts/finish") suspend fun finish(@Body body: FinishShiftBody): FinishShiftResult

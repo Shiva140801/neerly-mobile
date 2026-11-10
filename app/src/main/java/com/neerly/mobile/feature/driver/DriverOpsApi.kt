@@ -19,7 +19,10 @@ import javax.inject.Singleton
 data class DriverToday(
     val earned: BigDecimal = BigDecimal.ZERO,
     val drops: Int = 0,
-    val cashInHand: BigDecimal = BigDecimal.ZERO
+    val cashInHand: BigDecimal = BigDecimal.ZERO,
+    /** DOff: "Yesterday · 15 drops · ₹610". */
+    val yesterdayEarned: BigDecimal = BigDecimal.ZERO,
+    val yesterdayDrops: Int = 0
 )
 
 /** `GET /driver/earnings/order/{id}` (backend DriverDropEarningResponse). 404 until the drop is recorded. */

@@ -68,6 +68,10 @@ data class AppConfig(
     val vendorAcceptWindowSec get() = int("orders.vendor_accept_window_sec", 180)
     val subscriptionCutoff get() = time("subscriptions.change_cutoff", "21:00")
     val depositForfeitDays get() = int("deposits.forfeit_after_days", 7)
+    /** Driver break length when none is picked (admin `drivers.break_minutes`). */
+    val driverBreakMinutes get() = int("drivers.break_minutes", 30)
+    /** Average round speed for stop ETAs (admin `drivers.avg_speed_kmh`). */
+    val driverAvgSpeedKmh get() = int("drivers.avg_speed_kmh", 18)
     val complaintFirstReplyHours get() = int("support.complaint_first_response_hours", 24)
     val supportOpens get() = time("support.opens", "06:00")
     val supportCloses get() = time("support.closes", "22:00")

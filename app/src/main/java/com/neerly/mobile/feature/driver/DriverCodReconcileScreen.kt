@@ -64,9 +64,10 @@ class DriverCodReconcileViewModel @Inject constructor(
     }
 
     /** Collected is the server's own total; the driver only says what they handed over. */
-    fun submit(handedOver: BigDecimal, notes: String?, shortLines: Map<String, BigDecimal> = emptyMap()) {
+    fun submit(handedOver: BigDecimal, notes: String?, shortLines: Map<String, BigDecimal> = emptyMap(),
+               reasons: Map<String, String> = emptyMap()) {
         _state.value = _state.value.copy(saving = true, error = null)
-        val lines = shortLines.map { (orderId, got) -> CodLine(orderId, got, "Customer paid less") }.ifEmpty { null }
+        val lines = codLines(shortLines, reasons)
         viewModelScope.launch {
             runCatching {
                 val r = platform.reconcile(ReconcileBody(_state.value.collected, handedOver, notes, lines))
@@ -79,6 +80,15 @@ class DriverCodReconcileViewModel @Inject constructor(
     }
 }
 
+/** DCashMismatch: one line per customer who paid less, with the reason the driver picked. */
+internal fun codLines(shortLines: Map<String, BigDecimal>, reasons: Map<String, String>): List<CodLine>? =
+    shortLines.map { (orderId, got) ->
+        CodLine(orderId, got, "Customer paid less", reasons[orderId]?.takeIf { it in CASH_SHORT_REASONS })
+    }.ifEmpty { null }
+
+private val SHORT_REASON_LABELS = mapOf("PAYS_LATER" to R.string.drv_short_pays_later,
+    "GAVE_LESS" to R.string.drv_short_gave_less, "DISPUTES_BILL" to R.string.drv_short_disputes)
+
 /** D11 — close the day: give the shop the cash, record what you gave. The shop confirms it on its side. */
 @Composable
 fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverCodReconcileViewModel = hiltViewModel()) {
@@ -88,9 +98,12 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
     var notes by remember { mutableStateOf("") }
     // D24 — per-customer: what each cash drop actually paid, when it wasn't the full amount.
     var paid by remember { mutableStateOf(mapOf<String, String>()) }
+    var why by remember { mutableStateOf(mapOf<String, String>()) }
     val shortLines = paid.mapNotNull { (id, v) -> v.toBigDecimalOrNull()?.let { id to it } }
         .filter { (id, v) -> s.cashDrops.firstOrNull { it.orderId == id }?.codAmount?.let { v < it } == true }.toMap()
     val short = amount?.let { s.collected - it }?.takeIf { it.signum() > 0 }
+    val explained = shortExplained(s.cashDrops.associate { it.orderId to (it.codAmount ?: BigDecimal.ZERO) }, shortLines)
+    val reasonsMissing = shortLines.keys.any { it !in why }
     BoondhPage(title = if (s.saved) stringResource(R.string.drv_cash_recorded) else stringResource(R.string.drv_cash_title), onBack = onBack, backLabel = stringResource(R.string.drv_money_title),
         subtitle = if (s.saved) stringResource(R.string.drv_cash_saved_sub)
                    else stringResource(R.string.drv_cash_sub),
@@ -98,8 +111,9 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
             s.error?.let { Notice(it, Tone.Bad) }
             if (s.saved) PrimaryButton(stringResource(R.string.drv_done), onDone, modifier = Modifier.heightIn(min = 60.dp))
             else PrimaryButton(if (s.saving) stringResource(R.string.drv_saving) else stringResource(R.string.drv_i_gave, amount?.rupees() ?: "—"),
-                { amount?.let { vm.submit(it, notes.trim().ifBlank { null }, shortLines) } },
-                enabled = amount != null && amount.signum() >= 0 && !s.saving && !s.loading, modifier = Modifier.heightIn(min = 60.dp))
+                { amount?.let { vm.submit(it, notes.trim().ifBlank { null }, shortLines, why) } },
+                enabled = amount != null && amount.signum() >= 0 && !s.saving && !s.loading && !reasonsMissing, modifier = Modifier.heightIn(min = 60.dp))
+            if (reasonsMissing) Text(stringResource(R.string.drv_short_pick_reason), fontSize = 13.sp, color = NeerlyColors.Err)
         }) {
         if (s.loading) { item { LoadState(true, null, {}) }; return@BoondhPage }
         item {
@@ -119,6 +133,10 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
             short?.let { item { Notice(stringResource(R.string.drv_less_than_collected, it.rupees()), Tone.Warn) } }
             if (s.cashDrops.isNotEmpty()) {
                 item { SectionLabel(stringResource(R.string.drv_customer_paid_less)) }
+                short?.takeIf { explained.signum() > 0 }?.let { gap -> item {
+                    Text(stringResource(R.string.drv_short_explained, explained.rupees(), gap.rupees()), fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
+                } }
                 s.cashDrops.forEach { d -> item(key = d.orderId) {
                     BoondhCard {
                         InfoRow(d.customerFirstName, d.orderNumber, (d.codAmount ?: BigDecimal.ZERO).rupees())
@@ -127,8 +145,19 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
                             singleLine = true, placeholder = { Text(stringResource(R.string.drv_paid_in_full)) }, label = { Text(stringResource(R.string.drv_they_paid)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+                        if (d.orderId in shortLines) {
+                            Text(stringResource(R.string.drv_short_why), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                SHORT_REASON_LABELS.forEach { (code, label) ->
+                                    androidx.compose.material3.FilterChip(selected = why[d.orderId] == code,
+                                        onClick = { why = why + (d.orderId to code) },
+                                        label = { Text(stringResource(label), fontSize = 14.sp) }, modifier = Modifier.heightIn(min = 44.dp))
+                                }
+                            }
+                        }
                     }
                 } }
+                if (shortLines.isNotEmpty()) item { Text(stringResource(R.string.drv_short_check_note), fontSize = 13.sp, color = NeerlyColors.Ink600) }
             }
             item {
                 OutlinedTextField(value = notes, onValueChange = { notes = it.take(300) }, label = { Text(stringResource(R.string.drv_note_shop_optional)) },

@@ -34,6 +34,8 @@ data class AddProductUiState(
     /** Templates the shop already sells — offered last, marked. */
     val alreadySelling: Set<String> = emptySet(),
     val picked: ShopTemplate? = null,
+    /** VProductNew "Start from blank": the kind is picked inside the form, from chips. */
+    val blank: Boolean = false,
     val brand: String = "",
     val price: String = "",
     val dailyCapacity: Int = 50,
@@ -49,8 +51,22 @@ data class AddProductUiState(
     val depositValue: BigDecimal? get() = deposit.toBigDecimalOrNull()?.takeIf { it.signum() > 0 }
     /** At least one way to take the jar, and a deposit when keeping is allowed (server rule). */
     val valid: Boolean get() = picked != null && priceValue != null && dailyCapacity >= 1 &&
-        (swap || keep) && (!keep || depositValue != null)
+        (!returnable(picked) || swap || keep) && (!keep || depositValue != null)
 }
+
+/** How a product is counted — jar, case, trip, unit or bag — from its container type. */
+enum class SellUnit { JAR, CASE, TRIP, UNIT, BAG }
+
+fun sellUnit(t: ShopTemplate?): SellUnit = when (t?.containerType) {
+    "BOTTLE" -> SellUnit.CASE
+    "TANKER" -> SellUnit.TRIP
+    "DISPENSER" -> SellUnit.UNIT
+    "ICE_BAG" -> SellUnit.BAG
+    else -> SellUnit.JAR
+}
+
+/** Jars and dispensers come back (swap or deposit); sealed cases, tankers and ice don't. */
+fun returnable(t: ShopTemplate?): Boolean = t != null && (t.allowsDeposit || sellUnit(t) == SellUnit.JAR)
 
 @HiltViewModel
 class VendorAddProductViewModel @Inject constructor(
@@ -73,16 +89,25 @@ class VendorAddProductViewModel @Inject constructor(
         }
     }
 
-    fun pick(t: ShopTemplate?) { _state.value = _state.value.copy(picked = t, keep = t?.allowsDeposit == true && _state.value.keep, error = null) }
+    fun pick(t: ShopTemplate?) { _state.value = _state.value.copy(picked = t, keep = t?.allowsDeposit == true && _state.value.keep,
+        swap = returnable(t) && _state.value.swap, blank = if (t == null) false else _state.value.blank, error = null) }
+
+    /** "Start from blank" — open the form with nothing picked; the kind chips sit at the top. */
+    fun startBlank() {
+        val s = _state.value
+        val first = s.templates.firstOrNull { it.categoryCode !in s.alreadySelling } ?: s.templates.firstOrNull()
+        _state.value = s.copy(blank = true, picked = first, swap = returnable(first), keep = false, error = null)
+    }
     fun update(f: AddProductUiState.() -> AddProductUiState) { _state.value = _state.value.f() }
 
     fun request(): NewProduct? {
         val s = _state.value
         if (!s.valid) return null
+        val back = returnable(s.picked)
         return NewProduct(
             templateCategoryCode = s.picked!!.categoryCode, brand = s.brand.trim().ifBlank { null },
             price = s.priceValue!!, dailyCapacity = s.dailyCapacity,
-            allowKeepContainer = s.keep, allowTransferAndReturn = s.swap,
+            allowKeepContainer = back && s.keep, allowTransferAndReturn = back && s.swap,
             depositAmount = if (s.keep) s.depositValue else null, retentionHours = if (s.keep) s.retentionHours else null
         )
     }
@@ -120,31 +145,56 @@ fun VendorAddProductScreen(onBack: () -> Unit, onDone: () -> Unit = onBack, vm: 
                         if (tpl.categoryCode in s.alreadySelling) stringResource(R.string.vend_you_sell_this) else null, NeerlyColors.Ink600)
                 }
             }
+            item { SecondaryButton(stringResource(R.string.vend_start_blank), vm::startBlank, color = NeerlyColors.VendorPrimary) }
             item { Text(stringResource(R.string.vend_ask_add_type), fontSize = 13.sp, color = NeerlyColors.Ink600) }
         }
         return
     }
+    val unit = sellUnit(t)
+    val shown = listOfNotNull(s.brand.trim().ifBlank { null }, t.displayName).joinToString(" ")
     BoondhPage(
-        title = stringResource(R.string.vend_setup_title), onBack = { vm.pick(null) }, backLabel = stringResource(R.string.vend_types),
-        subtitle = stringResource(R.string.vend_setup_sub, t.displayName, listOfNotNull(s.brand.trim().ifBlank { null }, t.displayName).joinToString(" ")),
+        title = stringResource(if (s.blank) R.string.vend_new_product else R.string.vend_setup_title), onBack = { vm.pick(null) },
+        backLabel = stringResource(R.string.vend_types),
+        subtitle = if (s.blank) stringResource(R.string.vend_customers_see, shown)
+                   else stringResource(R.string.vend_setup_sub, t.displayName, shown),
         footer = {
             s.error?.let { Notice(it, Tone.Bad) }
-            if (!s.swap && !s.keep) Notice(stringResource(R.string.vend_pick_one_way), Tone.Warn)
+            if (returnable(t) && !s.swap && !s.keep) Notice(stringResource(R.string.vend_pick_one_way), Tone.Warn)
             PrimaryButton(stringResource(if (s.saving) R.string.vend_adding else R.string.vend_put_on_sale), vm::create, enabled = s.valid && !s.saving, color = NeerlyColors.VendorPrimary)
         }
     ) {
+        if (s.blank) item {
+            BoondhCard {
+                Text(stringResource(R.string.vend_what_is_it), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    s.templates.forEach { k ->
+                        FilterChip(selected = k.id == t.id, onClick = { vm.pick(k) },
+                            label = { Text(listOfNotNull(k.displayName, if (k.categoryCode in s.alreadySelling) stringResource(R.string.vend_you_sell_this) else null)
+                                .joinToString(" · "), fontSize = 14.sp) },
+                            modifier = Modifier.heightIn(min = 44.dp))
+                    }
+                }
+            }
+        }
         item {
             BoondhCard {
                 OutlinedTextField(s.brand, { v -> vm.update { copy(brand = v.take(100)) } }, label = { Text(stringResource(R.string.vend_brand_optional)) },
                     singleLine = true, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(s.price, { v -> vm.update { copy(price = v.filter { it.isDigit() || it == '.' }.take(8)) } },
-                    label = { Text(stringResource(R.string.vend_price_per_jar)) }, prefix = { Text("₹") }, singleLine = true,
+                    label = { Text(stringResource(when (unit) { SellUnit.JAR -> R.string.vend_price_per_jar; SellUnit.CASE -> R.string.vend_price_per_case
+                        SellUnit.TRIP -> R.string.vend_price_per_trip; SellUnit.UNIT -> R.string.vend_price_per_unit; SellUnit.BAG -> R.string.vend_price_per_bag })) },
+                    prefix = { Text("₹") }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.vend_jars_per_day_label), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
-                Stepper(s.dailyCapacity, stringResource(R.string.vend_jars_a_day)) { by -> vm.update { copy(dailyCapacity = (dailyCapacity + by).coerceIn(1, 9999)) } }
+                Text(stringResource(when (unit) { SellUnit.JAR -> R.string.vend_jars_per_day_label; SellUnit.CASE -> R.string.vend_cases_per_day_label
+                    SellUnit.TRIP -> R.string.vend_trips_per_day_label; SellUnit.UNIT -> R.string.vend_units_per_day_label; SellUnit.BAG -> R.string.vend_bags_per_day_label }),
+                    fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
+                Stepper(s.dailyCapacity, stringResource(when (unit) { SellUnit.JAR -> R.string.vend_jars_a_day; SellUnit.CASE -> R.string.vend_cases_a_day
+                    SellUnit.TRIP -> R.string.vend_trips_a_day; SellUnit.UNIT -> R.string.vend_units_a_day; SellUnit.BAG -> R.string.vend_bags_a_day })) { by ->
+                    vm.update { copy(dailyCapacity = (dailyCapacity + by).coerceIn(1, 9999)) } }
             }
         }
+        if (!returnable(t)) { item { Notice(stringResource(R.string.vend_sealed_no_return), Tone.Info) }; return@BoondhPage }
         item { SectionLabel(stringResource(R.string.vend_how_take_jar)) }
         item {
             BoondhCard {

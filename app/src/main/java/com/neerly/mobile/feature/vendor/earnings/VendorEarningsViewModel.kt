@@ -66,8 +66,44 @@ class VendorEarningsViewModel @Inject constructor(
         }
     }
 
-    fun closePayout() { _state.value = _state.value.copy(openPayout = null, payoutError = null) }
+    fun closePayout() { _state.value = _state.value.copy(openPayout = null, payoutError = null, invoiceHtml = null) }
+
+    /** VPayoutDetail "Order list (CSV)": fetched here, saved and opened by the screen. */
+    fun downloadCsv() {
+        val p = _state.value.openPayout ?: return
+        _state.value = _state.value.copy(fileBusy = true, payoutError = null)
+        viewModelScope.launch {
+            runCatching { money.payoutCsv(p.id).string() }
+                .onSuccess { _state.value = _state.value.copy(fileBusy = false,
+                    csv = PayoutCsv(payoutCsvName(p.periodStart, p.periodEnd), it)) }
+                .onFailure { _state.value = _state.value.copy(fileBusy = false,
+                    payoutError = it.userMessage("payout csv", strings.get(R.string.vend_payout_file_failed))) }
+        }
+    }
+
+    fun csvHandled() { _state.value = _state.value.copy(csv = null) }
+
+    /** VPayoutDetail "GST invoice": the server renders it; the screen shows it and can share it. */
+    fun openInvoice() {
+        val p = _state.value.openPayout ?: return
+        _state.value = _state.value.copy(fileBusy = true, payoutError = null)
+        viewModelScope.launch {
+            runCatching { money.payoutFeeInvoice(p.id).string() }
+                .onSuccess { _state.value = _state.value.copy(fileBusy = false, invoiceHtml = it) }
+                .onFailure { _state.value = _state.value.copy(fileBusy = false,
+                    payoutError = it.userMessage("payout invoice", strings.get(R.string.vend_payout_file_failed))) }
+        }
+    }
+
+    fun closeInvoice() { _state.value = _state.value.copy(invoiceHtml = null) }
 }
+
+/** A downloaded payout order list, waiting for the screen to save and open it. */
+data class PayoutCsv(val fileName: String, val text: String)
+
+/** "boondh-payout-2026-11-02-2026-11-08.csv" — dates only, nothing personal in the name. */
+fun payoutCsvName(start: String?, end: String?): String =
+    "boondh-payout-${listOfNotNull(start, end).joinToString("-").filter { it.isLetterOrDigit() || it == '-' }.ifBlank { "orders" }}.csv"
 
 data class VendorEarningsUiState(
     val loading: Boolean = true,
@@ -79,6 +115,10 @@ data class VendorEarningsUiState(
     val period: EarningsPeriod = EarningsPeriod.TODAY,
     val openPayout: VendorPayout? = null,
     val payoutError: String? = null,
+    /** Payout file download in flight (CSV or invoice). */
+    val fileBusy: Boolean = false,
+    val csv: PayoutCsv? = null,
+    val invoiceHtml: String? = null,
     val error: String? = null
 ) {
     val bucket: EarningsBucket? get() = summary?.let {

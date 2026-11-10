@@ -2,4 +2,6 @@
 <!-- Door photos the driver takes before handing over jars (cache only; uploaded then discarded). -->
 <paths>
     <cache-path name="delivery_photos" path="delivery-photos/" />
+    <!-- Seller payout files (order list CSV, fee invoice) shared to another app; cache only. -->
+    <cache-path name="payout_files" path="payout-files/" />
 </paths>

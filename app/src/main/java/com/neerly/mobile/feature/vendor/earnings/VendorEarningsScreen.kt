@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -35,14 +36,24 @@ fun VendorEarningsScreen(
     var showPayouts by rememberSaveable { mutableStateOf(false) }
     OnReturn(vm::load)
     when {
+        state.openPayout != null && state.invoiceHtml != null -> {
+            BackHandler { vm.closeInvoice() }
+            FeeInvoice(state.openPayout!!, state.invoiceHtml!!, onBack = vm::closeInvoice)
+        }
         state.openPayout != null -> {
             BackHandler { vm.closePayout() }
             val p = state.openPayout!!
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val chooser = stringResource(R.string.vend_payout_open_with)
+            LaunchedEffect(state.csv) {
+                state.csv?.let { PayoutFiles.openCsv(context, it.fileName, it.text, chooser); vm.csvHandled() }
+            }
             // The payout's own account first; older payouts without one fall back to today's.
             val bankWord = stringResource(R.string.vend_bank)
             PayoutDetail(p, p.accountMasked?.let { "${p.bankName ?: bankWord} $it" }
                 ?: state.bank?.let { "${it.bankName ?: bankWord} ${it.accountNumberMasked}" },
-                state.payoutError, onBack = vm::closePayout, onBank = onBank)
+                state.payoutError, onBack = vm::closePayout, onBank = onBank,
+                busy = state.fileBusy, onCsv = vm::downloadCsv, onInvoice = vm::openInvoice)
         }
         showPayouts -> {
             BackHandler { showPayouts = false }
@@ -155,7 +166,8 @@ private fun PayoutList(state: VendorEarningsUiState, onBack: () -> Unit, onOpen:
 }
 
 @Composable
-private fun PayoutDetail(p: VendorPayout, bankLabel: String?, error: String?, onBack: () -> Unit, onBank: () -> Unit) {
+private fun PayoutDetail(p: VendorPayout, bankLabel: String?, error: String?, onBack: () -> Unit, onBank: () -> Unit,
+                         busy: Boolean = false, onCsv: () -> Unit = {}, onInvoice: () -> Unit = {}) {
     val (label, tone) = payoutStatus(p.status)
     BoondhPage(
         title = stringResource(if (p.stuck) R.string.vend_hasnt_reached else R.string.vend_payout_x, p.netTotal.rupees()),
@@ -190,5 +202,35 @@ private fun PayoutDetail(p: VendorPayout, bankLabel: String?, error: String?, on
                 InfoRow(stringResource(if (p.status == "COMPLETED") R.string.vend_sent_to_bank else R.string.vend_to_send), trailing = p.netTotal.rupees())
             }
         }
+        // VPayoutDetail: the shop's records — the orders behind this payout and Boondh's fee invoice.
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SecondaryButton(if (busy) stringResource(R.string.vend_payout_downloading) else stringResource(R.string.vend_payout_csv), onCsv,
+                    enabled = !busy, modifier = Modifier.weight(1f).heightIn(min = 50.dp))
+                SecondaryButton(stringResource(R.string.vend_payout_invoice), onInvoice,
+                    enabled = !busy, modifier = Modifier.weight(1f).heightIn(min = 50.dp))
+            }
+        }
+    }
+}
+
+/** The fee invoice as the server renders it, with a way to send it on (accountant, Drive). */
+@Composable
+private fun FeeInvoice(p: VendorPayout, html: String, onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val shareTitle = stringResource(R.string.vend_payout_share_invoice)
+    Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+            TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text("‹ " + stringResource(R.string.vend_payouts), color = NeerlyColors.VendorPrimary, fontSize = 15.sp) }
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = { PayoutFiles.shareInvoice(context, "boondh-fee-invoice-${p.periodEnd}.html", html, shareTitle) },
+                modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(shareTitle, color = NeerlyColors.VendorPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+        }
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx -> android.webkit.WebView(ctx).apply { settings.javaScriptEnabled = false } },
+            update = { it.loadDataWithBaseURL(null, html, "text/html", "utf-8", null) },
+            modifier = Modifier.fillMaxSize())
     }
 }
