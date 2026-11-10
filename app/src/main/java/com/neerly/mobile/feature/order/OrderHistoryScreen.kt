@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neerly.mobile.core.design.*
 import com.neerly.mobile.data.dto.OrderResponse
 
+private val ENDED_UNDELIVERED = setOf("CANCELLED", "FAILED")
 private val ACTIVE = setOf("PLACED", "VENDOR_ASSIGNED", "VENDOR_REJECTED", "VENDOR_ACCEPTED", "PREPARING", "DISPATCHED", "ARRIVING")
 
 /** Boondh board 24 — the order on its way first (with its code), then everything earlier. */
@@ -33,7 +34,16 @@ fun OrderHistoryScreen(
     vm: OrderHistoryViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    // The tab keeps its view model across tab switches, and OnReturn skips the first
+    // resume after the screen is rebuilt — so a cancel made on the tracking screen never
+    // reached this list. Reload every time the screen appears, and keep re-checking while
+    // an order is open: the shop and driver change its status from their phones.
+    LaunchedEffect(Unit) { vm.refresh() }
     com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    val anyActive = state.orders.any { it.status in ACTIVE }
+    LaunchedEffect(anyActive) {
+        while (anyActive) { kotlinx.coroutines.delay(OrderHistoryViewModel.LIVE_REFRESH_MS); vm.refresh() }
+    }
     BoondhPage(stringResource(R.string.cust_oh_title), bottomBar = { CustomerBottomBar(current = CustomerTab.Orders, onSelect = onSelectTab) }) {
         if (state.orders.isEmpty()) {
             item { LoadState(state.loading, state.error, vm::refresh, stringResource(R.string.cust_oh_empty), stringResource(R.string.cust_oh_empty_body)) }
@@ -51,11 +61,24 @@ fun OrderHistoryScreen(
                 Column(Modifier.fillMaxWidth().clickable { onOpen(o.id) }.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.Top) {
                         Column(Modifier.weight(1f)) {
-                            Text(o.vendorName ?: stringResource(R.string.cust_oh_order_no, o.orderNumber), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-                            Text(listOf(shortDay(o.placedAt), itemsLine(o), endLine(o)).filter { it.isNotBlank() }.joinToString(" · "),
+                            Text(o.vendorName ?: stringResource(R.string.cust_oh_order_no, o.orderNumber), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                                color = if (o.status in ENDED_UNDELIVERED) NeerlyColors.Ink600 else NeerlyColors.Ink900)
+                            Text(listOf(shortDay(o.placedAt), itemsLine(o)).filter { it.isNotBlank() }.joinToString(" · "),
                                 fontSize = 14.sp, lineHeight = 20.sp, color = NeerlyColors.Ink600)
                         }
-                        Text(o.totalAmount.rupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                        // A cancelled or failed order wasn't paid for (or was refunded): strike the amount.
+                        Text(o.totalAmount.rupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                            color = if (o.status in ENDED_UNDELIVERED) NeerlyColors.Ink500 else NeerlyColors.Ink900,
+                            textDecoration = if (o.status in ENDED_UNDELIVERED) androidx.compose.ui.text.style.TextDecoration.LineThrough else null)
+                    }
+                    // Not delivered: say so with a status pill and what happened to the money,
+                    // instead of a word tacked on the end of the line.
+                    if (o.status in ENDED_UNDELIVERED) Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        com.neerly.mobile.core.design.Pill(endLine(o),
+                            if (o.status == "CANCELLED") com.neerly.mobile.core.design.Tone.Bad else com.neerly.mobile.core.design.Tone.Warn)
+                        Text(if (o.paymentMethod == "COD") stringResource(R.string.cust_oh_nothing_charged) else stringResource(R.string.cust_oh_refund_line),
+                            fontSize = 13.sp, color = NeerlyColors.Ink600)
                     }
                     if (o.status == "DELIVERED") Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Pillbutton(stringResource(R.string.cust_oh_reorder), filled = true) { if (vm.reorder(o)) onCart() }

@@ -206,12 +206,12 @@
     <string name="cust_name_step">Step 3 of 6 · nice to meet you</string>
     <string name="cust_name_title">What should we call you?</string>
     <string name="cust_name_type_to_continue">Type your name to continue</string>
-    <string name="cust_oh_cancelled">cancelled</string>
+    <string name="cust_oh_cancelled">Cancelled</string>
     <string name="cust_oh_code">Code %1$s</string>
     <string name="cust_oh_earlier">Earlier</string>
     <string name="cust_oh_empty">No orders yet</string>
     <string name="cust_oh_empty_body">Your first 20L jar is a few taps away on Home.</string>
-    <string name="cust_oh_failed">couldn\'t be delivered</string>
+    <string name="cust_oh_failed">Couldn\'t be delivered</string>
     <string name="cust_oh_invoice">Invoice</string>
     <string name="cust_oh_load_failed">Couldn\'t load your orders. Please try again.</string>
     <string name="cust_oh_on_way">On the way</string>
@@ -769,4 +769,6 @@
     </plurals>
     <string name="cust_shop2_after_hours">Closed now · opens %1$s. You can still book a slot for later.</string>
     <string name="cust_shop2_after_hours_plain">Closed now. You can still book a slot for later.</string>
+    <string name="cust_oh_nothing_charged">Nothing was charged</string>
+    <string name="cust_oh_refund_line">Refund on its way</string>
 </resources>

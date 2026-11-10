@@ -769,4 +769,6 @@
     </plurals>
     <string name="cust_shop2_after_hours">अभी बंद है · %1$s खुलेगा। बाद के लिए स्लॉट बुक कर सकते हैं।</string>
     <string name="cust_shop2_after_hours_plain">अभी बंद है। बाद के लिए स्लॉट बुक कर सकते हैं।</string>
+    <string name="cust_oh_nothing_charged">कुछ नहीं काटा गया</string>
+    <string name="cust_oh_refund_line">रिफ़ंड आ रहा है</string>
 </resources>
