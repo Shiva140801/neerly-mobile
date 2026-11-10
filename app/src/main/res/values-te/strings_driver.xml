@@ -444,4 +444,12 @@
     <string name="drv_cash_order">నగదు ఆర్డర్</string>
     <string name="drv_no_cash">నగదు తీసుకోవాల్సిన అవసరం లేదు</string>
     <string name="drv_skip_this">దీన్ని వదిలేయండి</string>
+    <string name="drv_signal_title">సిగ్నల్ సమస్య</string>
+    <string name="drv_signal_gps">ఫోన్ లొకేషన్</string>
+    <string name="drv_signal_gps_ok">ఆన్ · షాప్, కస్టమర్ మిమ్మల్ని చూడగలరు</string>
+    <string name="drv_signal_gps_off">ఆఫ్ · మీరు ఎక్కడ ఉన్నారో షాప్, కస్టమర్ చూడలేరు</string>
+    <string name="drv_signal_net">ఇంటర్నెట్</string>
+    <string name="drv_signal_net_ok">ఆన్ · పనులు, అప్‌డేట్‌లు వస్తాయి</string>
+    <string name="drv_signal_net_off">ఇంటర్నెట్ లేదు · ప్రస్తుత డెలివరీ ఫోన్‌లో సేవ్ అయింది</string>
+    <string name="drv_signal_calls_work">ఇంటర్నెట్ లేకపోయినా ఫోన్ కాల్స్ పనిచేస్తాయి. ఎప్పటిలాగే కోడ్ అడగండి — ఆన్‌లైన్‌కు రాగానే డెలివరీ పంపబడుతుంది.</string>
 </resources>

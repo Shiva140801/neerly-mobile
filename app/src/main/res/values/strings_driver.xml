@@ -453,4 +453,12 @@
     <string name="drv_cash_order">Cash order</string>
     <string name="drv_no_cash">No cash to collect</string>
     <string name="drv_skip_this">Skip this one</string>
+    <string name="drv_signal_title">Signal trouble</string>
+    <string name="drv_signal_gps">Phone location</string>
+    <string name="drv_signal_gps_ok">On · the shop and customer can see you</string>
+    <string name="drv_signal_gps_off">Off · the shop and customer can\'t see where you are</string>
+    <string name="drv_signal_net">Internet</string>
+    <string name="drv_signal_net_ok">On · tasks and updates come through</string>
+    <string name="drv_signal_net_off">No internet · your current drop is saved on the phone</string>
+    <string name="drv_signal_calls_work">Phone calls work without internet. Ask for the code as usual — the delivery is sent the moment you\'re back online.</string>
 </resources>

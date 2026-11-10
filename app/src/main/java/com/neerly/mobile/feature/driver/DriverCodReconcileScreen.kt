@@ -177,9 +177,7 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
                             Text(stringResource(R.string.drv_short_why), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 SHORT_REASON_LABELS.forEach { (code, label) ->
-                                    androidx.compose.material3.FilterChip(selected = why[d.orderId] == code,
-                                        onClick = { why = why + (d.orderId to code) },
-                                        label = { Text(stringResource(label), fontSize = 14.sp) }, modifier = Modifier.heightIn(min = 44.dp))
+                                    com.neerly.mobile.core.design.ChoiceChip(selected = why[d.orderId] == code, onClick = { why = why + (d.orderId to code) }, label = stringResource(label))
                                 }
                             }
                         }

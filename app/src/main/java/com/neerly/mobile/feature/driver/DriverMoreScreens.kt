@@ -254,7 +254,7 @@ fun DriverVehicleScreen(onBack: () -> Unit, vm: DriverVehicleViewModel = hiltVie
         item { SectionLabel(stringResource(R.string.drv_type)) }
         item {
             FlowRowCompat(DriverVehicleViewModel.TYPES) { (v, label) ->
-                FilterChip(selected = type == v, onClick = { type = v }, label = { Text(stringResource(label), fontSize = 16.sp) }, modifier = Modifier.heightIn(min = 48.dp))
+                com.neerly.mobile.core.design.ChoiceChip(selected = type == v, onClick = { type = v }, label = stringResource(label))
             }
         }
         if (type != "CYCLE") item {

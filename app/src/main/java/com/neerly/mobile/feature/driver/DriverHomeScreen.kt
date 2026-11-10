@@ -223,7 +223,10 @@ private fun ChooseShopScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
 
 /** D02 / DOnline — on duty: duty clock, the day's numbers, the round, alert preview, signal. */
 @Composable
-private fun OnDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit, onSignal: () -> Unit) {
+private fun OnDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit, onAskLocation: () -> Unit) {
+    var signalCheck by remember { mutableStateOf(false) }
+    if (signalCheck) { SignalCheckScreen(onBack = { signalCheck = false }, onAskPermission = onAskLocation); return }
+    val onSignal = { signalCheck = true }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
     val started = s.shift?.startedAt?.let { runCatching { java.time.Instant.parse(it) }.getOrNull() }
@@ -664,7 +667,7 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
                     // D23 — why fewer empties came back; the shop sees the reason.
                     Text(stringResource(R.string.drv_short_why, job.emptiesExpected - empties), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Warn)
                     FlowRowLite(SHORT_REASONS) { (v, label) ->
-                        FilterChip(selected = shortReason == v, onClick = { shortReason = v }, label = { Text(stringResource(label), fontSize = 15.sp) },
+                        com.neerly.mobile.core.design.ChoiceChip(selected = shortReason == v, onClick = { shortReason = v }, label = stringResource(label),
                             modifier = Modifier.heightIn(min = 48.dp))
                     }
                 }
@@ -790,7 +793,7 @@ private fun NotHomeScreen(job: DriverAssignment, n: NotHome, vm: DriverHomeViewM
         item {
             FlowRowLite(listOf("NOT_HOME" to R.string.drv_reason_not_home, "WRONG_ADDRESS" to R.string.drv_reason_wrong_address, "REFUSED" to R.string.drv_reason_refused,
                 "UNSAFE" to R.string.drv_reason_unsafe, "OTHER" to R.string.drv_reason_other)) { (v, label) ->
-                FilterChip(selected = reason == v, onClick = { reason = v }, label = { Text(stringResource(label), fontSize = 15.sp) }, modifier = Modifier.heightIn(min = 48.dp))
+                com.neerly.mobile.core.design.ChoiceChip(selected = reason == v, onClick = { reason = v }, label = stringResource(label))
             }
         }
         item {
