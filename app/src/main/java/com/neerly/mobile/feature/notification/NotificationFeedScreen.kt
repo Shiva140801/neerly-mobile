@@ -10,6 +10,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -71,51 +78,67 @@ fun NotificationFeedScreen(
     val state by vm.state.collectAsState()
     val unread = items.count { !it.isRead }
     val strings = com.neerly.mobile.core.util.rememberStrings()
+    // Board Notifications: chevron with "Mark all read" on the right, day groups, hairline
+    // rows with a glyph that says what kind of update it is, red unread dot.
     BoondhPage(
         title = stringResource(R.string.acct_ntf_title),
         onBack = onBack,
-        subtitle = if (unread > 0) stringResource(R.string.acct_ntf_new, unread) else null
+        topAction = {
+            if (unread > 0) TextButton(onClick = vm::markAllRead, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.acct_ntf_mark_all), color = NeerlyColors.CustomerPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+            IconButton(onClick = onSettings, modifier = Modifier.size(48.dp)) {
+                Icon(androidx.compose.material.icons.Icons.Outlined.Settings, contentDescription = stringResource(R.string.acct_ntf_settings), tint = NeerlyColors.Ink900) }
+        }
     ) {
         if (loading || state.error != null || items.isEmpty()) {
             item { LoadState(loading, state.error, vm::refresh, stringResource(R.string.acct_ntf_empty),
                 stringResource(R.string.acct_ntf_empty_body)) }
-            item { TextButton(onClick = onSettings, modifier = Modifier.heightIn(min = 44.dp)) {
-                Text(stringResource(R.string.acct_ntf_settings_link), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) } }
             return@BoondhPage
         }
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = vm::markAllRead, enabled = unread > 0, modifier = Modifier.heightIn(min = 44.dp)) {
-                    Text(stringResource(R.string.acct_ntf_mark_all), color = if (unread > 0) NeerlyColors.CustomerPrimary else NeerlyColors.Ink600, fontWeight = FontWeight.SemiBold) }
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = onSettings, modifier = Modifier.heightIn(min = 44.dp)) {
-                    Text(stringResource(R.string.acct_ntf_settings), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) }
-            }
-        }
         items.groupBy { dayHeading(it.queuedAt, s = strings) }.forEach { (day, rows) ->
-            item { SectionLabel(day) }
-            items(rows, key = { it.id }) { n -> FeedRow(n) { onOpenItem(n.id) } }
+            item { SectionLabel(day, Modifier.padding(top = 8.dp)) }
+            items(rows, key = { it.id }) { n -> FeedRow(n, last = n == rows.last()) { onOpenItem(n.id) } }
         }
     }
 }
 
+/** What kind of update it is, as board Notifications draws it. */
+private enum class FeedGlyph { PERSON, CLOCK, REPEAT, MONEY, ALERT }
+
+internal fun feedGlyphOf(category: String): String = when (category.uppercase()) {
+    "SUBSCRIPTION", "SUBS" -> "REPEAT"
+    "JARS", "DEPOSIT" -> "CLOCK"
+    "WALLET", "PAYMENT", "REFUND" -> "MONEY"
+    "SAFETY", "SECURITY" -> "ALERT"
+    else -> "PERSON"   // order, shop and driver updates: whoever it's from
+}
+
 @Composable
-private fun FeedRow(item: FeedItem, onOpen: () -> Unit) {
+private fun FeedRow(item: FeedItem, last: Boolean, onOpen: () -> Unit) {
     val unreadLabel = stringResource(R.string.acct_ntf_unread)
-    BoondhCard(Modifier.semantics { if (!item.isRead) contentDescription = unreadLabel }, onClick = onOpen) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.size(40.dp).background(if (item.isRead) NeerlyColors.Ink100 else NeerlyColors.CustomerSoft, CircleShape),
-                contentAlignment = Alignment.Center) {
-                Text(item.category.take(1).uppercase(), fontWeight = FontWeight.Bold,
-                    color = if (item.isRead) NeerlyColors.Ink600 else NeerlyColors.CustomerPrimary)
+    val glyph = FeedGlyph.valueOf(feedGlyphOf(item.category))
+    com.neerly.mobile.core.design.ListRow(onClick = onOpen, divider = !last) {
+        Box(Modifier.size(48.dp).background(when (glyph) {
+            FeedGlyph.REPEAT -> NeerlyColors.CustomerSoft
+            FeedGlyph.MONEY -> NeerlyColors.OkSoft
+            FeedGlyph.ALERT -> NeerlyColors.ErrSoft
+            else -> NeerlyColors.WarnSoft
+        }, CircleShape).align(Alignment.Top), contentAlignment = Alignment.Center) {
+            when (glyph) {
+                FeedGlyph.PERSON -> Text((item.subject ?: item.body).trim().take(1).uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                    fontWeight = FontWeight.Bold, fontSize = 20.sp, color = NeerlyColors.Warn)
+                FeedGlyph.CLOCK -> Icon(androidx.compose.material.icons.Icons.Outlined.Schedule, null, tint = NeerlyColors.Warn)
+                FeedGlyph.REPEAT -> Icon(androidx.compose.material.icons.Icons.Filled.Autorenew, null, tint = NeerlyColors.CustomerPrimary)
+                FeedGlyph.MONEY -> Icon(androidx.compose.material.icons.Icons.Filled.Check, null, tint = NeerlyColors.Ok)
+                FeedGlyph.ALERT -> Icon(androidx.compose.material.icons.Icons.Outlined.Shield, null, tint = NeerlyColors.Err)
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(item.subject ?: item.body, fontSize = 16.sp,
-                    fontWeight = if (item.isRead) FontWeight.SemiBold else FontWeight.Bold, color = NeerlyColors.Ink900)
-                if (item.subject != null) Text(item.body, fontSize = 14.sp, lineHeight = 20.sp, color = NeerlyColors.Ink700, maxLines = 3)
-                Text(clockTime(item.queuedAt), fontSize = 12.sp, color = NeerlyColors.Ink600)
-            }
-            if (!item.isRead) Box(Modifier.padding(top = 6.dp).size(10.dp).background(NeerlyColors.CustomerPrimary, CircleShape))
         }
+        Column(Modifier.weight(1f).semantics { if (!item.isRead) contentDescription = unreadLabel }, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(item.subject ?: item.body, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            if (item.subject != null) Text(item.body, fontSize = 15.sp, lineHeight = 21.sp, color = NeerlyColors.Ink600, maxLines = 3)
+            Text(clockTime(item.queuedAt), fontSize = 14.sp, color = NeerlyColors.Ink700)
+        }
+        Box(Modifier.align(Alignment.Top).padding(top = 8.dp).size(10.dp)
+            .background(if (item.isRead) androidx.compose.ui.graphics.Color.Transparent else NeerlyColors.Err, CircleShape))
     }
 }
