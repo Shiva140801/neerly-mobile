@@ -432,4 +432,11 @@
     <string name="drv_cash_confirmed">दुकान ने पुष्टि की। आज का काम पूरा</string>
     <string name="drv_cash_confirmed_sub">दुकान ने नकद गिनकर पुष्टि कर दी। अब आपके पास कुछ नहीं है।</string>
     <string name="drv_cash_waiting_shop">दुकान के %1$s गिनने का इंतज़ार… उनके फ़ोन पर सूचना गई है। पुष्टि होने तक काउंटर पर रहें।</string>
+    <string name="drv_shop_counted_named">%1$s ने गिना</string>
+    <string name="drv_shop_counted">दुकान ने गिना</string>
+    <string name="drv_shop_expected">आना था</string>
+    <string name="drv_shop_got">दुकान को मिले</string>
+    <string name="drv_shop_short">कम</string>
+    <string name="drv_x_of_y_drops">%2$d में से %1$d</string>
+    <string name="drv_jars_in_auto">गाड़ी में जार</string>
 </resources>

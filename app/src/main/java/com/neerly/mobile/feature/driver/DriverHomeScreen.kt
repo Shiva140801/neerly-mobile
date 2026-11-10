@@ -261,7 +261,11 @@ private fun OnDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: (
             // One card, three columns, like DOnline.
             Row(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(16.dp))
                 .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(16.dp)).height(IntrinsicSize.Min)) {
-                DutyStat("${s.today?.drops ?: 0}", stringResource(R.string.drv_drops_done_stat), Modifier.weight(1f))
+                // DOnline "9 of 14": done today out of done + still on the round.
+                val done = s.today?.drops ?: 0
+                val left = s.assignments.count { it.status != "DELIVERED" }
+                DutyStat(if (left > 0) stringResource(R.string.drv_x_of_y_drops, done, done + left) else "$done",
+                    stringResource(R.string.drv_drops_done_stat), Modifier.weight(1f))
                 VerticalDivider(color = NeerlyColors.Ink200)
                 DutyStat((s.today?.earned ?: BigDecimal.ZERO).rupeesWhole(), stringResource(R.string.drv_stat_you_earned), Modifier.weight(1f))
                 VerticalDivider(color = NeerlyColors.Ink200)
@@ -844,6 +848,7 @@ private fun RoundTab(s: DriverHomeUiState, onOpen: () -> Unit) {
         subtitle = if (open.isEmpty()) stringResource(R.string.drv_round_nothing) else stringResource(R.string.drv_round_sub, open.size, s.today?.drops ?: 0)) {
         if (open.isNotEmpty()) item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Stat("${open.sumOf { it.jarsGoingOut }}", stringResource(R.string.drv_jars_in_auto), Modifier.weight(1f))
                 Stat("$empties", stringResource(R.string.drv_empties_to_collect), Modifier.weight(1f))
                 Stat(s.cashToCollect.rupeesWhole(), stringResource(R.string.drv_cash_to_collect), Modifier.weight(1f))
             }

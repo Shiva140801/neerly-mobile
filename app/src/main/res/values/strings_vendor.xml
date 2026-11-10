@@ -1084,4 +1084,34 @@
     </plurals>
     <string name="vend_pause_few_hours">A few hours</string>
     <string name="vend_pause_few_hours_sub">Pause new orders for 1–10 hours or the rest of today</string>
+    <string name="vend_cnt_jars_sent">jars sent out</string>
+    <string name="vend_cash_from_customers">Cash from customers</string>
+    <string name="vend_cash_line_part">%1$s · part of %2$s</string>
+    <string name="vend_err_mark_washed">Couldn\'t mark the jars washed. Try again.</string>
+    <string name="vend_late_longest_first">Late · longest first</string>
+    <string name="vend_asked_pickup">asked for a pickup</string>
+    <string name="vend_plan">Plan</string>
+    <string name="vend_empty_to_wash">Empty, to wash</string>
+    <string name="vend_at_homes_on_time">At homes, on time</string>
+    <string name="vend_late_coming_back">Late coming back</string>
+    <string name="vend_deposits_held">Deposits Boondh holds on your jars</string>
+    <string name="vend_reason_they_gave">Reason they gave</string>
+    <string name="vend_first_order_with_you">First order with you</string>
+    <string name="vend_nth_order_with_you">%1$s order with you</string>
+    <plurals name="vend_still_to_collect">
+        <item quantity="one">%1$s still has %2$s to collect on %3$d drop.</item>
+        <item quantity="other">%1$s still has %2$s to collect on %3$d drops.</item>
+    </plurals>
+    <plurals name="vend_mark_washed">
+        <item quantity="one">Mark %1$d jar washed</item>
+        <item quantity="other">Mark %1$d jars washed</item>
+    </plurals>
+    <plurals name="vend_late_who">
+        <item quantity="one">%1$s · %2$d jar</item>
+        <item quantity="other">%1$s · %2$d jars</item>
+    </plurals>
+    <plurals name="vend_days_late">
+        <item quantity="one">%1$d day late</item>
+        <item quantity="other">%1$d days late</item>
+    </plurals>
 </resources>

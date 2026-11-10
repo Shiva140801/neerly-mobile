@@ -50,6 +50,23 @@ class VendorJarsViewModelsTest {
     }
 
     @Test
+    fun summary_showsToWash_andMarkWashedClearsIt() {
+        coEvery { jars.returns(null, 50) } returns emptyList()
+        coEvery { jars.claims(50) } returns ClaimPage(emptyList())
+        coEvery { jars.summary() } returnsMany listOf(
+            JarsSummary(fullInShop = 28, emptyToWash = 2, atHomesOnTime = 10, late = 2,
+                lateCustomers = listOf(LateJarCustomer("c1", "Sneha G.", 1, 4, pickupRequested = false))),
+            JarsSummary(fullInShop = 30, emptyToWash = 0, atHomesOnTime = 10, late = 2))
+        coEvery { jars.washed(MarkWashed()) } returns mapOf("washed" to 2)
+        val vm = VendorJarsViewModel(jars, catalog, com.neerly.mobile.support.TestStrings)
+        assertEquals(2, vm.state.value.summary!!.emptyToWash)
+        assertEquals("Sneha G.", vm.state.value.summary!!.lateCustomers.single().name)
+        vm.markWashed()
+        io.mockk.coVerify(exactly = 1) { jars.washed(MarkWashed()) }
+        assertEquals(0, vm.state.value.summary!!.emptyToWash)
+    }
+
+    @Test
     fun stockAdjust_damagedIsCappedAtWhatsInTheShop_andNeedsAReason() {
         coEvery { jars.adjust(any()) } returns stock.copy(totalInStock = 28, damagedCount = 3)
         val vm = VendorStockAdjustViewModel(jars, catalog, com.neerly.mobile.support.TestStrings)

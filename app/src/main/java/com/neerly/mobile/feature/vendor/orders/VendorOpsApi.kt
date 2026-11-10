@@ -31,7 +31,8 @@ data class VendorDashboard(
     val pendingEvents: Int = 0,
     val licencesToRenew: Int = 0,
     val jarsOut: Int = 0,                    // jars at customers' homes on a deposit
-    val jarsLate: Int = 0                    // …of those, past their return window
+    val jarsLate: Int = 0,                   // …of those, past their return window
+    val jarsSentToday: Int = 0               // full jars that left the shop today (board VToday)
 )
 
 @JsonClass(generateAdapter = true)
@@ -68,6 +69,10 @@ data class VendorOrderView(
     /** Full numbers for the call buttons — only once accepted and until the order is finished. */
     val customerPhone: String? = null,
     val driverPhone: String? = null,
+    /** This order's place among the customer's orders with the shop ("12th order with you"). */
+    val customerOrderCount: Int? = null,
+    /** What the customer gave as the reason, when they cancelled (board VCustCancelled). */
+    val cancelReason: String? = null,
     /** Status history, detail view only. */
     val timeline: List<VendorOrderStep> = emptyList()
 ) {

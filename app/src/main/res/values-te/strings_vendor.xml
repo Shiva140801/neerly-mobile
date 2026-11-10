@@ -1084,4 +1084,34 @@
     </plurals>
     <string name="vend_pause_few_hours">కొన్ని గంటలు</string>
     <string name="vend_pause_few_hours_sub">1–10 గంటలు లేదా ఈ రోజంతా కొత్త ఆర్డర్లు ఆపండి</string>
+    <string name="vend_cnt_jars_sent">పంపిన జార్లు</string>
+    <string name="vend_cash_from_customers">కస్టమర్ల నుండి నగదు</string>
+    <string name="vend_cash_line_part">%1$s · %2$s లో కొంత</string>
+    <string name="vend_err_mark_washed">జార్లు కడిగినట్లు గుర్తించలేకపోయాం. మళ్లీ ప్రయత్నించండి.</string>
+    <string name="vend_late_longest_first">ఆలస్యం · ఎక్కువ రోజులు ముందు</string>
+    <string name="vend_asked_pickup">పికప్ అడిగారు</string>
+    <string name="vend_plan">ప్లాన్</string>
+    <string name="vend_empty_to_wash">ఖాళీ, కడగాలి</string>
+    <string name="vend_at_homes_on_time">ఇళ్లలో, సమయానికి</string>
+    <string name="vend_late_coming_back">ఆలస్యంగా తిరిగి వస్తున్నవి</string>
+    <string name="vend_deposits_held">మీ జార్లపై బూంద్ దగ్గర ఉన్న డిపాజిట్లు</string>
+    <string name="vend_reason_they_gave">వారు చెప్పిన కారణం</string>
+    <string name="vend_first_order_with_you">మీ దగ్గర మొదటి ఆర్డర్</string>
+    <string name="vend_nth_order_with_you">మీ దగ్గర %1$sవ ఆర్డర్</string>
+    <plurals name="vend_still_to_collect">
+        <item quantity="one">%1$s ఇంకా %3$d డ్రాప్‌లో %2$s వసూలు చేయాలి.</item>
+        <item quantity="other">%1$s ఇంకా %3$d డ్రాప్‌లలో %2$s వసూలు చేయాలి.</item>
+    </plurals>
+    <plurals name="vend_mark_washed">
+        <item quantity="one">%1$d జార్ కడిగినట్లు గుర్తించండి</item>
+        <item quantity="other">%1$d జార్లు కడిగినట్లు గుర్తించండి</item>
+    </plurals>
+    <plurals name="vend_late_who">
+        <item quantity="one">%1$s · %2$d జార్</item>
+        <item quantity="other">%1$s · %2$d జార్లు</item>
+    </plurals>
+    <plurals name="vend_days_late">
+        <item quantity="one">%1$d రోజు ఆలస్యం</item>
+        <item quantity="other">%1$d రోజులు ఆలస్యం</item>
+    </plurals>
 </resources>

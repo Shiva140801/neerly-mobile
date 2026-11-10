@@ -27,6 +27,25 @@ data class JarStock(
     val lastAdjustedAt: String? = null
 )
 
+/** Board VJars, from `GET /vendor/dashboard/jars`. */
+@JsonClass(generateAdapter = true)
+data class JarsSummary(
+    val fullInShop: Int = 0,
+    val emptyToWash: Int = 0,
+    val atHomesOnTime: Int = 0,
+    val late: Int = 0,
+    val damaged: Int = 0,
+    val lost: Int = 0,
+    val depositsHeld: BigDecimal = BigDecimal.ZERO,
+    val lateCustomers: List<LateJarCustomer> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class LateJarCustomer(val customerId: String, val name: String, val jars: Int, val daysLate: Int, val pickupRequested: Boolean = false)
+
+@JsonClass(generateAdapter = true)
+data class MarkWashed(val productId: String? = null, val count: Int? = null)
+
 /** Backend `AdjustStockRequest`. RECOUNT_ADJUST sets the in-shop count to [count]. */
 @JsonClass(generateAdapter = true)
 data class AdjustStock(val productId: String, val count: Int, val changeType: String, val note: String? = null)
@@ -85,6 +104,14 @@ data class FileClaim(val depositId: String, val returnId: String?, val claimAmou
 interface VendorJarsApi {
     @GET("api/v1/vendor/containers")
     suspend fun stock(): List<JarStock>
+
+    /** Board VJars: full / to wash / on time / late, deposits held, late customers longest first. */
+    @GET("api/v1/vendor/dashboard/jars")
+    suspend fun summary(): JarsSummary
+
+    /** Empties back from customers are washed; null productId/count = all of them. */
+    @POST("api/v1/vendor/containers/washed")
+    suspend fun washed(@Body body: MarkWashed): Map<String, Int>
 
     @POST("api/v1/vendor/containers/adjust")
     suspend fun adjust(@Body body: AdjustStock): JarStock

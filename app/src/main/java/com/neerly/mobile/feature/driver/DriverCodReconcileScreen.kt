@@ -39,6 +39,8 @@ data class CashHandOverState(
     val saved: Boolean = false,
     /** DCash: the shop has counted and confirmed — the cash in hand dropped to zero. */
     val confirmed: Boolean = false,
+    /** The shop's own figure once it has counted (DCashMismatch). */
+    val handover: HandoverCount? = null,
     val error: String? = null
 )
 
@@ -58,7 +60,8 @@ class DriverCodReconcileViewModel @Inject constructor(
                 .onSuccess { t ->
                     // The delivered cash drops come from the server; active assignments never held them.
                     val cash = runCatching { platform.cashHeld() }.getOrDefault(emptyList())
-                    _state.value = _state.value.copy(loading = false, collected = t.cashInHand, drops = cash.size, cashDrops = cash)
+                    _state.value = _state.value.copy(loading = false, collected = t.cashInHand, drops = cash.size, cashDrops = cash,
+                        handover = t.lastHandover)
                 }
                 .onFailure { _state.value = _state.value.copy(loading = false,
                     error = it.userMessage("driver cash", strings.get(R.string.drv_err_load_cash))) }
@@ -69,8 +72,8 @@ class DriverCodReconcileViewModel @Inject constructor(
     private fun waitForShop() = viewModelScope.launch {
         repeat(120) {
             kotlinx.coroutines.delay(SHOP_COUNT_POLL_MS)
-            val left = runCatching { ops.today().cashInHand }.getOrNull() ?: return@repeat
-            if (left.signum() == 0) { _state.value = _state.value.copy(confirmed = true); return@launch }
+            val t = runCatching { ops.today() }.getOrNull() ?: return@repeat
+            if (t.cashInHand.signum() == 0) { _state.value = _state.value.copy(confirmed = true, handover = t.lastHandover); return@launch }
         }
     }
 
@@ -132,6 +135,15 @@ fun DriverCodReconcileScreen(onBack: () -> Unit, onDone: () -> Unit, vm: DriverC
             if (reasonsMissing) Text(stringResource(R.string.drv_short_pick_reason), fontSize = 13.sp, color = NeerlyColors.Err)
         }) {
         if (s.loading) { item { LoadState(true, null, {}) }; return@BoondhPage }
+        // DCashMismatch: what the shop itself counted, next to what it expected.
+        if (s.confirmed || (s.collected.signum() == 0 && s.handover != null)) s.handover?.let { h -> item {
+            BoondhCard {
+                SectionLabel(h.shopName?.let { stringResource(R.string.drv_shop_counted_named, it) } ?: stringResource(R.string.drv_shop_counted))
+                InfoRow(stringResource(R.string.drv_shop_expected), trailing = h.expected.rupees())
+                InfoRow(stringResource(R.string.drv_shop_got), trailing = h.counted.rupees())
+                if (h.short.signum() > 0) InfoRow(stringResource(R.string.drv_shop_short), trailing = h.short.rupees(), trailingColor = NeerlyColors.Err)
+            }
+        } }
         item {
             BoondhCard {
                 InfoRow(stringResource(R.string.drv_cash_from_drops), pluralStringResource(R.plurals.drv_drops_counted, s.drops, s.drops), s.collected.rupees())

@@ -64,6 +64,8 @@ data class DriverAssignment(
     val deliveryOtp: String?,             // always null — the customer holds the code
     val notes: String?,
     val emptiesExpected: Int = 0,
+    /** Full jars this drop takes from the shop (DRoute "jars in the auto"). */
+    val jarsGoingOut: Int = 0,
     val depositHeld: BigDecimal = BigDecimal.ZERO,
     // Phase 5: the shop this drop is picked up from, so "back to the shop" works after a restart.
     val vendorId: String? = null,

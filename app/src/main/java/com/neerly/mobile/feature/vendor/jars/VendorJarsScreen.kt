@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.background
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,9 @@ data class JarsUiState(
     val lines: List<JarLine> = emptyList(),
     val openReturns: Int = 0,
     val openClaims: Int = 0,
+    /** Board VJars figures from the server; null until loaded (the old per-type sums still show). */
+    val summary: JarsSummary? = null,
+    val washing: Boolean = false,
     val error: String? = null
 ) {
     val owned get() = lines.sumOf { it.stock.totalOwned }
@@ -69,10 +73,24 @@ class VendorJarsViewModel @Inject constructor(
                     val lines = async { jarLines(jars, catalog, strings.get(R.string.vend_jar)) }
                     val returns = async { runCatching { jars.returns().size }.getOrDefault(0) }
                     val claims = async { runCatching { jars.claims().content.count { it.open } }.getOrDefault(0) }
-                    JarsUiState(loading = false, lines = lines.await(), openReturns = returns.await(), openClaims = claims.await())
+                    val summary = async { runCatching { jars.summary() }.getOrNull() }
+                    JarsUiState(loading = false, lines = lines.await(), openReturns = returns.await(), openClaims = claims.await(),
+                        summary = summary.await())
                 }
             }.onSuccess { _state.value = it }
              .onFailure { _state.value = _state.value.copy(loading = false, error = it.userMessage("vendor jars", strings.get(R.string.vend_err_load_jars))) }
+        }
+    }
+
+    /** "Mark washed": every empty waiting is clean and back on the shelf. */
+    fun markWashed() {
+        if (_state.value.washing) return
+        _state.value = _state.value.copy(washing = true, error = null)
+        viewModelScope.launch {
+            runCatching { jars.washed(MarkWashed()) }
+                .onSuccess { _state.value = _state.value.copy(washing = false); load() }
+                .onFailure { _state.value = _state.value.copy(washing = false,
+                    error = it.userMessage("mark washed", strings.get(R.string.vend_err_mark_washed))) }
         }
     }
 }
@@ -97,7 +115,8 @@ fun VendorJarsScreen(
             item { PrimaryButton(stringResource(R.string.vend_count_the_shop), onCount, color = NeerlyColors.VendorPrimary) }
             return@BoondhPage
         }
-        item {
+        val sum = s.summary
+        if (sum != null) item { JarSplit(sum) } else item {
             BoondhCard {
                 InfoRow(stringResource(R.string.vend_full_in_shop), trailing = "${s.inShop}")
                 HorizontalDivider(color = NeerlyColors.Ink200)
@@ -108,6 +127,12 @@ fun VendorJarsScreen(
                 InfoRow(stringResource(R.string.vend_lost), trailing = "${s.lost}", trailingColor = if (s.lost > 0) NeerlyColors.Err else NeerlyColors.Ink900)
             }
         }
+        if (sum != null && sum.emptyToWash > 0) item {
+            SecondaryButton(if (s.washing) stringResource(R.string.vend_saving)
+                else pluralStringResource(R.plurals.vend_mark_washed, sum.emptyToWash, sum.emptyToWash),
+                vm::markWashed, enabled = !s.washing)
+        }
+        s.error?.let { e -> item { Notice(e, Tone.Bad) } }
         // Three side-by-side buttons wrapped to two lines at uneven heights on a phone;
         // tappable rows read the same at any width and in Telugu/Hindi.
         item {
@@ -117,6 +142,26 @@ fun VendorJarsScreen(
                 InfoRow(stringResource(R.string.vend_pickups), trailing = "${s.openReturns}", onClick = onPickups)
                 HorizontalDivider(color = NeerlyColors.Ink200)
                 InfoRow(stringResource(R.string.vend_damage), trailing = s.openClaims.takeIf { it > 0 }?.toString(), onClick = onDamage)
+            }
+        }
+        if (sum != null && sum.lateCustomers.isNotEmpty()) {
+            item { SectionLabel(stringResource(R.string.vend_late_longest_first)) }
+            items(sum.lateCustomers, key = { it.customerId }) { c ->
+                Row(Modifier.fillMaxWidth().heightIn(min = 64.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(pluralStringResource(R.plurals.vend_late_who, c.jars, c.name, c.jars), fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                        // "late" in words as well as red, so it doesn't rely on colour alone.
+                        Text(listOfNotNull(pluralStringResource(R.plurals.vend_days_late, c.daysLate, c.daysLate),
+                            if (c.pickupRequested) stringResource(R.string.vend_asked_pickup) else null).joinToString(" · "),
+                            fontSize = 14.sp, color = NeerlyColors.Err)
+                    }
+                    OutlinedButton(onClick = onPickups, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(if (c.pickupRequested) stringResource(R.string.vend_plan) else stringResource(R.string.vend_pickup),
+                            color = NeerlyColors.VendorPrimary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                HorizontalDivider(color = NeerlyColors.Ink200)
             }
         }
         item { SectionLabel(stringResource(R.string.vend_by_jar_type)) }
@@ -130,5 +175,48 @@ fun VendorJarsScreen(
                 l.stock.lastAdjustedAt?.let { Text(stringResource(R.string.vend_last_changed, shortDay(it)), fontSize = 12.sp, color = NeerlyColors.Ink600) }
             }
         }
+    }
+}
+
+/** Board VJars: one bar split by where the jars are, then the four counts, damage and deposits. */
+@Composable
+private fun JarSplit(sum: JarsSummary) {
+    val parts = listOf(
+        Triple(stringResource(R.string.vend_full_in_shop), sum.fullInShop, NeerlyColors.VendorPrimary),
+        Triple(stringResource(R.string.vend_empty_to_wash), sum.emptyToWash, NeerlyColors.VendorPrimary.copy(alpha = 0.4f)),
+        Triple(stringResource(R.string.vend_at_homes_on_time), sum.atHomesOnTime, NeerlyColors.Warn),
+        Triple(stringResource(R.string.vend_late_coming_back), sum.late, NeerlyColors.Err)
+    )
+    val total = parts.sumOf { it.second }.coerceAtLeast(1)
+    BoondhCard {
+        Row(Modifier.fillMaxWidth().height(14.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            parts.filter { it.second > 0 }.forEach { (_, n, c) ->
+                Box(Modifier.weight(n.toFloat() / total).fillMaxHeight()
+                    .background(c, androidx.compose.foundation.shape.RoundedCornerShape(7.dp)))
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        parts.chunked(2).forEach { pair ->
+            Row(Modifier.fillMaxWidth()) {
+                pair.forEach { (label, n, c) ->
+                    Row(Modifier.weight(1f).padding(vertical = 6.dp), verticalAlignment = androidx.compose.ui.Alignment.Top) {
+                        Box(Modifier.padding(top = 4.dp).size(12.dp).background(c, androidx.compose.foundation.shape.RoundedCornerShape(3.dp)))
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text(label, fontSize = 14.sp, color = NeerlyColors.Ink600)
+                            Text("$n", fontSize = 26.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                                color = if (c == NeerlyColors.Err && n > 0) NeerlyColors.Err else NeerlyColors.Ink900)
+                        }
+                    }
+                }
+            }
+        }
+        if (sum.damaged > 0 || sum.lost > 0) {
+            HorizontalDivider(color = NeerlyColors.Ink200)
+            Text(listOfNotNull(sum.damaged.takeIf { it > 0 }?.let { stringResource(R.string.vend_n_damaged, it) },
+                sum.lost.takeIf { it > 0 }?.let { stringResource(R.string.vend_n_lost, it) }).joinToString(" · "),
+                fontSize = 14.sp, color = NeerlyColors.Ink900)
+        }
+        InfoRow(stringResource(R.string.vend_deposits_held), trailing = sum.depositsHeld.rupeesWhole())
     }
 }

@@ -204,6 +204,11 @@ fun VendorNewOrderScreen(
             item {
                 BoondhCard {
                     Text(o.customerFirstName, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    o.customerOrderCount?.takeIf { it > 0 }?.let { n ->
+                        Text(if (n == 1) stringResource(R.string.vend_first_order_with_you)
+                            else stringResource(R.string.vend_nth_order_with_you, orderOrdinal(n)),
+                            fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.VendorPrimary)
+                    }
                     val km = o.distanceKm?.let { stringResource(R.string.vend_km, it.stripTrailingZeros().toPlainString()) }
                     Text(listOfNotNull(o.deliveryAddress.ifBlank { null }, km)
                         .joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink600)
@@ -311,4 +316,16 @@ private fun Decline(s: NewOrderUiState, vm: VendorNewOrderViewModel, onCatalog: 
             else -> Unit
         }
     }
+}
+
+/** "12th" in English; other languages put the suffix in the string itself, so just the number. */
+@Composable
+internal fun orderOrdinal(n: Int): String {
+    val lang = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language
+    return if (lang == "en") englishOrdinal(n) else n.toString()
+}
+
+internal fun englishOrdinal(n: Int): String {
+    val suffix = if (n % 100 in 11..13) "th" else when (n % 10) { 1 -> "st"; 2 -> "nd"; 3 -> "rd"; else -> "th" }
+    return "$n$suffix"
 }

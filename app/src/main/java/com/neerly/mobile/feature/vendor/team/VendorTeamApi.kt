@@ -59,7 +59,22 @@ data class CashToday(
     val cashExpected: BigDecimal,
     val emptiesExpected: Int,
     val driverDeclaredCash: BigDecimal? = null,
-    val confirmation: CashConfirmation? = null
+    val confirmation: CashConfirmation? = null,
+    /** The deliveries inside [cashExpected], one per customer (board VCashConfirm). */
+    val lines: List<CashLine> = emptyList(),
+    /** Cash on delivery still to collect on drops not delivered yet. */
+    val stillToCollect: BigDecimal = BigDecimal.ZERO,
+    val dropsLeft: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class CashLine(
+    val orderId: String,
+    val orderNumber: String,
+    val customerName: String,
+    val settlement: String,      // CASH / PARTIAL
+    val bill: BigDecimal,
+    val collected: BigDecimal
 )
 
 @JsonClass(generateAdapter = true)

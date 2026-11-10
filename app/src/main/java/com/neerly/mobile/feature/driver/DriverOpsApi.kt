@@ -22,7 +22,18 @@ data class DriverToday(
     val cashInHand: BigDecimal = BigDecimal.ZERO,
     /** DOff: "Yesterday · 15 drops · ₹610". */
     val yesterdayEarned: BigDecimal = BigDecimal.ZERO,
-    val yesterdayDrops: Int = 0
+    val yesterdayDrops: Int = 0,
+    /** The shop's own count of today's hand-over, once it has confirmed (DCashMismatch). */
+    val lastHandover: HandoverCount? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class HandoverCount(
+    val shopName: String? = null,
+    val expected: BigDecimal = BigDecimal.ZERO,
+    val counted: BigDecimal = BigDecimal.ZERO,
+    val short: BigDecimal = BigDecimal.ZERO,
+    val confirmedAt: String? = null
 )
 
 /** `GET /driver/earnings/order/{id}` (backend DriverDropEarningResponse). 404 until the drop is recorded. */

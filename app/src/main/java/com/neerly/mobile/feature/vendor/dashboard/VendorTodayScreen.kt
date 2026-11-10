@@ -76,7 +76,7 @@ fun VendorTodayScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Count("${d.ordersToday}", stringResource(R.string.vend_cnt_orders_today), Modifier.weight(1f))
-                Count("${d.deliveredToday}", stringResource(R.string.vend_cnt_delivered), Modifier.weight(1f))
+                Count("${d.jarsSentToday}", stringResource(R.string.vend_cnt_jars_sent), Modifier.weight(1f))
                 Count(d.earningToday.rupeesWhole(), stringResource(R.string.vend_cnt_yours), Modifier.weight(1f), onEarnings)
             }
         }

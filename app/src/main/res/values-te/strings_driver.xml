@@ -432,4 +432,11 @@
     <string name="drv_cash_confirmed">షాప్ నిర్ధారించింది. ఈరోజుకు పూర్తి</string>
     <string name="drv_cash_confirmed_sub">షాప్ నగదు లెక్కించి నిర్ధారించింది. ఇప్పుడు మీ దగ్గర ఏమీ లేదు.</string>
     <string name="drv_cash_waiting_shop">షాప్ %1$s లెక్కించే వరకు ఆగండి… వారి ఫోన్‌కు సందేశం వెళ్లింది. నిర్ధారించే వరకు కౌంటర్ దగ్గరే ఉండండి.</string>
+    <string name="drv_shop_counted_named">%1$s లెక్కించారు</string>
+    <string name="drv_shop_counted">షాప్ లెక్కించింది</string>
+    <string name="drv_shop_expected">రావాల్సింది</string>
+    <string name="drv_shop_got">షాప్‌కు అందింది</string>
+    <string name="drv_shop_short">తక్కువ</string>
+    <string name="drv_x_of_y_drops">%2$d లో %1$d</string>
+    <string name="drv_jars_in_auto">వాహనంలో జార్లు</string>
 </resources>

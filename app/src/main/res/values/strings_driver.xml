@@ -441,4 +441,11 @@
     <string name="drv_cash_confirmed">Shop confirmed. Done for today</string>
     <string name="drv_cash_confirmed_sub">The shop counted the cash and confirmed it. Nothing is with you now.</string>
     <string name="drv_cash_waiting_shop">Waiting for the shop to count %1$s… They got a buzz on their phone. Stay at the counter till it says confirmed.</string>
+    <string name="drv_shop_counted_named">%1$s counted</string>
+    <string name="drv_shop_counted">The shop counted</string>
+    <string name="drv_shop_expected">Expected</string>
+    <string name="drv_shop_got">The shop got</string>
+    <string name="drv_shop_short">Short</string>
+    <string name="drv_x_of_y_drops">%1$d of %2$d</string>
+    <string name="drv_jars_in_auto">jars in the auto</string>
 </resources>

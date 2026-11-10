@@ -174,6 +174,21 @@ private fun CashCount(c: CountState, vm: VendorTeamViewModel) {
             if (r.shortfall) item { Notice(stringResource(R.string.vend_shortfall_saved, first), Tone.Warn) }
             return@BoondhPage
         }
+        if (c.row.lines.isNotEmpty()) item {
+            SectionLabel(stringResource(R.string.vend_cash_from_customers))
+            Spacer(Modifier.height(6.dp))
+            BoondhCard {
+                c.row.lines.forEach { l ->
+                    InfoRow(l.customerName,
+                        subtitle = if (l.settlement == "PARTIAL") stringResource(R.string.vend_cash_line_part, l.orderNumber, l.bill.rupees())
+                            else l.orderNumber,
+                        trailing = l.collected.rupees())
+                }
+            }
+        }
+        if (c.row.stillToCollect.signum() > 0) item {
+            Notice(pluralStringResource(R.plurals.vend_still_to_collect, c.row.dropsLeft, first, c.row.stillToCollect.rupees(), c.row.dropsLeft), Tone.Info)
+        }
         item { BoondhCard {
             InfoRow(stringResource(R.string.vend_cash_should_bring), trailing = c.row.cashExpected.rupees())
             c.row.driverDeclaredCash?.let { InfoRow(stringResource(R.string.vend_their_app_says), trailing = it.rupees()) }

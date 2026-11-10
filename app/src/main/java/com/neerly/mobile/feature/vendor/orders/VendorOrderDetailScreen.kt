@@ -152,6 +152,10 @@ internal fun stepFallback(status: String) = status.lowercase().replace('_', ' ')
 /** V21 — what happened to the money when the customer cancelled. */
 @Composable
 private fun CancelledCard(o: VendorOrderView) {
+    o.cancelReason?.let { r -> BoondhCard {
+        SectionLabel(stringResource(R.string.vend_reason_they_gave))
+        Text("“$r”", fontSize = 16.sp, color = NeerlyColors.Ink900)
+    } }
     BoondhCard {
         SectionLabel(stringResource(R.string.vend_stock_back_itself))
         o.items.forEach { InfoRow(stringResource(R.string.vend_bill_line, it.quantity, it.productName), stringResource(R.string.vend_back_on_shelf)) }
