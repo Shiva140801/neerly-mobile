@@ -43,6 +43,8 @@ enum class PushAction(@StringRes val label: Int, val kind: Kind) {
     PASS(R.string.push_a_pass, Kind.BACKGROUND),
     CLOSE_DAY(R.string.push_a_close_day, Kind.OPEN),
     BACK_NOW(R.string.push_a_back_now, Kind.BACKGROUND),
+    /** "Still on duty?" — keeps an idle shift open (POST /driver/shifts/stay-on). */
+    STAY_ON(R.string.push_a_stay_on, Kind.BACKGROUND),
     /** On-duty card only (NPDLock). */
     TAKE_BREAK(R.string.push_duty_break, Kind.BACKGROUND),
     SAFE(R.string.push_a_safe, Kind.BACKGROUND);

@@ -5,7 +5,8 @@ import androidx.core.app.NotificationCompat
 import com.neerly.mobile.R
 
 /**
- * One entry per catalog row (NPCCatalog C1–C18, NPVCatalog V1–V17, NPDCatalog D1–D12).
+ * One entry per catalog row (NPCCatalog C1–C18, NPVCatalog V1–V17, NPDCatalog D1–D12), plus the
+ * shift auto-end rows D13–D15 and V18.
  * The server decides *when*; this table is how each one looks and behaves on the phone.
  *
  * @param thread what the stable Android tag is keyed on (`order:{id}` etc.), so a newer event
@@ -138,7 +139,16 @@ enum class PushType(
     DRIVER_ADDED_TO_SHOP("D11", PushRole.DRIVER, PushChannel.DRIVER_INFO, listOf(PushAction.OPEN), thread = Thread.VENDOR,
         sampleTitle = R.string.push_s_d11_t, sampleBody = R.string.push_s_d11_b),
     DRIVER_DOC_REJECTED("D12", PushRole.DRIVER, PushChannel.DRIVER_INFO, listOf(PushAction.UPLOAD), thread = Thread.TYPE,
-        sampleTitle = R.string.push_s_d12_t, sampleBody = R.string.push_s_d12_b);
+        sampleTitle = R.string.push_s_d12_t, sampleBody = R.string.push_s_d12_b),
+    /** Shift auto-end: "Still on duty?" 15 min before an idle shift closes. */
+    DRIVER_SHIFT_IDLE_WARN("D13", PushRole.DRIVER, PushChannel.DRIVER_DAYEND, listOf(PushAction.STAY_ON), thread = Thread.TYPE,
+        sampleTitle = R.string.push_s_d13_t, sampleBody = R.string.push_s_d13_b),
+    DRIVER_SHIFT_AUTO_ENDED("D14", PushRole.DRIVER, PushChannel.DRIVER_INFO, thread = Thread.TYPE,
+        sampleTitle = R.string.push_s_d14_t, sampleBody = R.string.push_s_d14_b),
+    DRIVER_SHIFT_LIMIT("D15", PushRole.DRIVER, PushChannel.DRIVER_INFO, thread = Thread.TYPE,
+        sampleTitle = R.string.push_s_d15_t, sampleBody = R.string.push_s_d15_b),
+    SELLER_DRIVER_SHIFT_ENDED("V18", PushRole.SELLER, PushChannel.SELLER_TEAM, thread = Thread.DRIVER,
+        sampleTitle = R.string.push_s_v18_t, sampleBody = R.string.push_s_v18_b);
 
     /** What the stable tag is built from when the server doesn't send `thread`. */
     enum class Thread { ORDER, OFFER, COMPLAINT, SUBSCRIPTION, REFUND, PAYOUT, SOS, DRIVER, VENDOR, TYPE }

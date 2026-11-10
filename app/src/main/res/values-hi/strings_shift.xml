@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Driver shift auto-end (D13–D15, V18): the off-duty note. -->
+<resources>
+    <plurals name="drv_shift_auto_ended_idle">
+        <item quantity="one">%2$d घंटे कोई काम न होने पर आपकी शिफ़्ट %1$s पर अपने आप खत्म हो गई। कभी भी फिर से शुरू करें।</item>
+        <item quantity="other">%2$d घंटे कोई काम न होने पर आपकी शिफ़्ट %1$s पर अपने आप खत्म हो गई। कभी भी फिर से शुरू करें।</item>
+    </plurals>
+    <plurals name="drv_shift_auto_ended_max">
+        <item quantity="one">%2$d घंटे ड्यूटी के बाद आपकी शिफ़्ट %1$s पर अपने आप खत्म हो गई, यही सबसे लंबी है। कभी भी फिर से शुरू करें।</item>
+        <item quantity="other">%2$d घंटे ड्यूटी के बाद आपकी शिफ़्ट %1$s पर अपने आप खत्म हो गई, यही सबसे लंबी है। कभी भी फिर से शुरू करें।</item>
+    </plurals>
+</resources>

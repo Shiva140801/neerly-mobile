@@ -69,6 +69,7 @@ class PushActionReceiver : BroadcastReceiver() {
                     }
                     PushAction.SAFE -> { p["sosId"]?.let { platform.sosResolve(it, SosResolveBody(null)) }; notifier.cancel(tag, id) }
                     PushAction.BACK_NOW -> { platform.endBreak(); notifier.cancel(tag, id) }
+                    PushAction.STAY_ON -> { platform.stayOn(); notifier.cancel(tag, id) }
                     PushAction.TAKE_BREAK -> { platform.startBreak(); duty.markBreak(true) }
                     PushAction.SKIP_TOMORROW -> {
                         val date = p["date"] ?: LocalDate.now(ZoneId.of("Asia/Kolkata")).plusDays(1).toString()

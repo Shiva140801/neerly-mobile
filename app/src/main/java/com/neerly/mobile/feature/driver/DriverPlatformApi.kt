@@ -191,11 +191,29 @@ data class CashHeldLine(
     val collected: BigDecimal = BigDecimal.ZERO
 )
 
+/**
+ * `GET /driver/shifts/last`. [endedReason] AUTO_INACTIVE (no activity for [autoEndHours]) or
+ * AUTO_MAX_HOURS (on duty for [autoEndHours]) when [autoEnded]; DRIVER_ENDED / VENDOR_ENDED otherwise.
+ */
+@JsonClass(generateAdapter = true)
+data class LastShift(
+    val shiftId: String,
+    val startedAt: String,
+    val endedAt: String,
+    val endedReason: String? = null,
+    val autoEnded: Boolean = false,
+    val autoEndHours: Int? = null
+)
+
 interface DriverPlatformApi {
     @GET("api/v1/driver/cash/held") suspend fun cashHeld(): List<CashHeldLine>
     @GET("api/v1/driver/shifts/state") suspend fun shiftState(): DriverShiftState
     @POST("api/v1/driver/shifts/break") suspend fun startBreak(@Body body: StartBreakBody = StartBreakBody()): DriverShiftState
     @POST("api/v1/driver/shifts/break/end") suspend fun endBreak(@Body body: Map<String, String> = emptyMap()): DriverShiftState
+    /** "Still on duty?" → keep the shift open (counts as activity). */
+    @POST("api/v1/driver/shifts/stay-on") suspend fun stayOn(@Body body: Map<String, String> = emptyMap()): retrofit2.Response<Unit>
+    /** The last finished shift; 204 when there is none. */
+    @GET("api/v1/driver/shifts/last") suspend fun lastShift(): retrofit2.Response<LastShift>
     @GET("api/v1/driver/shifts/end-check") suspend fun endCheck(): EndCheck
     @POST("api/v1/driver/shifts/finish") suspend fun finish(@Body body: FinishShiftBody): FinishShiftResult
 

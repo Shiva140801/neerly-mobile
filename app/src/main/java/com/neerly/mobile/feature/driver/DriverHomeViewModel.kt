@@ -152,13 +152,15 @@ class DriverHomeViewModel @Inject constructor(
                 val today = runCatching { ops.today() }.getOrNull()
                 val shops = if (onDuty && _state.value.shops.isNotEmpty()) _state.value.shops else loadShops()
                 val shiftState = if (onDuty) runCatching { platform.shiftState() }.getOrNull() else null
-                Snapshot(shift, list, today, shops, shiftState)
+                // Off duty: did the last shift close by itself? (DOff "Shift ended automatically")
+                val lastShift = if (!onDuty) runCatching { platform.lastShift().body() }.getOrNull() else null
+                Snapshot(shift, list, today, shops, shiftState, lastShift)
             }.onSuccess { s ->
                 jobs.keepOnly(s.jobs.map { it.orderId }.toSet())
                 _state.value = _state.value.copy(
                     loading = false, shift = s.shift, assignments = s.jobs, today = s.today ?: _state.value.today,
                     shops = s.shops, loadedOrders = s.jobs.map { it.orderId }.filter(jobs::isLoaded).toSet(), error = null,
-                    shiftState = s.shiftState
+                    shiftState = s.shiftState, lastShift = s.lastShift
                 )
                 publishDutyCard()
                 syncLocationLoop()
@@ -188,7 +190,8 @@ class DriverHomeViewModel @Inject constructor(
     }
 
     private data class Snapshot(val shift: DriverShiftResponse?, val jobs: List<DriverAssignment>,
-                                val today: DriverToday?, val shops: List<DriverShop>, val shiftState: DriverShiftState?)
+                                val today: DriverToday?, val shops: List<DriverShop>, val shiftState: DriverShiftState?,
+                                val lastShift: LastShift? = null)
 
     /** D14 — the shops this driver drives for (`GET /driver/vendors`). */
     private suspend fun loadShops(): List<DriverShop> = runCatching { ops.vendors() }.getOrDefault(emptyList())
@@ -532,6 +535,8 @@ data class DriverHomeUiState(
     val missed: MissedTask? = null,
     val done: DropDone? = null,
     val shiftState: DriverShiftState? = null,
+    /** The last finished shift, loaded while off duty. */
+    val lastShift: LastShift? = null,
     val endCheck: EndCheck? = null,
     val endChecking: Boolean = false,
     val ending: Boolean = false,

@@ -183,6 +183,8 @@ private fun OffDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
                 enabled = !s.starting, modifier = BIG, color = Boondh.Amber, contentColor = NeerlyColors.Ink900)
         }) {
         s.error?.let { item { Notice(it, Tone.Bad) } }
+        // The server closed the last shift by itself (idle / too long) — say so for half a day.
+        if (showAutoEnded(s.lastShift)) item { Notice(autoEndedNote(s.lastShift!!), Tone.Info) }
         if (s.shops.isNotEmpty()) item {
             BoondhCard {
                 SectionLabel(if (s.shops.size == 1) stringResource(R.string.drv_your_shop) else stringResource(R.string.drv_shops_you_drive))
@@ -205,6 +207,25 @@ private fun OffDutyScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
             }
         } }
     }
+}
+
+/** The last shift closed by itself within the last 12 h — DOff says so. */
+internal fun showAutoEnded(last: LastShift?, now: java.time.Instant = java.time.Instant.now()): Boolean {
+    if (last == null || !last.autoEnded) return false
+    val ended = runCatching { java.time.Instant.parse(last.endedAt) }.getOrNull() ?: return false
+    return java.time.Duration.between(ended, now) <= java.time.Duration.ofHours(12)
+}
+
+/** "Your shift ended automatically at 1:45 PM after 3 hours with no activity. Start again any time." */
+@Composable
+private fun autoEndedNote(last: LastShift): String {
+    val at = runCatching {
+        java.time.format.DateTimeFormatter.ofPattern("h:mm a", java.util.Locale.ENGLISH)
+            .format(java.time.Instant.parse(last.endedAt).atZone(java.time.ZoneId.of("Asia/Kolkata")))
+    }.getOrDefault("")
+    val hours = last.autoEndHours ?: 0
+    return if (last.endedReason == "AUTO_MAX_HOURS") pluralStringResource(R.plurals.drv_shift_auto_ended_max, hours, at, hours)
+    else pluralStringResource(R.plurals.drv_shift_auto_ended_idle, hours, at, hours)
 }
 
 /** D14 — which shop today (only when the driver has more than one). */

@@ -103,7 +103,7 @@ object DeepLinks {
             PushType.SELLER_EVENT_REQUEST -> "${SCHEME}seller/events"
             PushType.SELLER_COMPLAINT, PushType.SELLER_COMPLAINT_REMINDER, PushType.SELLER_COMPLAINT_UPDATE -> "${SCHEME}seller/complaints"
             PushType.SELLER_LOW_REVIEW -> "${SCHEME}seller/reviews"
-            PushType.SELLER_DRIVER_CLOSING -> "${SCHEME}seller/team"
+            PushType.SELLER_DRIVER_CLOSING, PushType.SELLER_DRIVER_SHIFT_ENDED -> "${SCHEME}seller/team"
             PushType.SELLER_SOS -> "${SCHEME}seller/team"
             PushType.SELLER_SOLD_OUT -> "${SCHEME}seller/catalog"
             PushType.SELLER_LATE_JARS -> "${SCHEME}seller/jars"
@@ -117,7 +117,8 @@ object DeepLinks {
             PushType.DRIVER_DOC_REJECTED -> "${SCHEME}driver/documents"
             PushType.DRIVER_NEW_TASK, PushType.DRIVER_MISSED_TASK, PushType.DRIVER_NOTE_CHANGED,
             PushType.DRIVER_HANDOVER_CONFIRMED, PushType.DRIVER_BREAK_ENDING, PushType.DRIVER_DAY_END,
-            PushType.DRIVER_WEEK_EARNINGS, PushType.DRIVER_SHIFT_TOMORROW, PushType.DRIVER_ADDED_TO_SHOP -> "${SCHEME}driver"
+            PushType.DRIVER_WEEK_EARNINGS, PushType.DRIVER_SHIFT_TOMORROW, PushType.DRIVER_ADDED_TO_SHOP,
+            PushType.DRIVER_SHIFT_IDLE_WARN, PushType.DRIVER_SHIFT_AUTO_ENDED, PushType.DRIVER_SHIFT_LIMIT -> "${SCHEME}driver"
         }
     }
 

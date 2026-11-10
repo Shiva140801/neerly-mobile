@@ -134,4 +134,5 @@
     <string name="push_prefs_blocked">इस फ़ोन पर Boondh के नोटिफ़िकेशन बंद हैं।</string>
     <string name="push_prefs_turn_on">चालू करें</string>
     <string name="push_prefs_failed">सेव नहीं हो पाया। फिर कोशिश करें।</string>
+    <string name="push_a_stay_on">मैं अभी ड्यूटी पर हूँ</string>
 </resources>

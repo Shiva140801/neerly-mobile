@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Driver shift auto-end (D13–D15, V18): the off-duty note. -->
+<resources>
+    <plurals name="drv_shift_auto_ended_idle">
+        <item quantity="one">Your shift ended automatically at %1$s after %2$d hour with no activity. Start again any time.</item>
+        <item quantity="other">Your shift ended automatically at %1$s after %2$d hours with no activity. Start again any time.</item>
+    </plurals>
+    <plurals name="drv_shift_auto_ended_max">
+        <item quantity="one">Your shift ended automatically at %1$s after %2$d hour on duty, the longest allowed. Start again any time.</item>
+        <item quantity="other">Your shift ended automatically at %1$s after %2$d hours on duty, the longest allowed. Start again any time.</item>
+    </plurals>
+</resources>

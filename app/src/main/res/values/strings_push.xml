@@ -252,4 +252,13 @@
     <string name="push_s_d11_b">You can start duty for them from tomorrow.</string>
     <string name="push_s_d12_t">RC book photo is blurry</string>
     <string name="push_s_d12_b">Take it again in daylight so every letter shows.</string>
+    <string name="push_a_stay_on">I\'m still on</string>
+    <string name="push_s_d13_t">Still on duty?</string>
+    <string name="push_s_d13_b">Your shift ends in 15 min — it closes after 3 h with no activity.</string>
+    <string name="push_s_d14_t">Shift ended</string>
+    <string name="push_s_d14_b">Shift ended after 3 h with no activity — start again any time.</string>
+    <string name="push_s_d15_t">14 h on duty</string>
+    <string name="push_s_d15_b">Your shift ends after this drop.</string>
+    <string name="push_s_v18_t">Ravi\'s shift ended</string>
+    <string name="push_s_v18_b">It ended automatically after 3 h with no activity.</string>
 </resources>

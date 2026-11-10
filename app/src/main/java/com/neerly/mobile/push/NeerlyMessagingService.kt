@@ -16,6 +16,7 @@ class NeerlyMessagingService : FirebaseMessagingService() {
 
     @Inject lateinit var router: PushRouter
     @Inject lateinit var registration: PushRegistration
+    @Inject lateinit var duty: DriverDutyState
 
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
@@ -29,6 +30,12 @@ class NeerlyMessagingService : FirebaseMessagingService() {
             // A notification-only message (old server) still shows, as an unknown type.
             ?: msg.notification?.let { n -> mapOf("v" to "1", "title" to n.title.orEmpty(), "body" to n.body.orEmpty()) }
             ?: return
+        // The server closed an idle / too-long shift: the ongoing on-duty card becomes "Shift ended"
+        // right away, and task rings stop (they're gated on duty state), even with the app closed.
+        if (data["type"] == PushType.DRIVER_SHIFT_AUTO_ENDED.name) {
+            duty.update(false, null)
+            DriverDutyService.end(this, null)
+        }
         router.handle(data)
     }
 }

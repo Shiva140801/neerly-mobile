@@ -24,8 +24,8 @@ class PushPlannerTest {
     @Test fun everyCatalogRow_hasAChannelInItsOwnRoleGroup() {
         PushType.entries.forEach { t -> assertEquals(t.name, t.role, t.channel.role) }
         assertEquals(18, PushType.entries.count { it.role == PushRole.CUSTOMER })
-        assertEquals(18, PushType.entries.count { it.role == PushRole.SELLER })   // V1–V17 + A1 claim decided
-        assertEquals(11, PushType.entries.count { it.role == PushRole.DRIVER })   // D1–D12 minus D5 (local card)
+        assertEquals(19, PushType.entries.count { it.role == PushRole.SELLER })   // V1–V17 + A1 claim decided + V18 shift ended
+        assertEquals(14, PushType.entries.count { it.role == PushRole.DRIVER })   // D1–D12 minus D5 (local card) + D13–D15 shift auto-end
     }
 
     @Test fun onlySos_bypassesDoNotDisturb() {
