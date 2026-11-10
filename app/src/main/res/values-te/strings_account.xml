@@ -579,4 +579,8 @@
         <item quantity="one">%1$d ఈరోజు తిరిగి ఇవ్వాలి</item>
         <item quantity="other">%1$d ఈరోజు తిరిగి ఇవ్వాలి</item>
     </plurals>
+    <string name="acct_cmp_new_issue">కొత్త సమస్య</string>
+    <string name="acct_cmp_reply_quote">%1$s: “%2$s”</string>
+    <string name="acct_cmp_from_shop">షాప్</string>
+    <string name="acct_cmp_from_boondh">Boondh</string>
 </resources>
