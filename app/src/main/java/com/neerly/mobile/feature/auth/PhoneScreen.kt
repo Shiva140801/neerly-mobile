@@ -97,8 +97,8 @@ fun PhoneScreen(
             )
         }
 
-        // Debug-only crutch for the dev-OTP backend; never ships to a customer.
-        if (BuildConfig.DEBUG) {
+        // Only for the local dev-OTP backend (AUTH_MODE=dev); never with real Firebase sign-in.
+        if (BuildConfig.DEBUG && vm.isDevMode) {
             Spacer(Modifier.height(NeerlySpacing.x3))
             Text(
                 stringResource(R.string.cust_phone_dev_hint),

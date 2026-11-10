@@ -54,13 +54,20 @@ android {
     val releaseApi = (project.findProperty("releaseApiBaseUrl") as String?)
         ?: localProps.getProperty("RELEASE_API_BASE_URL") ?: "https://api.boondh.in/"
 
+    // Sign-in: "firebase" = real Firebase Phone Auth → /auth/exchange; "dev" = the local
+    // backend's /auth/dev OTP (123456). Release always uses Firebase; debug defaults to dev
+    // so emulator testing keeps working — set AUTH_MODE=firebase in local.properties to try it.
+    val debugAuthMode = localProps.getProperty("AUTH_MODE")?.trim()?.takeIf { it == "firebase" || it == "dev" } ?: "dev"
+
     buildTypes {
         debug {
             isMinifyEnabled = false
             buildConfigField("String", "API_BASE_URL", "\"$debugApi\"")
+            buildConfigField("String", "AUTH_MODE", "\"$debugAuthMode\"")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"$releaseApi\"")
+            buildConfigField("String", "AUTH_MODE", "\"firebase\"")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

@@ -25,7 +25,8 @@ import javax.inject.Singleton
 class AuthRepository @Inject constructor(
     private val api: NeerlyApi,
     private val tokens: TokenStore,
-    private val push: dagger.Lazy<com.neerly.mobile.push.PushRegistration>
+    private val push: dagger.Lazy<com.neerly.mobile.push.PushRegistration>,
+    private val phoneAuth: dagger.Lazy<com.neerly.mobile.feature.auth.PhoneAuthGateway>
 ) {
 
     suspend fun exchange(
@@ -73,6 +74,8 @@ class AuthRepository @Inject constructor(
         push.get().unregister()
         val refresh = tokens.refreshToken
         tokens.clear()
+        // The Firebase session too, or the next sign-in on this phone could reuse it.
+        runCatching { phoneAuth.get().signOut() }
         if (!refresh.isNullOrBlank()) {
             runCatching { api.logout(LogoutRequest(refresh)) }
         }

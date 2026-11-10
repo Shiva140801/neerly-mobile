@@ -117,4 +117,10 @@
     <string name="core_offline_works_call">ड्राइवर या दुकान को कॉल करना</string>
     <string name="core_offline_works_jars">आपके जार की सूची</string>
     <string name="core_offline_needs_map">लाइव मैप</string>
+    <string name="core_auth_err_wrong_code">यह कोड सही नहीं है। SMS देखकर फिर से कोशिश करें।</string>
+    <string name="core_auth_err_too_many">इस फ़ोन से बहुत बार कोशिश हुई है। थोड़ी देर रुककर फिर कोशिश करें।</string>
+    <string name="core_auth_err_quota">अभी कोड नहीं भेज पा रहे हैं। थोड़ी देर बाद फिर कोशिश करें।</string>
+    <string name="core_auth_err_network">इंटरनेट नहीं मिल रहा। कनेक्शन देखकर फिर कोशिश करें।</string>
+    <string name="core_auth_err_expired">इस कोड की समय-सीमा खत्म हो गई है। नया कोड पाने के लिए “कोड दोबारा भेजें” दबाएँ।</string>
+    <string name="core_auth_err_unavailable">अभी साइन इन उपलब्ध नहीं है। थोड़ी देर बाद फिर कोशिश करें।</string>
 </resources>

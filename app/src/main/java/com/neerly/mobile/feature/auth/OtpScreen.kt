@@ -24,9 +24,9 @@ import com.neerly.mobile.core.design.NeerlyRadius
 import com.neerly.mobile.core.design.NeerlySpacing
 
 /**
- * S-CUST-REG-03 — OTP entry. Posts to /auth/dev/verify-otp via the AuthViewModel.
- * On success the access+refresh tokens are persisted in TokenStore and we
- * advance via [onVerified]. Default OTP `123456` always works in dev.
+ * S-CUST-REG-03 — OTP entry. Checks the code through AuthViewModel (Firebase Phone Auth →
+ * /auth/exchange, or the dev OTP locally). On success the access+refresh tokens are in
+ * TokenStore and we advance via [onVerified].
  */
 @Composable
 fun OtpScreen(
@@ -39,7 +39,8 @@ fun OtpScreen(
 ) {
     var code by remember { mutableStateOf("") }
     val state by vm.state.collectAsState()
-    LaunchedEffect(Unit) { vm.otpScreenShown() }
+    // With Firebase the number may be proven without a typed code; that signs in too.
+    LaunchedEffect(Unit) { vm.otpScreenShown(role, onVerified) }
 
     // Re-evaluate the resend gate every second while it's closed.
     var gate by remember { mutableStateOf(vm.resendGate()) }
@@ -140,8 +141,8 @@ fun OtpScreen(
             Text(it, fontSize = 13.sp, color = NeerlyColors.Ok, modifier = Modifier.align(Alignment.CenterHorizontally))
         }
 
-        // Debug-only crutch for the dev-OTP backend; never ships to a customer.
-        if (BuildConfig.DEBUG) {
+        // Only for the local dev-OTP backend (AUTH_MODE=dev); never with real Firebase sign-in.
+        if (BuildConfig.DEBUG && vm.isDevMode) {
             Spacer(Modifier.height(NeerlySpacing.x3))
             Text(
                 stringResource(R.string.cust_otp_dev_hint),

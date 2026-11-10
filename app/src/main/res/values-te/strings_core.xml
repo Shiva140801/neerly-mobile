@@ -117,4 +117,10 @@
     <string name="core_offline_works_call">డ్రైవర్ లేదా షాప్‌కు కాల్ చేయడం</string>
     <string name="core_offline_works_jars">మీ జార్ల జాబితా</string>
     <string name="core_offline_needs_map">లైవ్ మ్యాప్</string>
+    <string name="core_auth_err_wrong_code">ఆ కోడ్ సరైనది కాదు. SMS చూసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="core_auth_err_too_many">ఈ ఫోన్ నుండి చాలా సార్లు ప్రయత్నించారు. కొంత సేపు ఆగి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="core_auth_err_quota">ఇప్పుడు కోడ్‌లు పంపలేకపోతున్నాం. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.</string>
+    <string name="core_auth_err_network">ఇంటర్నెట్ అందడం లేదు. కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="core_auth_err_expired">ఈ కోడ్ గడువు ముగిసింది. కొత్త కోడ్ కోసం “కోడ్ మళ్లీ పంపండి” నొక్కండి.</string>
+    <string name="core_auth_err_unavailable">ఇప్పుడు సైన్ ఇన్ అందుబాటులో లేదు. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.</string>
 </resources>

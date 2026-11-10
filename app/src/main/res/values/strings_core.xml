@@ -119,4 +119,10 @@
     <string name="core_offline_works_call">Calling the driver or the shop</string>
     <string name="core_offline_works_jars">Your jars list</string>
     <string name="core_offline_needs_map">The live map</string>
+    <string name="core_auth_err_wrong_code">That code isn\'t right. Check the SMS and try again.</string>
+    <string name="core_auth_err_too_many">Too many tries from this phone. Please wait a while and try again.</string>
+    <string name="core_auth_err_quota">We can\'t send codes right now. Please try again in a little while.</string>
+    <string name="core_auth_err_network">Can\'t reach the internet. Check your connection and try again.</string>
+    <string name="core_auth_err_expired">This code has expired. Tap “Resend code” to get a new one.</string>
+    <string name="core_auth_err_unavailable">Sign-in isn\'t available right now. Please try again in a moment.</string>
 </resources>

@@ -30,7 +30,7 @@ class OtpResendTest {
     @Before fun setUp() { Dispatchers.setMain(dispatcher) }
     @After fun tearDown() { Dispatchers.resetMain() }
 
-    private fun vm() = AuthViewModel(repo, TestStrings, sender).also { it.now = { clock } }
+    private fun vm() = AuthViewModel(repo, TestStrings, sender, AuthMode.DEV, FakePhoneAuth()).also { it.now = { clock } }
 
     @Test fun policy_countsDownFromTheLastSend_roundingUp() {
         val p = ResendPolicy()
