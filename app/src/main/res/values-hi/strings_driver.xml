@@ -439,4 +439,9 @@
     <string name="drv_shop_short">कम</string>
     <string name="drv_x_of_y_drops">%2$d में से %1$d</string>
     <string name="drv_jars_in_auto">गाड़ी में जार</string>
+    <string name="drv_you_earn_label">आपकी कमाई</string>
+    <string name="drv_pick_up_km">पिकअप · %1$s किमी</string>
+    <string name="drv_cash_order">नकद ऑर्डर</string>
+    <string name="drv_no_cash">नकद नहीं लेना है</string>
+    <string name="drv_skip_this">इसे छोड़ें</string>
 </resources>

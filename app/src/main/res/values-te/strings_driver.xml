@@ -439,4 +439,9 @@
     <string name="drv_shop_short">తక్కువ</string>
     <string name="drv_x_of_y_drops">%2$d లో %1$d</string>
     <string name="drv_jars_in_auto">వాహనంలో జార్లు</string>
+    <string name="drv_you_earn_label">మీకు వచ్చేది</string>
+    <string name="drv_pick_up_km">పికప్ · %1$s కి.మీ</string>
+    <string name="drv_cash_order">నగదు ఆర్డర్</string>
+    <string name="drv_no_cash">నగదు తీసుకోవాల్సిన అవసరం లేదు</string>
+    <string name="drv_skip_this">దీన్ని వదిలేయండి</string>
 </resources>

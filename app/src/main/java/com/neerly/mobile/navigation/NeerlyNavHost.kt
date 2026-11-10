@@ -818,6 +818,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onLogout = { session.logout { nav.navigate(Routes.Welcome) { popUpTo(nav.graph.id) { inclusive = true } } } },
                 // The hold on the SOS button is the confirmation — the SOS screen sends straight away.
                 onSos = { nav.navigate(Routes.driverSos(send = true)) },
+                onOpenSos = { nav.navigate(Routes.driverSos(send = false)) },
                 onVehicle = { nav.navigate(Routes.DriverVehicle) },
                 onDocuments = { nav.navigate(Routes.DriverDocuments) },
                 onPickups = { nav.navigate(Routes.DriverPickups) }

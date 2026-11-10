@@ -29,7 +29,7 @@ class TokenAuthenticatorTest {
         every { tokens.accessToken } answers { access }
         every { tokens.refreshToken } returns "refresh-1"
         every { tokens.deviceId() } returns "dev"
-        every { tokens.updateAfterRefresh(any(), any(), any(), any()) } answers { access = firstArg() }
+        every { tokens.updateAfterRefresh(any(), any(), any(), any(), any()) } answers { access = firstArg() }
     }
 
     private fun unauthorized(sentWith: String) = Response.Builder()
@@ -52,6 +52,18 @@ class TokenAuthenticatorTest {
         coVerify(exactly = 1) { api.refresh(any()) }
         retried.forEach { assertEquals("Bearer new-access", it?.header("Authorization")) }
         verify(exactly = 0) { tokens.clear() }
+    }
+
+    @Test
+    fun refreshComesBackInAnotherRole_switchesBackAndRetriesAsDriver() {
+        every { tokens.activeRole } returns "DRIVER"
+        every { tokens.grantedRoles } returns listOf("CUSTOMER", "DRIVER")
+        coEvery { api.refresh(any()) } returns TokenPair("cust-access", "refresh-2", "2026-01-01T00:00:00Z", "2026-01-08T00:00:00Z", activeRole = "CUSTOMER")
+        coEvery { api.switchRole(any()) } returns com.neerly.mobile.data.dto.SwitchRoleResponse(
+            accessToken = "driver-access", accessExpiresAt = "2026-01-01T00:15:00Z", activeRole = "DRIVER")
+        val retried = auth.authenticate(null, unauthorized("old-access"))
+        assertEquals("Bearer driver-access", retried?.header("Authorization"))
+        coVerify { api.switchRole(match { it.newRole == "DRIVER" && it.refreshToken == "refresh-2" }) }
     }
 
     @Test

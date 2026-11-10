@@ -448,4 +448,9 @@
     <string name="drv_shop_short">Short</string>
     <string name="drv_x_of_y_drops">%1$d of %2$d</string>
     <string name="drv_jars_in_auto">jars in the auto</string>
+    <string name="drv_you_earn_label">You earn</string>
+    <string name="drv_pick_up_km">Pick up · %1$s km</string>
+    <string name="drv_cash_order">Cash order</string>
+    <string name="drv_no_cash">No cash to collect</string>
+    <string name="drv_skip_this">Skip this one</string>
 </resources>

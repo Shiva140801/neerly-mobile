@@ -55,12 +55,14 @@ class TokenStore @Inject constructor(
     }
 
     fun updateAfterRefresh(accessToken: String, refreshToken: String,
-                           accessExpiresAt: String, refreshExpiresAt: String) {
+                           accessExpiresAt: String, refreshExpiresAt: String, activeRole: String? = null) {
         prefs.edit().apply {
             putString(KEY_ACCESS, accessToken)
             putString(KEY_REFRESH, refreshToken)
             putString(KEY_ACCESS_EXP, accessExpiresAt)
             putString(KEY_REFRESH_EXP, refreshExpiresAt)
+            // Keep the stored role true to the token, so the role gate knows when to switch.
+            activeRole?.let { putString(KEY_ACTIVE_ROLE, it) }
             apply()
         }
     }

@@ -58,6 +58,7 @@ class TokenAuthenticator @Inject constructor(
         if (refresh.isBlank()) return null
 
         val deviceId = tokens.deviceId()
+        val wanted = tokens.activeRole
         val newAccess = runCatching {
             runBlocking {
                 val pair = apiLazy.get().refresh(RefreshRequest(refreshToken = refresh, deviceId = deviceId))
@@ -65,9 +66,19 @@ class TokenAuthenticator @Inject constructor(
                     accessToken = pair.accessToken,
                     refreshToken = pair.refreshToken,
                     accessExpiresAt = pair.accessExpiresAt,
-                    refreshExpiresAt = pair.refreshExpiresAt
+                    refreshExpiresAt = pair.refreshExpiresAt,
+                    activeRole = pair.activeRole
                 )
-                pair.accessToken
+                // A session from before the server remembered switches comes back in the
+                // sign-in role: switch straight back to the one on screen, or every driver /
+                // shop call 403s ("Your session expired").
+                if (wanted != null && pair.activeRole != null && pair.activeRole != wanted) {
+                    runCatching {
+                        val sw = apiLazy.get().switchRole(com.neerly.mobile.data.dto.SwitchRoleRequest(wanted, pair.refreshToken, deviceId))
+                        tokens.updateAfterSwitch(sw.accessToken, sw.accessExpiresAt, sw.activeRole, sw.grantedRoles ?: tokens.grantedRoles)
+                        sw.accessToken
+                    }.getOrDefault(pair.accessToken)
+                } else pair.accessToken
             }
         }.getOrNull() ?: run {
             // Refresh failed — clear tokens so the UI treats us as logged out.

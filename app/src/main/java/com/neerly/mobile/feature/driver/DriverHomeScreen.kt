@@ -55,6 +55,8 @@ fun DriverHomeScreen(
     onSwitchRole: (() -> Unit)? = null,
     onLogout: () -> Unit = {},
     onSos: () -> Unit = {},
+    /** The red SOS chip only opens the SOS screen; sending there still needs the 3 s hold. */
+    onOpenSos: () -> Unit = {},
     onVehicle: () -> Unit = {},
     onDocuments: () -> Unit = {},
     onPickups: () -> Unit = {},
@@ -106,7 +108,7 @@ fun DriverHomeScreen(
     Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
         Box(Modifier.weight(1f)) {
             when (tab) {
-                DriverTab.Tasks -> TasksTab(state, vm, onSos, onAskLocation = { locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION) })
+                DriverTab.Tasks -> TasksTab(state, vm, onSos, onOpenSos, onAskLocation = { locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION) })
                 DriverTab.Round -> RoundTab(state, onOpen = { tab = DriverTab.Tasks })
                 DriverTab.Money -> MoneyTab(state, onCodReconcile)
                 DriverTab.Me -> DriverMeContent(onDuty = state.isOnDuty, onEndDuty = vm::askEndShift, onVehicle = onVehicle,
@@ -152,7 +154,7 @@ private fun EndDutyDialog(c: EndCheck, s: DriverHomeUiState, vm: DriverHomeViewM
 // Tasks tab — one of the loop's screens at a time.
 
 @Composable
-private fun TasksTab(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit, onAskLocation: () -> Unit) {
+private fun TasksTab(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit, onOpenSos: () -> Unit, onAskLocation: () -> Unit) {
     val job = s.activeAssignment
     when {
         s.loading -> LoadState(true, null, {})
@@ -164,11 +166,11 @@ private fun TasksTab(s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () ->
         s.choosingShop -> ChooseShopScreen(s, vm)
         !s.isOnDuty -> OffDutyScreen(s, vm)
         s.gps != null -> GpsProblemScreen(s.gps, onAskLocation, onSos)
-        s.onBreak -> OnBreakScreen(s, vm, onSos)
-        job != null && s.step == DropStep.LOAD -> PickupScreen(job, s, vm, onSos)
-        job != null && s.step == DropStep.RIDE -> RideScreen(job, s, vm, onSos)
-        job != null && s.step == DropStep.HAND_OVER -> HandOverScreen(job, s, vm, onSos)
-        else -> OnDutyScreen(s, vm, onSos, onAskLocation)
+        s.onBreak -> OnBreakScreen(s, vm, onOpenSos)
+        job != null && s.step == DropStep.LOAD -> PickupScreen(job, s, vm, onOpenSos)
+        job != null && s.step == DropStep.RIDE -> RideScreen(job, s, vm, onOpenSos)
+        job != null && s.step == DropStep.HAND_OVER -> HandOverScreen(job, s, vm, onSos, onOpenSos)
+        else -> OnDutyScreen(s, vm, onOpenSos, onAskLocation)
     }
 }
 
@@ -451,32 +453,56 @@ private fun OfferScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
             delay(1000)
         }
     }
+    val total = maxOf(offer.secondsRemaining, OFFER_WINDOW_SECONDS)
+    val pickupKm = t?.let { c -> s.here?.let { h -> c.pickupLat?.let { la -> c.pickupLng?.let { lo -> kmBetween(h, la to lo) } } } }
+    // DOffer: label + timer pill and a draining bar on top, the pay as the headline, the
+    // route as a joined pick-up → drop card, then one big "Take it" and a quiet "Skip".
     Column(Modifier.fillMaxSize().background(Boondh.Amber).verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(stringResource(R.string.drv_new_task_caps), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, letterSpacing = 1.sp)
         val leftCd = stringResource(R.string.drv_seconds_left_cd, left.toInt())
-        Text("0:%02d".format(left), fontSize = 56.sp, fontFamily = FontFamily.Serif, color = NeerlyColors.Ink900,
-            modifier = Modifier.semantics { contentDescription = leftCd })
-        Text(stringResource(R.string.drv_left_to_take), fontSize = 15.sp, color = NeerlyColors.Ink900)
-        BoondhCard {
-            Text(stringResource(R.string.drv_you_earn, offer.driverFee.rupees()), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-            t?.let {
-                HorizontalDivider(color = NeerlyColors.Ink200)
-                SectionLabel(stringResource(R.string.drv_pick_up))
-                InfoRow(it.vendorName, it.pickupAddress)
-                Text("${pluralStringResource(R.plurals.drv_jars_n, it.jars, it.jars)} · ${it.loadKg.stripTrailingZeros().toPlainString()} kg",
-                    fontSize = 14.sp, color = NeerlyColors.Ink600)
-                SectionLabel(it.dropDistanceKm?.let { d -> stringResource(R.string.drv_drop_km, "%.1f".format(d)) } ?: stringResource(R.string.drv_drop))
-                InfoRow(it.customerFirstName, it.dropAddress)
-                val extras = listOfNotNull(
-                    it.emptiesExpected.takeIf { e -> e > 0 }?.let { e -> pluralStringResource(R.plurals.drv_empties_to_bring, e, e) },
-                    if (it.paymentMethod == "COD") stringResource(R.string.drv_collect_cash, (it.codAmount ?: BigDecimal.ZERO).rupees()) else stringResource(R.string.drv_paid_online))
-                Text(extras.joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink900)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.drv_new_task_caps), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
+                letterSpacing = 1.sp, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.drv_left_to_take), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+            Spacer(Modifier.width(10.dp))
+            Box(Modifier.background(NeerlyColors.Ink900, RoundedCornerShape(24.dp)).padding(horizontal = 16.dp, vertical = 8.dp)
+                .semantics { contentDescription = leftCd }) {
+                Text("0:%02d".format(left), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper)
             }
         }
+        androidx.compose.material3.LinearProgressIndicator(progress = { left.toFloat() / total }, color = NeerlyColors.Ink900,
+            trackColor = NeerlyColors.Ink900.copy(alpha = 0.18f), modifier = Modifier.fillMaxWidth().height(6.dp))
+        Text(stringResource(R.string.drv_you_earn_label), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+        Text(offer.driverFee.rupees(), fontFamily = FontFamily.Serif, fontSize = 64.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        t?.let { c ->
+            Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(20.dp)).padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionLabel(pickupKm?.let { stringResource(R.string.drv_pick_up_km, "%.1f".format(it)) } ?: stringResource(R.string.drv_pick_up))
+                Text(c.vendorName, fontSize = 19.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                Text("${pluralStringResource(R.plurals.drv_jars_n, c.jars, c.jars)} · ${c.loadKg.stripTrailingZeros().toPlainString()} kg",
+                    fontSize = 15.sp, color = NeerlyColors.Ink600)
+                HorizontalDivider(color = NeerlyColors.Ink200)
+                SectionLabel(c.dropDistanceKm?.let { d -> stringResource(R.string.drv_drop_km, "%.1f".format(d)) } ?: stringResource(R.string.drv_drop))
+                Text("${c.customerFirstName} · ${splitAddress(c.dropAddress).first}", fontSize = 19.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                c.emptiesExpected.takeIf { it > 0 }?.let { e -> Text(pluralStringResource(R.plurals.drv_empties_to_bring, e, e), fontSize = 15.sp, color = NeerlyColors.Ink600) }
+                HorizontalDivider(color = NeerlyColors.Ink200)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (c.paymentMethod == "COD") {
+                        Text(stringResource(R.string.drv_cash_order), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.drv_collect_cash, (c.codAmount ?: BigDecimal.ZERO).rupees()), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Warn)
+                    } else {
+                        Text(stringResource(R.string.drv_paid_online), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.drv_no_cash), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok)
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
         PrimaryButton(if (s.offerBusy) stringResource(R.string.drv_taking_it) else stringResource(R.string.drv_take_it), vm::acceptOffer, enabled = !s.offerBusy,
             modifier = BIG, color = NeerlyColors.Ink900, contentColor = NeerlyColors.Paper)
-        SecondaryButton(stringResource(R.string.drv_pass), vm::passOffer, enabled = !s.offerBusy, modifier = BIG, color = NeerlyColors.Ink900)
+        TextButton(onClick = vm::passOffer, enabled = !s.offerBusy, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text(stringResource(R.string.drv_skip_this), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        }
     }
 }
 
@@ -484,9 +510,8 @@ private fun OfferScreen(s: DriverHomeUiState, vm: DriverHomeViewModel) {
 @Composable
 private fun MissedScreen(m: MissedTask, onOk: () -> Unit) {
     BoondhPage(title = stringResource(R.string.drv_missed_title),
-        subtitle = stringResource(R.string.drv_missed_sub, m.fee.rupees(), m.where, m.shop),
+        subtitle = stringResource(R.string.drv_missed_sub, m.fee.rupees(), splitAddress(m.where).first, m.shop),
         footer = { PrimaryButton(stringResource(R.string.drv_missed_ok), onOk, modifier = BIG) }) {
-        item { Text(stringResource(R.string.drv_went_other), fontSize = 15.sp, color = NeerlyColors.Ink600) }
         item { Notice(stringResource(R.string.drv_missed_note), Tone.Info) }
     }
 }
@@ -581,7 +606,7 @@ private fun RideScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHo
 
 /** D06 + D07 — code, empties, door photo, then cash for cash orders. */
 @Composable
-private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit) {
+private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: DriverHomeViewModel, onSos: () -> Unit, onOpenSos: () -> Unit) {
     if (s.codeLocked) { CodeLockedScreen(job, s, vm, onSos); return }
     var shortReason by remember(job.orderId) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -601,7 +626,7 @@ private fun HandOverScreen(job: DriverAssignment, s: DriverHomeUiState, vm: Driv
     val cashTaken = when { !isCash || settlement == "NOT_COLLECTED" -> null; settlement == "PARTIAL" -> partAmount; else -> due }
     DriverStepPage(eyebrow = stringResource(R.string.drv_step3_label),
         eyebrowSub = stringResource(R.string.drv_order_customer, job.orderNumber, job.customerFirstName),
-        title = stringResource(R.string.drv_ask_code_title, job.customerFirstName), onSos = onSos,
+        title = stringResource(R.string.drv_ask_code_title, job.customerFirstName), onSos = onOpenSos,
         footer = {
             s.deliverError?.let { Notice(it, Tone.Bad) }
             PrimaryButton(when { s.delivering -> stringResource(R.string.drv_saving); isCash && settlement == "CASH" -> stringResource(R.string.drv_got_cash_hand, due.rupees())
@@ -942,3 +967,6 @@ internal fun splitAddress(address: String): Pair<String, String?> {
     val take = if (parts[0].length < 8 && parts.size > 2) 2 else 1
     return parts.take(take).joinToString(", ") to parts.drop(take).joinToString(", ").ifBlank { null }
 }
+
+/** A driver offer rings for 45 s (brief rule 2); the bar drains against that. */
+internal const val OFFER_WINDOW_SECONDS = 45L

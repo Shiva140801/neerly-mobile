@@ -52,7 +52,9 @@ data class TokenPair(
     val accessToken: String,
     val refreshToken: String,
     val accessExpiresAt: String,
-    val refreshExpiresAt: String
+    val refreshExpiresAt: String,
+    /** Role the refreshed token carries; when it differs from the screen's, the app switches back. */
+    val activeRole: String? = null
 )
 
 @JsonClass(generateAdapter = true)
