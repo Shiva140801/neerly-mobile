@@ -36,13 +36,11 @@ fun VendorSettingsScreen(
     val s by vm.state.collectAsState()
     OnReturn(vm::load)
     var closeOpen by remember { mutableStateOf(false) }
-    var closeReason by remember { mutableStateOf("") }
-    var closeHours by remember { mutableStateOf(24) }
     val closed = s.status?.isOpen == false
 
     BoondhPage(stringResource(R.string.vend_settings), onBack = onBack) {
         if (closed) item {
-            Notice(listOfNotNull(s.status?.pausedUntil?.let { stringResource(R.string.vend_closed_orders_until, shortDay(it)) }
+            Notice(listOfNotNull(s.status?.pausedUntil?.let { stringResource(R.string.vend_closed_orders_until, com.neerly.mobile.feature.vendor.dashboard.pauseEndLabel(it)) }
                 ?: stringResource(R.string.vend_closed_orders), s.status?.pausedReason).joinToString(" · "), Tone.Warn)
         }
         s.error?.let { item { Notice(it, Tone.Bad) } }
@@ -103,26 +101,7 @@ fun VendorSettingsScreen(
     }
 
     if (closeOpen) {
-        AlertDialog(
-            onDismissRequest = { closeOpen = false },
-            title = { Text(stringResource(R.string.vend_close_q)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(stringResource(R.string.vend_close_body), fontSize = 14.sp)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(2 to R.string.vend_2_hours, 24 to R.string.vend_ep_today, 72 to R.string.vend_3_days).forEach { (h, l) ->
-                            FilterChip(selected = closeHours == h, onClick = { closeHours = h }, label = { Text(stringResource(l)) },
-                                modifier = Modifier.heightIn(min = 44.dp))
-                        }
-                    }
-                    OutlinedTextField(value = closeReason, onValueChange = { closeReason = it.take(200) },
-                        label = { Text(stringResource(R.string.vend_reason_customers_see)) }, singleLine = true)
-                }
-            },
-            confirmButton = { TextButton(onClick = {
-                vm.emergencyClose(closeHours, closeReason.trim().ifBlank { null }); closeOpen = false; closeReason = ""
-            }) { Text(stringResource(R.string.vend_close), color = NeerlyColors.Warn) } },
-            dismissButton = { TextButton(onClick = { closeOpen = false }) { Text(stringResource(R.string.vend_cancel)) } }
-        )
+        com.neerly.mobile.feature.vendor.dashboard.PauseSheet(working = s.working, onDismiss = { closeOpen = false },
+            onPause = { choice, reason -> vm.pause(choice, reason); closeOpen = false })
     }
 }

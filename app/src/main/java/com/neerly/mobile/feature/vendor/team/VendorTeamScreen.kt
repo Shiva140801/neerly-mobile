@@ -49,7 +49,14 @@ private fun Drivers(s: VendorTeamUiState, onBack: () -> Unit, vm: VendorTeamView
                 stringResource(R.string.vend_no_drivers_sub)) }
             return@BoondhPage
         }
-        s.members.forEach { d -> item(key = d.membershipId) {
+        // Cash still to count tonight first, then whoever is out, then the busiest — the
+        // driver at the counter shouldn't be under a page of idle drivers.
+        val toCount = s.cash.filter { it.drops > 0 && it.confirmation == null && it.cashExpected.signum() > 0 }
+        if (toCount.isNotEmpty()) item {
+            Notice(pluralStringResource(R.plurals.vend_to_count_tonight, toCount.size, toCount.size,
+                toCount.fold(java.math.BigDecimal.ZERO) { a, c -> a + c.cashExpected }.rupees()), Tone.Warn)
+        }
+        teamOrder(s.members, s.cash).forEach { d -> item(key = d.membershipId) {
             val cash = s.cash.firstOrNull { it.driverId == d.driverId }
             BoondhCard {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -67,7 +74,6 @@ private fun Drivers(s: VendorTeamUiState, onBack: () -> Unit, vm: VendorTeamView
                         else -> Pill(stringResource(R.string.vend_off), Tone.Neutral)
                     }
                 }
-                CallButton(d.phone, color = NeerlyColors.VendorPrimary)
                 InfoRow(pluralStringResource(R.plurals.vend_drops_today_n2, d.dropsToday, d.dropsToday),
                     trailing = if (d.cashHeld.signum() > 0) stringResource(R.string.vend_holding_cash, d.cashHeld.rupees()) else null)
                 if (cash != null && (cash.drops > 0 || cash.confirmation != null)) {
@@ -81,8 +87,12 @@ private fun Drivers(s: VendorTeamUiState, onBack: () -> Unit, vm: VendorTeamView
                     SecondaryButton(if (done == null) stringResource(R.string.vend_tonight_count_with, (d.name ?: stringResource(R.string.vend_driver_lc)).substringBefore(' ')) else stringResource(R.string.vend_count_again),
                         { vm.startCount(d.driverId) })
                 }
-                TextButton(onClick = { confirmRemove = d }, modifier = Modifier.heightIn(min = 44.dp)) {
-                    Text(stringResource(R.string.vend_remove_from_team), color = NeerlyColors.Err) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CallButton(d.phone, color = NeerlyColors.VendorPrimary)
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = { confirmRemove = d }, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.vend_remove_from_team), color = NeerlyColors.Err) }
+                }
             }
         } }
     }
@@ -201,4 +211,12 @@ private fun CashCount(c: CountState, vm: VendorTeamViewModel) {
         }
         c.problem?.let { item { Notice(it, Tone.Bad) } }
     }
+}
+
+/** Drivers with cash to count tonight first, then on a drop / on shift, then by drops today, then name. */
+internal fun teamOrder(members: List<TeamDriver>, cash: List<CashToday>): List<TeamDriver> {
+    val byId = cash.associateBy { it.driverId }
+    fun toCount(d: TeamDriver) = byId[d.driverId]?.let { it.drops > 0 && it.confirmation == null && it.cashExpected.signum() > 0 } == true
+    fun live(d: TeamDriver) = when (d.liveStatus) { "ON_DROP" -> 0; "ON_SHIFT" -> 1; else -> 2 }
+    return members.sortedWith(compareBy<TeamDriver>({ !toCount(it) }, { live(it) }, { -it.dropsToday }, { it.name ?: "" }))
 }

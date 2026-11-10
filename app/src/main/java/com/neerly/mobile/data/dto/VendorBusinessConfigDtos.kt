@@ -33,7 +33,14 @@ data class VendorBusinessStatus(
 )
 
 @JsonClass(generateAdapter = true)
-data class VendorEmergencyCloseRequest(val hours: Int = 24, val reason: String? = null)
+data class VendorEmergencyCloseRequest(
+    val hours: Int? = null,
+    /** Closed for the rest of today — the server reopens at the next opening time. */
+    val restOfToday: Boolean = false,
+    /** ISO instant the shop picked. */
+    val until: String? = null,
+    val reason: String? = null
+)
 
 @JsonClass(generateAdapter = true)
 data class VendorTeamMember(

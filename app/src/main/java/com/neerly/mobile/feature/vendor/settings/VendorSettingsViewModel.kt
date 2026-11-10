@@ -69,6 +69,7 @@ class VendorSettingsViewModel @Inject constructor(
     }
 
     fun emergencyClose(hours: Int, reason: String?) = act { repo.emergencyClose(hours, reason) }
+    fun pause(choice: com.neerly.mobile.feature.vendor.dashboard.PauseChoice, reason: String?) = act { repo.pause(choice, reason) }
     fun reopen() = act { repo.reopen() }
 
     private fun act(call: suspend () -> VendorBusinessStatus) {

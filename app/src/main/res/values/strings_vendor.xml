@@ -1065,4 +1065,21 @@
     <string name="vend_stock_back_itself">Stock went back by itself</string>
     <string name="vend_refunded_customer">Refunded to the customer</string>
     <string name="vend_refunded_customer_sub">back to how they paid</string>
+    <string name="vend_pause_orders">Pause orders</string>
+    <string name="vend_pause_sheet_title">Stop new orders for a while?</string>
+    <string name="vend_pause_sheet_body">Orders you already took, and slots booked for after you\'re back, still go out.</string>
+    <string name="vend_pause_rest_today">Rest of today</string>
+    <string name="vend_pause_pick">Pick date &amp; time</string>
+    <string name="vend_pause_back_at">Back at %1$s</string>
+    <string name="vend_pause_back_opening">Back at tomorrow\'s opening time</string>
+    <string name="vend_pause_longer_holiday">Away longer? Add a holiday in Hours &amp; holidays.</string>
+    <string name="vend_resume_now">Resume now</string>
+    <plurals name="vend_pause_n_hours">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <plurals name="vend_to_count_tonight">
+        <item quantity="one">%1$d driver to count tonight · %2$s</item>
+        <item quantity="other">%1$d drivers to count tonight · %2$s</item>
+    </plurals>
 </resources>

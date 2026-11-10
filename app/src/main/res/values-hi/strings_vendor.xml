@@ -1065,4 +1065,21 @@
     <string name="vend_stock_back_itself">स्टॉक अपने आप वापस चला गया</string>
     <string name="vend_refunded_customer">ग्राहक को वापस किया</string>
     <string name="vend_refunded_customer_sub">जिस तरीके से दिया था उसी में</string>
+    <string name="vend_pause_orders">ऑर्डर रोकें</string>
+    <string name="vend_pause_sheet_title">कुछ देर नए ऑर्डर रोकें?</string>
+    <string name="vend_pause_sheet_body">जो ऑर्डर आप ले चुके हैं, और आपके लौटने के बाद के बुक स्लॉट, पहले की तरह जाएँगे।</string>
+    <string name="vend_pause_rest_today">आज पूरे दिन</string>
+    <string name="vend_pause_pick">तारीख़ और समय चुनें</string>
+    <string name="vend_pause_back_at">%1$s पर वापस</string>
+    <string name="vend_pause_back_opening">कल खुलने के समय पर वापस</string>
+    <string name="vend_pause_longer_holiday">ज़्यादा दिन बाहर? घंटे और छुट्टियाँ में छुट्टी जोड़ें।</string>
+    <string name="vend_resume_now">अभी फिर शुरू करें</string>
+    <plurals name="vend_pause_n_hours">
+        <item quantity="one">%1$d घंटा</item>
+        <item quantity="other">%1$d घंटे</item>
+    </plurals>
+    <plurals name="vend_to_count_tonight">
+        <item quantity="one">आज रात %1$d ड्राइवर का हिसाब बाक़ी · %2$s</item>
+        <item quantity="other">आज रात %1$d ड्राइवरों का हिसाब बाक़ी · %2$s</item>
+    </plurals>
 </resources>

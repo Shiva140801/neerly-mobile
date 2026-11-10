@@ -1,6 +1,8 @@
 package com.neerly.mobile.feature.vendor.dashboard
 
 import com.neerly.mobile.R
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -60,13 +62,16 @@ fun VendorTodayScreen(
 
     val now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"))
     val d = s.dashboard
+    var pauseOpen by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    if (pauseOpen) PauseSheet(working = s.working, onDismiss = { pauseOpen = false },
+        onPause = { choice, reason -> vm.pause(choice, reason); pauseOpen = false })
     BoondhPage(
         title = d?.businessName ?: stringResource(R.string.vend_tab_today),
         subtitle = now.format(DateTimeFormatter.ofPattern("EEE d MMM · h:mm a", androidx.compose.ui.platform.LocalConfiguration.current.locales[0])),
         bottomBar = { VendorTabBar(VendorTab.Today, onSelectTab, ordersBadge = s.pending.size) }
     ) {
         if (d == null) { item { LoadState(s.loading, s.error, { vm.refresh() }) }; return@BoondhPage }
-        item { PausePill(s, vm::togglePause) }
+        item { PausePill(s, onPause = { pauseOpen = true }, onResume = vm::resume) }
         s.error?.let { item { Notice(it, Tone.Bad) } }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -144,10 +149,10 @@ fun VendorTodayScreen(
 }
 
 @Composable
-private fun PausePill(s: VendorTodayUiState, onToggle: () -> Unit) {
+private fun PausePill(s: VendorTodayUiState, onPause: () -> Unit, onResume: () -> Unit) {
     val b = s.business
     val open = b?.isOpen != false
-    val until = b?.pausedUntil?.let { runCatching { istClock(it) }.getOrNull() }
+    val until = b?.pausedUntil?.let { runCatching { pauseEndLabel(it) }.getOrNull() }
     BoondhCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -156,8 +161,8 @@ private fun PausePill(s: VendorTodayUiState, onToggle: () -> Unit) {
                 if (!open) Text(until?.let { stringResource(R.string.vend_paused_body_until, it) } ?: stringResource(R.string.vend_paused_body),
                     fontSize = 13.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(top = 6.dp))
             }
-            TextButton(onClick = onToggle, enabled = !s.working, modifier = Modifier.heightIn(min = 44.dp)) {
-                Text(stringResource(if (open) R.string.vend_pause_hour else R.string.vend_take_orders), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold)
+            TextButton(onClick = if (open) onPause else onResume, enabled = !s.working, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(if (open) R.string.vend_pause_orders else R.string.vend_resume_now), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold)
             }
         }
     }

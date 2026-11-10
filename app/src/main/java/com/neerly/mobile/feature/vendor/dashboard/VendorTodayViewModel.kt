@@ -94,12 +94,17 @@ class VendorTodayViewModel @Inject constructor(
     }
     fun stopPolling() { poller?.cancel(); poller = null }
 
-    /** Pause new orders for an hour (board V08 pill), or take them again. */
-    fun togglePause() {
-        val open = _state.value.business?.isOpen != false
+    /** Stop new orders for the chosen time (board V08 pill → pause sheet). */
+    fun pause(choice: PauseChoice, reason: String?) = business { repo.pause(choice, reason) }
+
+    /** Take orders again now. */
+    fun resume() = business { repo.reopen() }
+
+    private fun business(call: suspend () -> com.neerly.mobile.data.dto.VendorBusinessStatus) {
+        if (_state.value.working) return
         _state.value = _state.value.copy(working = true, error = null)
         viewModelScope.launch {
-            runCatching { if (open) repo.emergencyClose(1, "Paused from Today") else repo.reopen() }
+            runCatching { call() }
                 .onSuccess { _state.value = _state.value.copy(working = false, business = it); refresh(quiet = true) }
                 .onFailure { _state.value = _state.value.copy(working = false,
                     error = it.userMessage(context = "pause orders", fallback = strings.get(R.string.vend_err_change))) }

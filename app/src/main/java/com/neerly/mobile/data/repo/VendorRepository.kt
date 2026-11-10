@@ -58,6 +58,12 @@ class VendorRepository @Inject constructor(private val api: NeerlyApi) {
 
     suspend fun emergencyClose(hours: Int, reason: String?): VendorBusinessStatus =
         api.vendorEmergencyClose(VendorEmergencyCloseRequest(hours = hours, reason = reason))
+    suspend fun pause(choice: com.neerly.mobile.feature.vendor.dashboard.PauseChoice, reason: String?): VendorBusinessStatus =
+        api.vendorEmergencyClose(when (choice) {
+            is com.neerly.mobile.feature.vendor.dashboard.PauseChoice.Hours -> VendorEmergencyCloseRequest(hours = choice.hours, reason = reason)
+            com.neerly.mobile.feature.vendor.dashboard.PauseChoice.RestOfToday -> VendorEmergencyCloseRequest(restOfToday = true, reason = reason)
+            is com.neerly.mobile.feature.vendor.dashboard.PauseChoice.Until -> VendorEmergencyCloseRequest(until = choice.at.toString(), reason = reason)
+        })
     suspend fun reopen(): VendorBusinessStatus = api.vendorReopen()
     suspend fun businessStatus(): VendorBusinessStatus = api.vendorBusinessStatus()
 

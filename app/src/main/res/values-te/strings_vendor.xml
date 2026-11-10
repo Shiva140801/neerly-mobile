@@ -1065,4 +1065,21 @@
     <string name="vend_stock_back_itself">స్టాక్ దానంతట అదే తిరిగి చేరింది</string>
     <string name="vend_refunded_customer">కస్టమర్‌కు తిరిగి చెల్లించారు</string>
     <string name="vend_refunded_customer_sub">వారు చెల్లించిన విధానానికే</string>
+    <string name="vend_pause_orders">ఆర్డర్లు ఆపండి</string>
+    <string name="vend_pause_sheet_title">కొంతసేపు కొత్త ఆర్డర్లు ఆపాలా?</string>
+    <string name="vend_pause_sheet_body">ఇప్పటికే తీసుకున్న ఆర్డర్లు, మీరు తిరిగి వచ్చాక ఉన్న బుక్ చేసిన స్లాట్‌లు యథావిధిగా వెళ్తాయి.</string>
+    <string name="vend_pause_rest_today">ఈ రోజంతా</string>
+    <string name="vend_pause_pick">తేదీ, సమయం ఎంచుకోండి</string>
+    <string name="vend_pause_back_at">%1$s కి తిరిగి</string>
+    <string name="vend_pause_back_opening">రేపు తెరిచే సమయానికి తిరిగి</string>
+    <string name="vend_pause_longer_holiday">ఎక్కువ రోజులు దూరంగా ఉంటారా? గంటలు, సెలవుల్లో సెలవు జోడించండి.</string>
+    <string name="vend_resume_now">ఇప్పుడే మళ్లీ ప్రారంభించండి</string>
+    <plurals name="vend_pause_n_hours">
+        <item quantity="one">%1$d గంట</item>
+        <item quantity="other">%1$d గంటలు</item>
+    </plurals>
+    <plurals name="vend_to_count_tonight">
+        <item quantity="one">ఈ రాత్రి లెక్కించాల్సిన డ్రైవర్ %1$d · %2$s</item>
+        <item quantity="other">ఈ రాత్రి లెక్కించాల్సిన డ్రైవర్లు %1$d · %2$s</item>
+    </plurals>
 </resources>

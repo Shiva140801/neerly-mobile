@@ -87,13 +87,18 @@ class VendorTodayViewModelTest {
     }
 
     @Test
-    fun togglePause_whenOpen_pausesForOneHour() = runTest(dispatcher) {
+    fun pause_sendsTheChosenLength_andResumeReopens() = runTest(dispatcher) {
         stub(emptyList())
-        coEvery { repo.emergencyClose(1, any()) } returns VendorBusinessStatus(false, "2026-11-07T10:00:00Z", "busy")
+        val five = com.neerly.mobile.feature.vendor.dashboard.PauseChoice.Hours(5)
+        coEvery { repo.pause(five, "stock") } returns VendorBusinessStatus(false, "2026-11-07T15:00:00Z", "stock")
+        coEvery { repo.pause(com.neerly.mobile.feature.vendor.dashboard.PauseChoice.RestOfToday, null) } returns
+            VendorBusinessStatus(false, "2026-11-08T00:30:00Z", null)
+        coEvery { repo.reopen() } returns VendorBusinessStatus(true, null, null)
         val vm = VendorTodayViewModel(repo, ops, alerts, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
-        vm.togglePause()
-        advanceUntilIdle()
-        coVerify { repo.emergencyClose(1, any()) }
+        vm.pause(five, "stock"); advanceUntilIdle()
+        vm.pause(com.neerly.mobile.feature.vendor.dashboard.PauseChoice.RestOfToday, null); advanceUntilIdle()
+        vm.resume(); advanceUntilIdle()
+        coVerify { repo.pause(five, "stock"); repo.pause(com.neerly.mobile.feature.vendor.dashboard.PauseChoice.RestOfToday, null); repo.reopen() }
     }
 }
