@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -58,12 +59,12 @@ fun OrderHistoryScreen(
             item { SectionLabel(stringResource(R.string.cust_oh_earlier)) }
             items(earlier, key = { it.id }) { o ->
                 // Board Orders: hairline rows; filled ink "Reorder", outlined pills beside it.
-                Column(Modifier.fillMaxWidth().clickable { onOpen(o.id) }.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.fillMaxWidth().clickable { onOpen(o.id) }.padding(vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(verticalAlignment = Alignment.Top) {
                         Column(Modifier.weight(1f)) {
                             Text(o.vendorName ?: stringResource(R.string.cust_oh_order_no, o.orderNumber), fontSize = 17.sp, fontWeight = FontWeight.Bold,
                                 color = if (o.status in ENDED_UNDELIVERED) NeerlyColors.Ink600 else NeerlyColors.Ink900)
-                            Text(listOf(shortDay(o.placedAt), itemsLine(o)).filter { it.isNotBlank() }.joinToString(" · "),
+                            Text(listOf(shortDay(o.placedAt), itemsLine(o), o.orderNumber.substringAfterLast('-')).filter { it.isNotBlank() }.joinToString(" · "),
                                 fontSize = 14.sp, lineHeight = 20.sp, color = NeerlyColors.Ink600)
                         }
                         // A cancelled or failed order wasn't paid for (or was refunded): strike the amount.
@@ -71,15 +72,13 @@ fun OrderHistoryScreen(
                             color = if (o.status in ENDED_UNDELIVERED) NeerlyColors.Ink500 else NeerlyColors.Ink900,
                             textDecoration = if (o.status in ENDED_UNDELIVERED) androidx.compose.ui.text.style.TextDecoration.LineThrough else null)
                     }
-                    // Not delivered: say so with a status pill and what happened to the money,
-                    // instead of a word tacked on the end of the line.
-                    if (o.status in ENDED_UNDELIVERED) Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        com.neerly.mobile.core.design.Pill(endLine(o),
-                            if (o.status == "CANCELLED") com.neerly.mobile.core.design.Tone.Bad else com.neerly.mobile.core.design.Tone.Warn)
-                        Text(if (o.paymentMethod == "COD") stringResource(R.string.cust_oh_nothing_charged) else stringResource(R.string.cust_oh_refund_line),
-                            fontSize = 13.sp, color = NeerlyColors.Ink600)
-                    }
+                    // Board Orders: a row's state is a coloured line under the meta ("Help request
+                    // open · leaking jar" in amber) — cancelled in red, not delivered in amber.
+                    if (o.status in ENDED_UNDELIVERED) Text(
+                        listOf(endLine(o), if (o.paymentMethod == "COD") stringResource(R.string.cust_oh_nothing_charged) else stringResource(R.string.cust_oh_refund_line))
+                            .joinToString(" · "),
+                        fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                        color = if (o.status == "CANCELLED") NeerlyColors.Err else NeerlyColors.Warn)
                     if (o.status == "DELIVERED") Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Pillbutton(stringResource(R.string.cust_oh_reorder), filled = true) { if (vm.reorder(o)) onCart() }
                         Pillbutton(stringResource(R.string.cust_oh_rate), filled = false) { onRate(o.id, o.vendorName ?: o.orderNumber) }
@@ -95,10 +94,12 @@ fun OrderHistoryScreen(
 @Composable
 private fun Pillbutton(text: String, filled: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(NeerlyRadius.pill)
-    if (filled) Button(onClick = onClick, shape = shape, modifier = Modifier.heightIn(min = 48.dp),
+    // Board Orders: compact pills — 48 dp tall for touch, but only ~16 dp of side padding.
+    val pad = PaddingValues(horizontal = 18.dp)
+    if (filled) Button(onClick = onClick, shape = shape, modifier = Modifier.heightIn(min = 48.dp), contentPadding = pad,
         colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.Ink900, contentColor = NeerlyColors.Paper)) {
         Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1) }
-    else OutlinedButton(onClick = onClick, shape = shape, modifier = Modifier.heightIn(min = 48.dp),
+    else OutlinedButton(onClick = onClick, shape = shape, modifier = Modifier.heightIn(min = 48.dp), contentPadding = pad,
         border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink300)) {
         Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900, maxLines = 1) }
 }
@@ -125,9 +126,18 @@ private fun ActiveCard(o: OrderResponse, code: String?, onTrack: () -> Unit) {
         HorizontalDivider(color = Boondh.MutedOnNavy.copy(alpha = 0.25f), modifier = Modifier.padding(vertical = 6.dp))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 32.dp)) {
             Box(Modifier.weight(1f)) {
-                code?.let { Text(stringResource(R.string.cust_oh_code, it.toCharArray().joinToString(" ")), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper) }
+                code?.let { c ->
+                    val label = stringResource(R.string.cust_oh_code, "\u0000")
+                    Text(androidx.compose.ui.text.buildAnnotatedString {
+                        append(label.substringBefore("\u0000"))
+                        pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold)); append(c.toCharArray().joinToString(" ")); pop()
+                        append(label.substringAfter("\u0000"))
+                    }, fontSize = 16.sp, color = NeerlyColors.Paper)
+                }
             }
-            Text(stringResource(R.string.cust_oh_track) + " ›", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper)
+            Text(stringResource(R.string.cust_oh_track), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper)
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.KeyboardArrowRight, contentDescription = null,
+                tint = NeerlyColors.Paper, modifier = Modifier.size(22.dp))
         }
     }
 }
