@@ -3,7 +3,25 @@ package com.neerly.mobile.feature.order
 import com.neerly.mobile.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -32,6 +50,20 @@ class OrderPlacedViewModel @Inject constructor(
     val cancelled = MutableStateFlow(false)
     val cancelError = MutableStateFlow<String?>(null)
     fun load(id: String) { if (order.value == null) viewModelScope.launch { order.value = runCatching { api.order(id) }.getOrNull() } }
+
+    /**
+     * Routing can fail moments after the order is placed (no shop serves it, or each one
+     * is excluded). Re-read for a short while so the page never says "on its way" for an
+     * order that already FAILED.
+     */
+    fun watchBriefly(id: String) = viewModelScope.launch {
+        repeat(6) {
+            kotlinx.coroutines.delay(3_000)
+            val o = runCatching { api.order(id) }.getOrNull() ?: return@repeat
+            order.value = o
+            if (o.status != "PLACED" && o.status != "VENDOR_ASSIGNED") return@launch
+        }
+    }
     fun code(id: String) = codes.deliveryCode(id)
 
     /** Free for a cash order until the driver leaves the shop — nothing was paid, nothing to refund. */
@@ -56,8 +88,9 @@ class OrderPlacedViewModel @Inject constructor(
 /** Boards 14 (paid) and 69 (cash) — done, what happens next, what to keep ready. */
 @Composable
 fun OrderPlacedScreen(orderId: String, orderNumber: String, onTrack: () -> Unit, onHome: () -> Unit,
+                      onOtherShops: () -> Unit = onTrack,
                       vm: OrderPlacedViewModel = hiltViewModel()) {
-    LaunchedEffect(orderId) { vm.load(orderId) }
+    LaunchedEffect(orderId) { vm.load(orderId); vm.watchBriefly(orderId) }
     // The moment the customer wants updates: right after placing an order (plan §e), not at install.
     com.neerly.mobile.push.AskNotificationsOnce("customer", true)
     val o by vm.order.collectAsState()
@@ -85,30 +118,100 @@ fun OrderPlacedScreen(orderId: String, orderNumber: String, onTrack: () -> Unit,
                 Text(stringResource(R.string.cust_placed_cancel_keep)) } }
         )
     }
+    if (o?.status == "FAILED") {
+        // Board NoVendor's entry: nobody could take it — say so and offer the other shops.
+        BoondhPage(title = stringResource(R.string.cust_placed_failed_title),
+            subtitle = stringResource(R.string.cust_placed_failed_sub, orderNumber),
+            footer = {
+                PrimaryButton(stringResource(R.string.cust_placed_failed_other), onOtherShops)
+                SecondaryButton(stringResource(R.string.cust_placed_home), onHome)
+            }) {
+            if (o?.paymentMethod != "COD") item { Notice(stringResource(R.string.cust_placed_failed_refund), Tone.Info) }
+        }
+        return
+    }
     val swaps = o?.items?.filter { it.containerMode == "TRANSFER_AND_RETURN" }?.sumOf { it.quantity } ?: 0
-    BoondhPage(
-        title = stringResource(R.string.cust_placed_title),
-        subtitle = stringResource(R.string.cust_placed_subtitle, o?.vendorName ?: stringResource(R.string.cust_the_shop)),
-        footer = {
+    // Board OrderPlaced: a quiet confirmation — drop with a tick, the three facts that
+    // matter (when, which order, what was paid), the jar swap, then Track / Back to home.
+    // The delivery code lives on the tracking screen.
+    Scaffold(containerColor = NeerlyColors.Canvas, bottomBar = {
+        Column(Modifier.fillMaxWidth().background(NeerlyColors.Canvas).navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally) {
             cancelError?.let { Notice(it, Tone.Bad) }
             PrimaryButton(stringResource(R.string.cust_placed_track), onTrack)
-            if (canCancelFree) SecondaryButton(if (cancelling) stringResource(R.string.cust_placed_cancelling) else stringResource(R.string.cust_placed_cancel),
-                { confirmCancel = true }, enabled = !cancelling, color = NeerlyColors.Err)
-            else SecondaryButton(stringResource(R.string.cust_placed_home), onHome)
+            TextButton(onClick = onHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.cust_placed_home), color = NeerlyColors.CustomerPrimary,
+                    fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+            if (canCancelFree) TextButton(onClick = { confirmCancel = true }, enabled = !cancelling,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(if (cancelling) stringResource(R.string.cust_placed_cancelling) else stringResource(R.string.cust_placed_cancel),
+                    color = NeerlyColors.Err, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
-    ) {
-        item { BoondhCard {
-            InfoRow(stringResource(R.string.cust_order), trailing = orderNumber)
-            o?.let { InfoRow(if (cash) stringResource(R.string.cust_pay_at_door) else stringResource(R.string.cust_paid), trailing = it.totalAmount.rupees()) }
-            o?.paymentMethod?.let { InfoRow(stringResource(R.string.cust_how), trailing = when (it) { "COD" -> stringResource(R.string.cust_method_cash); "WALLET" -> stringResource(R.string.cust_method_wallet); "CARD" -> stringResource(R.string.cust_method_card); else -> stringResource(R.string.cust_method_upi) }) }
-        } }
-        vm.code(orderId)?.let { c -> item { BoondhCard {
-            SectionLabel(stringResource(R.string.cust_delivery_code))
-            Text(c.toCharArray().joinToString(" "), fontSize = 32.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-            Text(stringResource(R.string.cust_placed_code_tell), fontSize = 13.sp, color = NeerlyColors.Ink600)
-        } } }
-        if (swaps > 0) item { Notice(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_placed_keep_empties, swaps, swaps), Tone.Info) }
-        if (cash) item { Notice(stringResource(R.string.cust_placed_keep_cash, o!!.totalAmount.rupees()), Tone.Warn) }
-        if (canCancelFree) item { Text(stringResource(R.string.cust_placed_cancel_free_note), fontSize = 13.sp, color = NeerlyColors.Ink600) }
+    }) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Spacer(Modifier.height(24.dp))
+            DropCheck()
+            PageTitle(stringResource(R.string.cust_placed_title), size = 34)
+            Text(stringResource(R.string.cust_placed_subtitle, o?.vendorName ?: stringResource(R.string.cust_the_shop)),
+                fontSize = 16.sp, lineHeight = 23.sp, color = NeerlyColors.Ink600)
+            Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
+                .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(14.dp)).padding(horizontal = 16.dp, vertical = 4.dp)) {
+                FactRow(stringResource(R.string.cust_placed_arriving), stringResource(R.string.cust_cart_now_eta, 20, 30))
+                DashedRule()
+                FactRow(stringResource(R.string.cust_order), orderNumber)
+                o?.let {
+                    DashedRule()
+                    FactRow(if (cash) stringResource(R.string.cust_pay_at_door) else stringResource(R.string.cust_paid),
+                        if (cash) stringResource(R.string.cust_placed_amount_cash, it.totalAmount.rupees())
+                        else stringResource(R.string.cust_placed_amount_online, it.totalAmount.rupees()))
+                }
+            }
+            if (swaps > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("🫙", fontSize = 22.sp, modifier = Modifier.clearAndSetSemantics { })
+                Text(androidx.compose.ui.res.pluralStringResource(R.plurals.cust_placed_keep_empties, swaps, swaps),
+                    fontSize = 15.sp, lineHeight = 21.sp, color = NeerlyColors.Ink900)
+            }
+            if (cash) Text(stringResource(R.string.cust_placed_keep_cash, o!!.totalAmount.rupees()),
+                fontSize = 14.sp, lineHeight = 20.sp, color = NeerlyColors.Ink600)
+        }
+    }
+}
+
+@Composable
+private fun FactRow(label: String, value: String) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, Modifier.weight(1f), fontSize = 15.sp, color = NeerlyColors.Ink600)
+        Text(value, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+    }
+}
+
+@Composable
+private fun DashedRule() {
+    androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(1.dp)) {
+        drawLine(NeerlyColors.Ink200, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 2f,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)))
+    }
+}
+
+/** The Boondh drop in customer indigo with a white tick — the "done" mark on OrderPlaced. */
+@Composable
+private fun DropCheck() {
+    androidx.compose.foundation.Canvas(Modifier.size(width = 64.dp, height = 84.dp).clearAndSetSemantics { }) {
+        val w = size.width; val h = size.height
+        val drop = Path().apply {
+            moveTo(w / 2f, 0f)
+            cubicTo(w * 0.78f, h * 0.30f, w, h * 0.50f, w, h * 0.66f)
+            cubicTo(w, h * 0.86f, w * 0.78f, h, w / 2f, h)
+            cubicTo(w * 0.22f, h, 0f, h * 0.86f, 0f, h * 0.66f)
+            cubicTo(0f, h * 0.50f, w * 0.22f, h * 0.30f, w / 2f, 0f)
+            close()
+        }
+        drawPath(drop, NeerlyColors.CustomerPrimary)
+        val tick = Path().apply { moveTo(w * 0.30f, h * 0.66f); lineTo(w * 0.45f, h * 0.79f); lineTo(w * 0.72f, h * 0.52f) }
+        drawPath(tick, Color.White, style = Stroke(width = w * 0.11f, cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }

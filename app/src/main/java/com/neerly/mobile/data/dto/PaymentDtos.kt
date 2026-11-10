@@ -16,7 +16,10 @@ data class InitiatePaymentResult(
     val razorpayOrderId: String?,   // null for COD
     val amountPaise: Long,
     val keyId: String?,             // Razorpay publishable key for Android SDK
-    val currency: String = "INR"
+    val currency: String = "INR",
+    /** The signed-in payer's own phone/email for Razorpay's prefill. */
+    val prefillContact: String? = null,
+    val prefillEmail: String? = null
 )
 
 @JsonClass(generateAdapter = true)

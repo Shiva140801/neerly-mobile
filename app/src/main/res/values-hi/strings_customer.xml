@@ -699,4 +699,35 @@
         <item quantity="one">हम आपका ऑर्डर %1$d मिनट और रोककर रख रहे हैं।</item>
         <item quantity="other">हम आपका ऑर्डर %1$d मिनट और रोककर रख रहे हैं।</item>
     </plurals>
+    <string name="cust_placed_arriving">पहुँचेगा</string>
+    <string name="cust_placed_amount_cash">%1$s · दरवाज़े पर नकद</string>
+    <string name="cust_placed_amount_online">%1$s · ऑनलाइन चुकाया</string>
+    <string name="cust_home_bell">सूचनाएँ</string>
+    <string name="cust_home_delivering_caps">डिलीवरी पता</string>
+    <string name="cust_home_running_low">पानी खत्म होने वाला है?</string>
+    <string name="cust_home_track">ट्रैक ›</string>
+    <string name="cust_home_sub_strip">%1$s, सब्सक्रिप्शन</string>
+    <string name="cust_home_suppliers_title">आस-पास के सप्लायर</string>
+    <string name="cust_home_usual_caps">आपका रोज़ का</string>
+    <string name="cust_home_usual_on_way">%1$s · आज का रास्ते में है</string>
+    <string name="cust_home_eta_approx">~%1$d मिनट</string>
+    <string name="cust_home_new_tag">नया</string>
+    <string name="cust_home_km">%1$s किमी</string>
+    <string name="cust_home_jar_from_caption">20L शुरू</string>
+    <plurals name="cust_home_bell_unread">
+        <item quantity="one">सूचनाएँ, %1$d अपठित</item>
+        <item quantity="other">सूचनाएँ, %1$d अपठित</item>
+    </plurals>
+    <plurals name="cust_jars_n">
+        <item quantity="one">%1$d जार</item>
+        <item quantity="other">%1$d जार</item>
+    </plurals>
+    <plurals name="cust_home_open_now_n">
+        <item quantity="one">%1$d अभी खुला</item>
+        <item quantity="other">%1$d अभी खुले</item>
+    </plurals>
+    <string name="cust_placed_failed_title">कोई दुकान यह ऑर्डर नहीं ले सकी</string>
+    <string name="cust_placed_failed_sub">%1$s किसी दुकान तक नहीं गया। यही जार पास की किसी दूसरी दुकान पर मिल सकते हैं।</string>
+    <string name="cust_placed_failed_other">दूसरी दुकानें देखें</string>
+    <string name="cust_placed_failed_refund">इस ऑर्डर के लिए कुछ नहीं लिया गया। अगर पैसे कटे हैं, तो वहीं वापस आएँगे जहाँ से चुकाए थे।</string>
 </resources>

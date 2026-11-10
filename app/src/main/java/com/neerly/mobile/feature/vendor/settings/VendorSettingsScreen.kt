@@ -97,7 +97,7 @@ fun VendorSettingsScreen(
             fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600) }
         item { com.neerly.mobile.push.PushLabEntry() }
         onSwitchRole?.let { item { SecondaryButton(stringResource(R.string.vend_switch_role), it) } }
-        item { TextButton(onClick = onLogout, modifier = Modifier.heightIn(min = 44.dp)) { Text(stringResource(R.string.vend_log_out), color = NeerlyColors.Err) } }
+        item { com.neerly.mobile.core.design.LogoutButton(stringResource(R.string.vend_log_out), onConfirmed = onLogout) }
     }
 
     if (closeOpen) {

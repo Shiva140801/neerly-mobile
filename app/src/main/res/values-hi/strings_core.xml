@@ -123,4 +123,12 @@
     <string name="core_auth_err_network">इंटरनेट नहीं मिल रहा। कनेक्शन देखकर फिर कोशिश करें।</string>
     <string name="core_auth_err_expired">इस कोड की समय-सीमा खत्म हो गई है। नया कोड पाने के लिए “कोड दोबारा भेजें” दबाएँ।</string>
     <string name="core_auth_err_unavailable">अभी साइन इन उपलब्ध नहीं है। थोड़ी देर बाद फिर कोशिश करें।</string>
+    <string name="core_logout_title">Boondh से लॉग आउट करें?</string>
+    <string name="core_logout_body">दोबारा साइन इन करने के लिए आपका फ़ोन नंबर और कोड चाहिए होगा।</string>
+    <string name="core_logout_yes">लॉग आउट</string>
+    <string name="core_logout_stay">साइन इन रहें</string>
+    <string name="core_logging_out">लॉग आउट हो रहा है…</string>
+    <string name="core_role_back">वापस</string>
+    <string name="core_role_cancel">अभी नहीं — वापस</string>
+    <string name="core_session_expired">कृपया फिर से साइन इन करें — आपका सेशन खत्म हो गया।</string>
 </resources>

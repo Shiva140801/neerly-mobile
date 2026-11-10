@@ -74,7 +74,9 @@ class GatewayPayments @Inject constructor(
         launcher.launch(
             activity = activity, keyId = keyId, razorpayOrderId = rzpOrderId,
             amountPaise = init.amountPaise, customerName = customerName,
-            customerEmail = null, customerContact = customerContact, description = description
+            // The server's own record of who is paying wins: without it Razorpay offers
+            // whatever number it remembered on this phone — someone else's.
+            customerEmail = init.prefillEmail, customerContact = init.prefillContact ?: customerContact, description = description
         )
         return when (val r = results.stream.first()) {
             is GatewayResult.NotPaid -> PaymentOutcome.Declined(declineCopy(r), r.code, r.description)

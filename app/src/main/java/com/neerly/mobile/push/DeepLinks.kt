@@ -18,7 +18,12 @@ object DeepLinks {
         fun at(i: Int) = p.getOrNull(i)?.ifBlank { null }
         return when (at(0)) {
             // boondh://order/{id}/redeliver — C5 "Pick a new time" opens the re-delivery slot picker.
-            "order" -> at(1)?.let { id -> if (at(2) == "redeliver") "customer/order/$id/redeliver/time" else "customer/order/$id" } ?: "customer/orders"
+            "order" -> at(1)?.let { id -> when (at(2)) {
+                "redeliver" -> "customer/order/$id/redeliver/time"
+                // C6 "Can't take this order" → the same basket at other open shops (board NoVendor).
+                "other-shops" -> "customer/order/$id/other-shops"
+                else -> "customer/order/$id"
+            } } ?: "customer/orders"
             "orders" -> "customer/orders"
             "shops", "home" -> "customer/home"
             "shop" -> at(1)?.let { "customer/vendor/$it" } ?: "customer/home"
@@ -80,7 +85,7 @@ object DeepLinks {
             PushType.CUST_ORDER_ACCEPTED, PushType.CUST_OUT_FOR_DELIVERY, PushType.CUST_AT_GATE,
             PushType.CUST_DELIVERED, PushType.CUST_DELIVERY_FAILED, PushType.CUST_PAYMENT_FAILED ->
                 order?.let { "${SCHEME}order/$it" } ?: "${SCHEME}orders"
-            PushType.CUST_SHOP_DECLINED -> "${SCHEME}shops"
+            PushType.CUST_SHOP_DECLINED -> order?.let { "${SCHEME}order/$it/other-shops" } ?: "${SCHEME}shops"
             PushType.CUST_SUB_TOMORROW, PushType.CUST_SUB_SHOP_CLOSED ->
                 p["subscriptionId"]?.let { "${SCHEME}subs/$it" } ?: "${SCHEME}subs"
             PushType.CUST_WALLET_SHORT, PushType.CUST_WALLET_MOVED -> "${SCHEME}wallet"

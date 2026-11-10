@@ -699,4 +699,35 @@
         <item quantity="one">We\'re holding your order for %1$d more minute.</item>
         <item quantity="other">We\'re holding your order for %1$d more minutes.</item>
     </plurals>
+    <string name="cust_placed_arriving">Arriving</string>
+    <string name="cust_placed_amount_cash">%1$s · cash at the door</string>
+    <string name="cust_placed_amount_online">%1$s · paid online</string>
+    <string name="cust_home_bell">Notifications</string>
+    <string name="cust_home_delivering_caps">Delivering to</string>
+    <string name="cust_home_running_low">Running low already?</string>
+    <string name="cust_home_track">Track ›</string>
+    <string name="cust_home_sub_strip">%1$s, subscription</string>
+    <string name="cust_home_suppliers_title">Suppliers near you</string>
+    <string name="cust_home_usual_caps">Your usual</string>
+    <string name="cust_home_usual_on_way">%1$s · today\'s is on its way</string>
+    <string name="cust_home_eta_approx">~%1$d min</string>
+    <string name="cust_home_new_tag">NEW</string>
+    <string name="cust_home_km">%1$s km</string>
+    <string name="cust_home_jar_from_caption">20L from</string>
+    <plurals name="cust_home_bell_unread">
+        <item quantity="one">Notifications, %1$d unread</item>
+        <item quantity="other">Notifications, %1$d unread</item>
+    </plurals>
+    <plurals name="cust_jars_n">
+        <item quantity="one">%1$d jar</item>
+        <item quantity="other">%1$d jars</item>
+    </plurals>
+    <plurals name="cust_home_open_now_n">
+        <item quantity="one">%1$d open now</item>
+        <item quantity="other">%1$d open now</item>
+    </plurals>
+    <string name="cust_placed_failed_title">No shop could take this order</string>
+    <string name="cust_placed_failed_sub">%1$s didn\'t go to a shop. The same jars may be available from another one nearby.</string>
+    <string name="cust_placed_failed_other">See other shops</string>
+    <string name="cust_placed_failed_refund">Nothing was charged for this order. If money left your account, it comes back to where you paid from.</string>
 </resources>

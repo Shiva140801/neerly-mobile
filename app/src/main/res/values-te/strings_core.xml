@@ -123,4 +123,12 @@
     <string name="core_auth_err_network">ఇంటర్నెట్ అందడం లేదు. కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.</string>
     <string name="core_auth_err_expired">ఈ కోడ్ గడువు ముగిసింది. కొత్త కోడ్ కోసం “కోడ్ మళ్లీ పంపండి” నొక్కండి.</string>
     <string name="core_auth_err_unavailable">ఇప్పుడు సైన్ ఇన్ అందుబాటులో లేదు. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.</string>
+    <string name="core_logout_title">Boondh నుండి లాగ్ అవుట్ అవ్వాలా?</string>
+    <string name="core_logout_body">మళ్లీ సైన్ ఇన్ చేయడానికి మీ ఫోన్ నంబర్, కోడ్ కావాలి.</string>
+    <string name="core_logout_yes">లాగ్ అవుట్</string>
+    <string name="core_logout_stay">సైన్ ఇన్‌లోనే ఉండండి</string>
+    <string name="core_logging_out">లాగ్ అవుట్ అవుతోంది…</string>
+    <string name="core_role_back">వెనక్కి</string>
+    <string name="core_role_cancel">ఇప్పుడు కాదు — వెనక్కి</string>
+    <string name="core_session_expired">దయచేసి మళ్లీ సైన్ ఇన్ అవ్వండి — మీ సెషన్ ముగిసింది.</string>
 </resources>

@@ -28,6 +28,10 @@ class DebugPushReceiver : BroadcastReceiver() {
         }
         val map = PushSamples.payload(context, type, intent.getStringExtra("orderId")).toMutableMap()
         intent.getStringExtra("op")?.let { map["op"] = it }
+        // Real ids from the caller replace the sample's placeholders, so a tap opens a real record.
+        listOf("subscriptionId", "complaintId", "refundId", "vendorId", "claimId").forEach { k ->
+            intent.getStringExtra(k)?.let { map[k] = it }
+        }
         val decision = router.handle(map, forceBackground = intent.getBooleanExtra("bg", false))
         Timber.i("DEBUG_PUSH %s → %s", type, decision)
     }

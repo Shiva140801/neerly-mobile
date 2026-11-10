@@ -48,9 +48,25 @@ fun DepositsScreen(
             item { LoadState(false, null, vm::refresh, stringResource(R.string.acct_dep_empty),
                 stringResource(R.string.acct_dep_empty_body)) }
         } else {
-            item { BoondhCard { InfoRow(stringResource(R.string.acct_dep_held), state.held.sumOf { it.containerCount }.let { pluralStringResource(R.plurals.acct_dep_jars, it, it) }, state.heldTotal.rupees()) } }
-            items(state.held.size, key = { state.held[it].id }) { i ->
-                val d = state.held[i]
+            // Board Jars: the money held, big, with one jar glyph per jar on a shelf.
+            item {
+                BoondhCard {
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(stringResource(R.string.acct_dep_held), Modifier.weight(1f), fontSize = 15.sp, color = NeerlyColors.Ink600)
+                        Text(state.heldTotal.rupees(), fontSize = 34.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, color = NeerlyColors.Ink900)
+                    }
+                    val n = state.held.sumOf { it.containerCount }
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp, androidx.compose.ui.Alignment.CenterHorizontally)) {
+                        repeat(n.coerceAtMost(6)) { com.neerly.mobile.core.design.JarGlyph(Modifier.size(width = 40.dp, height = 56.dp), body = NeerlyColors.Paper, water = NeerlyColors.Water100, outline = NeerlyColors.Ink900) }
+                    }
+                    Text(pluralStringResource(R.plurals.acct_dep_jars, n, n), fontSize = 13.sp, color = NeerlyColors.Ink600,
+                        modifier = Modifier.align(androidx.compose.ui.Alignment.CenterHorizontally))
+                }
+            }
+            // Due first — the board lists "Return today" above "Return by".
+            val held = state.held.sortedBy { it.returnDeadline ?: "~" }
+            items(held.size, key = { held[it].id }) { i ->
+                val d = held[i]
                 JarCard(d, state.requested[d.id]) { returning = d }
             }
             item {
@@ -82,27 +98,45 @@ fun DepositsScreen(
     }
 }
 
+/**
+ * Board Jars row: title, "With you since …", the due tag, and the Return button on the
+ * right — filled when it's due today or late, outlined otherwise. The old card stacked a
+ * full-width button under each jar, so two jars filled the screen (user report).
+ */
 @Composable
 private fun JarCard(d: DepositResponse, requestedMode: String?, onReturn: () -> Unit) {
     val due = d.returnDeadline?.let { runCatching { Instant.parse(it).atZone(IST).toLocalDate() }.getOrNull() }
     val today = LocalDate.now(IST)
     val late = d.status == "LATE" || (due != null && due.isBefore(today))
-    BoondhCard {
-        Text(jarTitle(d), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-        d.heldAt?.let { Text(stringResource(R.string.acct_dep_since, shortDay(it)), fontSize = 13.sp, color = NeerlyColors.Ink600) }
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) {
-                when {
-                    requestedMode != null -> Pill(if (requestedMode == "DROPOFF") stringResource(R.string.acct_dep_pill_dropoff) else stringResource(R.string.acct_dep_pill_pickup), Tone.Info)
-                    late -> Pill(stringResource(R.string.acct_dep_pill_overdue), Tone.Bad)
-                    due == today -> Pill(stringResource(R.string.acct_dep_pill_today, fmt(due)), Tone.Warn)
-                    due != null -> Pill(stringResource(R.string.acct_dep_pill_by, fmt(due)), Tone.Neutral)
-                }
+    val urgent = late || due == today
+    com.neerly.mobile.core.design.ListRow {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(jarTitle(d), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            d.heldAt?.let { Text(stringResource(R.string.acct_dep_since, shortDay(it)), fontSize = 14.sp, color = NeerlyColors.Ink600) }
+            when {
+                requestedMode != null -> Pill(if (requestedMode == "DROPOFF") stringResource(R.string.acct_dep_pill_dropoff) else stringResource(R.string.acct_dep_pill_pickup), Tone.Info)
+                late -> Pill(stringResource(R.string.acct_dep_pill_overdue), Tone.Bad)
+                due == today -> Pill(stringResource(R.string.acct_dep_pill_today, fmt(due)), Tone.Warn)
+                due != null -> Pill(stringResource(R.string.acct_dep_pill_by, fmt(due)), Tone.Neutral)
             }
-            Text((d.refundableAmount ?: d.amount).rupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            if (d.lateFeeAccrued.signum() > 0) Text(stringResource(R.string.acct_dep_late_fee, d.lateFeeAccrued.rupees()), fontSize = 13.sp, color = NeerlyColors.Err)
         }
-        if (d.lateFeeAccrued.signum() > 0) Text(stringResource(R.string.acct_dep_late_fee, d.lateFeeAccrued.rupees()), fontSize = 13.sp, color = NeerlyColors.Err)
-        if (requestedMode == null) SecondaryButton(stringResource(R.string.acct_dep_return), onReturn)
+        if (requestedMode == null) {
+            ReturnButton(stringResource(R.string.acct_dep_return), filled = urgent, onClick = onReturn)
+        }
+    }
+}
+
+/** Compact row button (board Jars "Return"): content-width, 52 dp tall. */
+@Composable
+private fun ReturnButton(text: String, filled: Boolean, onClick: () -> Unit) {
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
+    if (filled) androidx.compose.material3.Button(onClick = onClick, shape = shape, modifier = Modifier.heightIn(min = 52.dp).widthIn(min = 112.dp),
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary, contentColor = NeerlyColors.Paper)) {
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    } else androidx.compose.material3.OutlinedButton(onClick = onClick, shape = shape, modifier = Modifier.heightIn(min = 52.dp).widthIn(min = 112.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink300)) {
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900, maxLines = 1)
     }
 }
 
@@ -134,11 +168,16 @@ private fun ReturnSheet(d: DepositResponse, submitting: Boolean, refundWhere: St
             }
         }
         if (mode == "SCHEDULED_PICKUP") {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                days.forEach { dd -> FilterChip(selected = day == dd, onClick = { day = dd }, label = { Text(fmt(dd)) }, modifier = Modifier.heightIn(min = 44.dp)) }
+            // Board JarReturn: equal-width days, then windows two to a row — three windows in
+            // one row ran off the right edge of a phone.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                days.forEach { dd -> SlotChip(fmt(dd), day == dd, { day = dd }, Modifier.weight(1f)) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                windows.forEach { (h, l) -> FilterChip(selected = window == h, onClick = { window = h }, label = { Text(l, fontSize = 13.sp) }, modifier = Modifier.heightIn(min = 44.dp)) }
+            windows.chunked(2).forEach { pair ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    pair.forEach { (h, l) -> SlotChip(l, window == h, { window = h }, Modifier.weight(1f)) }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
+                }
             }
             if (!windowOk) Notice(stringResource(R.string.acct_dep_window_started), Tone.Warn)
         }
@@ -153,6 +192,14 @@ private fun ReturnSheet(d: DepositResponse, submitting: Boolean, refundWhere: St
             enabled = !submitting && (mode == "DROPOFF" || windowOk)
         )
     }
+}
+
+/** A full-width choice chip: label centred, at least 48 dp tall, one line. */
+@Composable
+private fun SlotChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    FilterChip(selected = selected, onClick = onClick, modifier = modifier.heightIn(min = 48.dp),
+        label = { Text(label, fontSize = 14.sp, maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()) })
 }
 
 @Composable

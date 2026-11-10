@@ -19,7 +19,9 @@ data class ProfileUiState(
     val stats: com.neerly.mobile.data.dto.ProfileStats? = null,
     val wallet: java.math.BigDecimal? = null,
     val error: String? = null,
-    val grantedRoles: List<String> = emptyList()
+    val grantedRoles: List<String> = emptyList(),
+    /** "Home, Parents' place, Work" — the row value on board Profile. */
+    val addressLabels: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -40,7 +42,8 @@ class ProfileViewModel @Inject constructor(
             runCatching { repo.me() }
                 .onSuccess { _state.value = _state.value.copy(loading = false, user = it, grantedRoles = auth.getGrantedRoles(),
                     stats = runCatching { api.profileStats() }.getOrNull(),
-                    wallet = runCatching { repo.wallet().availableAmount }.getOrNull()) }
+                    wallet = runCatching { repo.wallet().availableAmount }.getOrNull(),
+                    addressLabels = runCatching { repo.addresses() }.getOrNull().orEmpty().map { it.label }) }
                 .onFailure { _state.value = _state.value.copy(loading = false, error = it.message) }
         }
     }

@@ -92,11 +92,19 @@ private fun Detail(
             Notice(stringResource(R.string.acct_sub_ending_note, shortDay(s.finalDeliveryDate)), Tone.Info)
         }
         state.error?.let { item { Notice(it, Tone.Bad) } }
+        // Board SubscriptionDetail: three facts side by side, hairline-divided.
         item {
-            BoondhCard {
-                InfoRow(stringResource(R.string.acct_sub_row_next), trailing = if (s.status == "ACTIVE") s.nextDeliveryDate?.let(::shortDay) ?: "—" else "—")
-                s.eachTime()?.let { InfoRow(stringResource(R.string.acct_sub_row_each), trailing = it.rupees()) }
-                InfoRow(stringResource(R.string.acct_sub_row_pays), if (s.paymentMethod == "WALLET" && cfg.upiAutopay) stringResource(R.string.acct_sub_autopay_if_short) else null, s.paysFrom())
+            Column {
+                androidx.compose.material3.HorizontalDivider(color = NeerlyColors.Ink200)
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                    FactCell(stringResource(R.string.acct_sub_row_next), if (s.status == "ACTIVE") s.nextDeliveryDate?.let(::shortDay) ?: "—" else "—", null, Modifier.weight(1f))
+                    androidx.compose.material3.VerticalDivider(color = NeerlyColors.Ink200)
+                    FactCell(stringResource(R.string.acct_sub_row_each), s.eachTime()?.rupees() ?: "—", null, Modifier.weight(1f))
+                    androidx.compose.material3.VerticalDivider(color = NeerlyColors.Ink200)
+                    FactCell(stringResource(R.string.acct_sub_row_pays), s.paysFrom(),
+                        if (s.paymentMethod == "WALLET" && cfg.upiAutopay) stringResource(R.string.acct_sub_autopay_if_short) else null, Modifier.weight(1f))
+                }
+                androidx.compose.material3.HorizontalDivider(color = NeerlyColors.Ink200)
             }
         }
         if (s.status == "PENDING_MANDATE") item {
@@ -106,7 +114,9 @@ private fun Detail(
         }
         if (live) item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (s.status == "ACTIVE") SecondaryButton(if (state.working) stringResource(R.string.acct_sub_skipping) else stringResource(R.string.acct_sub_skip_day, shortDay(skipTarget.toString()).substringAfter(' ')),
+                // "Skip next", not "Skip 11 Nov": the date is right above, and a date in a
+                // third-width button wraps to two lines (user report).
+                if (s.status == "ACTIVE") SecondaryButton(if (state.working) stringResource(R.string.acct_sub_skipping) else stringResource(R.string.acct_sub_skip_next),
                     { vm.skip(skipTarget.toString()) }, enabled = !state.working, modifier = Modifier.weight(1f))
                 if (s.status == "PAUSED") PrimaryButton(if (state.working) stringResource(R.string.acct_sub_resuming) else stringResource(R.string.acct_sub_resume_now), vm::resume,
                     enabled = !state.working, modifier = Modifier.weight(1f))
@@ -121,8 +131,7 @@ private fun Detail(
         if (coming.isNotEmpty()) {
             item { SectionLabel(stringResource(R.string.acct_sub_coming_up)) }
             coming.take(5).forEach { i -> item(key = i.id) {
-                BoondhCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                com.neerly.mobile.core.design.ListRow {
                         Column(Modifier.weight(1f)) {
                             Text(shortDay(i.deliveryDate), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
                             Text(if (i.status == "SKIPPED") (i.skipReason?.let { stringResource(R.string.acct_sub_skipped_why, s.deliverySlot, it) } ?: stringResource(R.string.acct_sub_skipped, s.deliverySlot))
@@ -132,21 +141,20 @@ private fun Detail(
                         if (i.status == "SCHEDULED" && s.status == "ACTIVE" && !s.ending) TextButton(onClick = { vm.skip(i.deliveryDate.take(10)) },
                             enabled = !state.working, modifier = Modifier.heightIn(min = 44.dp)) {
                             Text(stringResource(R.string.acct_sub_skip), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold) }
-                    }
                 }
             } }
         }
         if (state.lately.isNotEmpty()) {
             item { SectionLabel(stringResource(R.string.acct_sub_lately)) }
             state.lately.forEach { i -> item(key = "l" + i.id) {
-                BoondhCard {
-                    InfoRow(shortDay(i.deliveryDate), when (i.status) { "DELIVERED" -> stringResource(R.string.acct_sub_inst_delivered); "MISSED" -> stringResource(R.string.acct_sub_inst_missed); else -> stringResource(R.string.acct_sub_inst_failed) },
-                        if (i.status == "DELIVERED") i.amount.rupees() else null)
+                com.neerly.mobile.core.design.ListRow {
+                    Box(Modifier.weight(1f)) { InfoRow(shortDay(i.deliveryDate), when (i.status) { "DELIVERED" -> stringResource(R.string.acct_sub_inst_delivered); "MISSED" -> stringResource(R.string.acct_sub_inst_missed); else -> stringResource(R.string.acct_sub_inst_failed) },
+                        if (i.status == "DELIVERED") i.amount.rupees() else null) }
                 }
             } }
         }
         if (live || s.status == "PENDING_MANDATE") item {
-            TextButton(onClick = onEnd, modifier = Modifier.heightIn(min = 44.dp)) {
+            TextButton(onClick = onEnd, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.acct_sub_end_this), color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold) }
         }
     }
@@ -310,5 +318,14 @@ private fun EndedDone(s: SubscriptionResponse, finalDelivery: String?, onDone: (
             else stringResource(R.string.acct_sub_ended_nothing),
         footer = { PrimaryButton(stringResource(R.string.acct_refunds_done), onDone); SecondaryButton(stringResource(R.string.acct_sub_start_different), onNew) }) {
         item { Notice(stringResource(R.string.acct_sub_end_jars), Tone.Info) }
+    }
+}
+
+@Composable
+private fun FactCell(label: String, value: String, note: String?, modifier: Modifier) {
+    Column(modifier.padding(vertical = 14.dp).padding(start = 10.dp, end = 6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, fontSize = 13.sp, color = NeerlyColors.Ink600)
+        Text(value, fontSize = 20.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, color = NeerlyColors.Ink900, maxLines = 1)
+        note?.let { Text(it, fontSize = 12.sp, lineHeight = 15.sp, color = NeerlyColors.Ink600) }
     }
 }

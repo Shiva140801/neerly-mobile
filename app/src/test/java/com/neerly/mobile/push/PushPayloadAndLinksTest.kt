@@ -49,6 +49,7 @@ class PushPayloadAndLinksTest {
         assertEquals("customer/complaint?orderId=o1", DeepLinks.route("boondh://complaint-new?orderId=o1"))
         // C5 "Pick a new time" opens the re-delivery slot picker; plain order links don't.
         assertEquals("customer/order/o1/redeliver/time", DeepLinks.route("boondh://order/o1/redeliver"))
+        assertEquals("customer/order/o1/other-shops", DeepLinks.route("boondh://order/o1/other-shops"))
         assertEquals("customer/order/o1", DeepLinks.route("boondh://order/o1"))
         assertNull(DeepLinks.route("https://evil.example/order/1"))
         assertNull(DeepLinks.route("boondh://nowhere"))
@@ -78,5 +79,12 @@ class PushPayloadAndLinksTest {
                 assertTrue("${t.name}/${a.name}", DeepLinks.route(DeepLinks.forAction(a, t, p)) != null)
             }
         }
+    }
+
+    @Test fun shopDeclined_opensOtherShopsForThatOrder_elseHome() {
+        val withOrder = PushPayload(v = 1, type = "CUST_SHOP_DECLINED", role = "CUSTOMER", data = mapOf("orderId" to "o9"))
+        assertEquals("boondh://order/o9/other-shops", DeepLinks.default(PushType.CUST_SHOP_DECLINED, withOrder))
+        val bare = PushPayload(v = 1, type = "CUST_SHOP_DECLINED", role = "CUSTOMER")
+        assertEquals("customer/home", DeepLinks.route(DeepLinks.default(PushType.CUST_SHOP_DECLINED, bare)))
     }
 }

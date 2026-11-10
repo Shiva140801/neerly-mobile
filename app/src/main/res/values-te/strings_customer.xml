@@ -699,4 +699,35 @@
         <item quantity="one">మీ ఆర్డర్‌ను ఇంకా %1$d నిమిషం ఉంచుతున్నాం.</item>
         <item quantity="other">మీ ఆర్డర్‌ను ఇంకా %1$d నిమిషాలు ఉంచుతున్నాం.</item>
     </plurals>
+    <string name="cust_placed_arriving">వచ్చేది</string>
+    <string name="cust_placed_amount_cash">%1$s · డోర్ వద్ద నగదు</string>
+    <string name="cust_placed_amount_online">%1$s · ఆన్‌లైన్‌లో చెల్లించారు</string>
+    <string name="cust_home_bell">నోటిఫికేషన్లు</string>
+    <string name="cust_home_delivering_caps">డెలివరీ చిరునామా</string>
+    <string name="cust_home_running_low">నీళ్లు అయిపోతున్నాయా?</string>
+    <string name="cust_home_track">ట్రాక్ ›</string>
+    <string name="cust_home_sub_strip">%1$s, సబ్‌స్క్రిప్షన్</string>
+    <string name="cust_home_suppliers_title">దగ్గరలోని సరఫరాదారులు</string>
+    <string name="cust_home_usual_caps">మీ రెగ్యులర్</string>
+    <string name="cust_home_usual_on_way">%1$s · ఈరోజుది దారిలో ఉంది</string>
+    <string name="cust_home_eta_approx">~%1$d నిమి</string>
+    <string name="cust_home_new_tag">కొత్త</string>
+    <string name="cust_home_km">%1$s కి.మీ</string>
+    <string name="cust_home_jar_from_caption">20L ధర</string>
+    <plurals name="cust_home_bell_unread">
+        <item quantity="one">నోటిఫికేషన్లు, %1$d చదవనిది</item>
+        <item quantity="other">నోటిఫికేషన్లు, %1$d చదవనివి</item>
+    </plurals>
+    <plurals name="cust_jars_n">
+        <item quantity="one">%1$d జార్</item>
+        <item quantity="other">%1$d జార్లు</item>
+    </plurals>
+    <plurals name="cust_home_open_now_n">
+        <item quantity="one">%1$d ఇప్పుడు తెరిచి ఉంది</item>
+        <item quantity="other">%1$d ఇప్పుడు తెరిచి ఉన్నాయి</item>
+    </plurals>
+    <string name="cust_placed_failed_title">ఈ ఆర్డర్‌ను ఏ షాప్ తీసుకోలేకపోయింది</string>
+    <string name="cust_placed_failed_sub">%1$s ఏ షాప్‌కూ వెళ్లలేదు. ఇవే జార్లు దగ్గరలోని మరో షాప్‌లో ఉండవచ్చు.</string>
+    <string name="cust_placed_failed_other">ఇతర షాపులు చూడండి</string>
+    <string name="cust_placed_failed_refund">ఈ ఆర్డర్‌కు ఏమీ వసూలు చేయలేదు. మీ ఖాతా నుంచి డబ్బు వెళ్లి ఉంటే, మీరు చెల్లించిన చోటికే తిరిగి వస్తుంది.</string>
 </resources>

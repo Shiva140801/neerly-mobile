@@ -174,11 +174,13 @@ fun DriverMeContent(
         item { SosHoldButton(onSos) }
         item { com.neerly.mobile.push.PushLabEntry() }
         onSwitchRole?.let { item { SecondaryButton(stringResource(R.string.drv_switch_role), it, modifier = BIG) } }
-        item { TextButton(onClick = vm::checkLogout, enabled = !s.checkingLogout, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(if (s.checkingLogout) stringResource(R.string.drv_checking) else stringResource(R.string.drv_log_out), color = NeerlyColors.Err, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) } }
+        // DMe: the server says first whether cash or drops still block it; only then ask.
+        item { SecondaryButton(if (s.checkingLogout) stringResource(R.string.drv_checking) else stringResource(R.string.drv_log_out),
+            vm::checkLogout, enabled = !s.checkingLogout, modifier = BIG, color = NeerlyColors.Err) }
     }
     s.logoutCheck?.let { c ->
-        if (c.canLogout) LaunchedEffect(c) { vm.dismissLogout(); onLogout() }
+        if (c.canLogout) com.neerly.mobile.core.design.ConfirmLogoutDialog(
+            onConfirm = { vm.dismissLogout(); onLogout() }, onDismiss = vm::dismissLogout)
         else AlertDialog(onDismissRequest = vm::dismissLogout,
             title = { Text(stringResource(R.string.drv_not_yet)) },
             text = { Text(listOfNotNull(

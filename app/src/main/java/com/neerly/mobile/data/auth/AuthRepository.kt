@@ -26,7 +26,8 @@ class AuthRepository @Inject constructor(
     private val api: NeerlyApi,
     private val tokens: TokenStore,
     private val push: dagger.Lazy<com.neerly.mobile.push.PushRegistration>,
-    private val phoneAuth: dagger.Lazy<com.neerly.mobile.feature.auth.PhoneAuthGateway>
+    private val phoneAuth: dagger.Lazy<com.neerly.mobile.feature.auth.PhoneAuthGateway>,
+    private val signedOutCleanup: dagger.Lazy<SignedOutCleanup>
 ) {
 
     suspend fun exchange(
@@ -71,14 +72,19 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun logout() {
-        push.get().unregister()
+        // Server first, while the access token is still on the phone: it revokes the
+        // refresh token and blacklists this access token. Clearing first sent the call
+        // without a bearer, so the access token stayed valid till it expired.
+        runCatching { push.get().unregister() }
         val refresh = tokens.refreshToken
+        if (!refresh.isNullOrBlank()) runCatching { api.logout(LogoutRequest(refresh)) }
         tokens.clear()
+        // The remembered role belonged to the person leaving, not to the phone.
+        tokens.lastRolePreference = null
         // The Firebase session too, or the next sign-in on this phone could reuse it.
         runCatching { phoneAuth.get().signOut() }
-        if (!refresh.isNullOrBlank()) {
-            runCatching { api.logout(LogoutRequest(refresh)) }
-        }
+        // Their cart, recent searches and driver checklists must not greet whoever signs in next.
+        runCatching { signedOutCleanup.get().clear() }
     }
 
     /**

@@ -125,4 +125,12 @@
     <string name="core_auth_err_network">Can\'t reach the internet. Check your connection and try again.</string>
     <string name="core_auth_err_expired">This code has expired. Tap “Resend code” to get a new one.</string>
     <string name="core_auth_err_unavailable">Sign-in isn\'t available right now. Please try again in a moment.</string>
+    <string name="core_logout_title">Log out of Boondh?</string>
+    <string name="core_logout_body">You\'ll need your phone number and a code to sign in again.</string>
+    <string name="core_logout_yes">Log out</string>
+    <string name="core_logout_stay">Stay signed in</string>
+    <string name="core_logging_out">Logging out…</string>
+    <string name="core_role_back">Go back</string>
+    <string name="core_role_cancel">Not now — go back</string>
+    <string name="core_session_expired">Please sign in again — your session ended.</string>
 </resources>

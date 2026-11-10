@@ -574,4 +574,5 @@
         <item quantity="one">आपकी %1$s सब्सक्रिप्शन हर डिलीवरी पर वॉलेट से %2$s लेती है। %3$s अगली %4$d डिलीवरी के लिए काफ़ी है।</item>
         <item quantity="other">आपकी %1$s सब्सक्रिप्शन हर डिलीवरी पर वॉलेट से %2$s लेती है। %3$s अगली %4$d डिलीवरी के लिए काफ़ी है।</item>
     </plurals>
+    <string name="acct_sub_skip_next">अगली छोड़ें</string>
 </resources>

@@ -24,9 +24,12 @@ import com.neerly.mobile.core.design.Role
 @Composable
 fun RolePickerScreen(
     grantedRoles: List<String>,
-    onRoleSelected: (role: String, remember: Boolean) -> Unit
+    onRoleSelected: (role: String, remember: Boolean) -> Unit,
+    currentRole: String? = null,
+    onBack: (() -> Unit)? = null
 ) {
     var rememberChoice by remember { mutableStateOf(false) }
+    onBack?.let { androidx.activity.compose.BackHandler(onBack = it) }
 
     Column(
         modifier = Modifier
@@ -34,6 +37,13 @@ fun RolePickerScreen(
             .background(NeerlyColors.Canvas)
             .padding(horizontal = NeerlySpacing.x6, vertical = NeerlySpacing.x5)
     ) {
+        onBack?.let { back ->
+            androidx.compose.material3.TextButton(onClick = back, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text("‹ " + stringResource(R.string.core_role_back), fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                    color = NeerlyColors.CustomerPrimary)
+            }
+            Spacer(Modifier.height(NeerlySpacing.x2))
+        }
         Text(
             stringResource(R.string.cust_role_title),
             fontSize = 32.sp, lineHeight = 38.sp,
@@ -62,7 +72,7 @@ fun RolePickerScreen(
                     subtitle = stringResource(R.string.cust_role_order_sub),
                     color = NeerlyColors.CustomerPrimary,
                     icon = "🏠",
-                    onClick = { onRoleSelected(PortalRole.CUSTOMER, rememberChoice) }
+                    onClick = { if (onBack != null && PortalRole.of(listOfNotNull(currentRole)).firstOrNull() == PortalRole.CUSTOMER) onBack() else onRoleSelected(PortalRole.CUSTOMER, rememberChoice) }
                 )
             }
             if (grantedRoles.contains(PortalRole.VENDOR)) {
@@ -71,7 +81,7 @@ fun RolePickerScreen(
                     subtitle = stringResource(R.string.cust_role_shop_sub),
                     color = NeerlyColors.VendorPrimary,
                     icon = "🏪",
-                    onClick = { onRoleSelected(PortalRole.VENDOR, rememberChoice) }
+                    onClick = { if (onBack != null && PortalRole.of(listOfNotNull(currentRole)).firstOrNull() == PortalRole.VENDOR) onBack() else onRoleSelected(PortalRole.VENDOR, rememberChoice) }
                 )
             }
             if (grantedRoles.contains(PortalRole.DRIVER)) {
@@ -80,7 +90,7 @@ fun RolePickerScreen(
                     subtitle = stringResource(R.string.cust_role_drive_sub),
                     color = NeerlyColors.DriverPrimary,
                     icon = "🚚",
-                    onClick = { onRoleSelected(PortalRole.DRIVER, rememberChoice) }
+                    onClick = { if (onBack != null && PortalRole.of(listOfNotNull(currentRole)).firstOrNull() == PortalRole.DRIVER) onBack() else onRoleSelected(PortalRole.DRIVER, rememberChoice) }
                 )
             }
         }
