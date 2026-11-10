@@ -29,6 +29,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
@@ -178,7 +180,7 @@ private fun SearchBar(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
+                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = stringResource(R.string.cust_back),
                     tint = NeerlyColors.Ink800
                 )
@@ -335,7 +337,7 @@ private fun ResultsList(
             horizontal = NeerlySpacing.x5,
             vertical = NeerlySpacing.x4
         ),
-        verticalArrangement = Arrangement.spacedBy(NeerlySpacing.x2)
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         // Each group is skipped entirely when it is empty rather than shown as
         // "Products · 0", which reads as a failure rather than as "look below".
@@ -362,63 +364,25 @@ private fun ResultsList(
 }
 
 /**
- * One row per product template, not per listing: the same 20L jar sold by three
- * vendors is one result that says how many stock it and what the cheapest asks.
+ * One row per product template, not per listing (board Search): glyph tile, the name with
+ * the match marked, every shop's price on one line, and a chevron to the cheapest shop.
  */
 @Composable
 private fun ProductGroupRow(group: SearchProductGroup, query: String, onOpenVendor: (String) -> Unit = {}) {
-  Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(NeerlyRadius.md))
-            .background(NeerlyColors.Paper)
-            .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(NeerlyRadius.md))
-            .padding(NeerlySpacing.x3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
-    ) {
-        Box(
-            Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(NeerlyRadius.sm))
-                .background(NeerlyColors.Water50),
-            contentAlignment = Alignment.Center
-        ) { Text("💧", fontSize = 20.sp) }
+    val first = group.offers.firstOrNull()
+    com.neerly.mobile.core.design.ListRow(onClick = first?.let { o -> { onOpenVendor(o.vendorId) } }) {
+        Box(Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(NeerlyColors.CustomerSoft), contentAlignment = Alignment.Center) {
+            com.neerly.mobile.core.design.JarGlyph(outline = NeerlyColors.Ink900, body = NeerlyColors.Paper)
+        }
         Column(Modifier.weight(1f)) {
-            Text(
-                highlightMatch(group.displayName, query),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = NeerlyColors.Ink900,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            val detail = listOfNotNull(
-                group.sizeLabel?.takeIf { it.isNotBlank() },
-                stringResource(R.string.cust_search_from_price, group.fromPrice.asRupees()),
-                androidx.compose.ui.res.pluralStringResource(R.plurals.cust_search_supplier_count, group.vendorCount, group.vendorCount)
-            ).joinToString(" · ")
-            Text(detail, fontSize = 14.sp, color = NeerlyColors.Ink600)
+            Text(highlightMatch(listOfNotNull(group.displayName, group.sizeLabel?.takeIf { it.isNotBlank() && !group.displayName.contains(it, true) }).joinToString(" · "), query),
+                fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            val line = if (group.offers.isNotEmpty()) group.offers.joinToString(" · ") { "${it.vendorName} ${it.price.asRupees()}" }
+                else stringResource(R.string.cust_search_from_price, group.fromPrice.asRupees())
+            Text(line, fontSize = 15.sp, color = NeerlyColors.Ink600, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = NeerlyColors.Ink600)
     }
-    // Board 09: who sells it and for how much — tap a shop to buy from it.
-    group.offers.forEach { o ->
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(NeerlyRadius.sm))
-                .clickable { onOpenVendor(o.vendorId) }.padding(horizontal = NeerlySpacing.x3, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(o.vendorName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
-                val kmFmt = stringResource(R.string.cust_km, "%s")
-                val bits = offerDetail(o) { km -> kmFmt.replace("%s", km) }
-                if (bits.isNotBlank()) Text(bits, fontSize = 13.sp, color = NeerlyColors.Ink600)
-            }
-            Text(o.price.asRupees(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-        }
-    }
-  }
 }
 
 /** "4.6 ★ · 1.2 km" — only the parts the server knows. */
@@ -427,42 +391,21 @@ internal fun offerDetail(o: com.neerly.mobile.data.dto.SearchOffer, km: (String)
     o.distanceKm?.let { km(it.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) }
 ).joinToString(" · ")
 
+/** Board Search supplier row: serif initials, the name, "4.7 ★ · 2.1 km". */
 @Composable
 private fun VendorResultRow(vendor: SearchVendorHit, query: String, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(NeerlyRadius.md))
-            .background(NeerlyColors.Paper)
-            .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(NeerlyRadius.md))
-            .clickable(onClick = onClick)
-            .heightIn(min = 64.dp)
-            .padding(NeerlySpacing.x3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
-    ) {
-        Box(
-            Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(NeerlyRadius.sm))
-                .background(NeerlyColors.Water50),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(vendor.businessName.split(' ').take(2).joinToString("") { it.take(1) }.uppercase(),
-                fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
-        }
+    com.neerly.mobile.core.design.ListRow(onClick = onClick) {
+        com.neerly.mobile.core.design.InitialsTile(vendor.businessName.split(' ').take(2).joinToString("") { it.take(1) }.uppercase())
         Column(Modifier.weight(1f)) {
-            Text(
-                highlightMatch(vendor.businessName, query),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = NeerlyColors.Ink900,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(stringResource(R.string.cust_search_tap_stock), fontSize = 14.sp, color = NeerlyColors.Ink600)
+            Text(highlightMatch(vendor.businessName, query), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                color = NeerlyColors.Ink900, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            val kmFmt = stringResource(R.string.cust_km, "%s")
+            val bits = listOfNotNull(
+                vendor.rating?.let { "${it.setScale(1, java.math.RoundingMode.HALF_UP)} ★" },
+                vendor.distanceKm?.let { kmFmt.replace("%s", it.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) }
+            ).joinToString(" · ")
+            Text(bits.ifBlank { stringResource(R.string.cust_search_tap_stock) }, fontSize = 15.sp, color = NeerlyColors.Ink600)
         }
-        Text("›", fontSize = 22.sp, color = NeerlyColors.Ink600)
     }
 }
 
@@ -474,7 +417,7 @@ private fun highlightMatch(text: String, query: String): AnnotatedString {
     if (idx < 0) return AnnotatedString(text)
     return buildAnnotatedString {
         append(text.substring(0, idx))
-        withStyle(SpanStyle(background = NeerlyColors.CustomerSoft)) {
+        withStyle(SpanStyle(background = NeerlyColors.WarnSoft)) {
             append(text.substring(idx, idx + needle.length))
         }
         append(text.substring(idx + needle.length))
