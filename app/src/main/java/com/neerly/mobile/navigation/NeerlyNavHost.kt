@@ -274,7 +274,10 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             })
         }
         composable(Routes.Welcome) {
+            val expiry = androidx.hilt.navigation.compose.hiltViewModel<SessionExpiryHolder>().expiry
+            val notice = expiry.notice.collectAsState().value
             WelcomeScreen(
+                signedOutNotice = notice,
                 onGetStarted = { nav.navigate(Routes.Phone + "?role=CUSTOMER") },
                 onVendorRegister = { nav.navigate(Routes.Phone + "?role=VENDOR") },
                 onTerms = { nav.navigate(Routes.legal(com.neerly.mobile.feature.legal.LegalDoc.Terms)) },
@@ -320,8 +323,13 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             }, onEditNumber = { nav.popBackStack() })
         }
         composable(Routes.RolePicker) {
+            // Opened from Profile / Shop / Me there is a screen to go back to; straight
+            // after sign-in there isn't, and Back leaves the app as usual.
+            val canGoBack = androidx.compose.runtime.remember { nav.previousBackStackEntry != null }
             com.neerly.mobile.feature.auth.RolePickerScreen(
                 grantedRoles = tokenStore.grantedRoles,
+                currentRole = tokenStore.activeRole,
+                onBack = if (canGoBack) ({ nav.popBackStack() }) else null,
                 onRoleSelected = { role: String, remember: Boolean ->
                     nav.navigate(Routes.roleGate(role, remember)) { popUpTo(Routes.RolePicker) { inclusive = true } }
                 }
@@ -386,7 +394,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onSubscription = { id -> nav.navigate(Routes.subscriptionDetail(id)) },
                 onAddAddress = { nav.navigate(Routes.AddressNew) },
                 onChangeAddress = { nav.navigate(Routes.AddressList) },
-                onJoinAsShop = { nav.navigate(Routes.VendorOnboarding) }
+                onJoinAsShop = { nav.navigate(Routes.VendorOnboarding) },
+                onNotifications = { nav.navigate(Routes.NotificationFeed) }
             )
         }
         composable(Routes.CustomerSearch) {
@@ -526,7 +535,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 orderId = orderId,
                 orderNumber = orderNumber,
                 onTrack = { nav.navigate(Routes.orderTracking(orderId)) { popUpTo(Routes.CustomerHome) } },
-                onHome = { nav.popBackStack(Routes.CustomerHome, inclusive = false) }
+                onHome = { nav.popBackStack(Routes.CustomerHome, inclusive = false) },
+                onOtherShops = { nav.navigate(Routes.orderOtherShops(orderId)) { popUpTo(Routes.CustomerHome) } }
             )
         }
         composable(Routes.OrderTracking) {
@@ -571,7 +581,8 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onBack = { nav.popBackStack() },
                 onSelectTab = nav::switchTab,
                 onWithdraw = { nav.navigate(Routes.WalletWithdraw) },
-                onJars = { nav.navigate(Routes.Deposits) }
+                onJars = { nav.navigate(Routes.Deposits) },
+                onRefunds = { nav.navigate(Routes.Refunds) }
             )
         }
         composable(Routes.WalletWithdraw) {
@@ -672,7 +683,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onEventBooking = { nav.navigate(Routes.EventBookingNew) },
                 onSwitchRole = { nav.navigate(Routes.RolePicker) },
                 onSelectTab = nav::switchTab,
-                onLogout = { nav.navigate(Routes.Welcome) { popUpTo(Routes.CustomerHome) { inclusive = true } } },
+                onLogout = { nav.navigate(Routes.Welcome) { popUpTo(nav.graph.id) { inclusive = true } } },
                 onEdit = { nav.navigate(Routes.EditProfile) },
                 onRefunds = { nav.navigate(Routes.Refunds) },
                 onRefundSetting = { nav.navigate(Routes.RefundSetting) },
@@ -839,3 +850,9 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         composable(Routes.DriverPickups) { com.neerly.mobile.feature.driver.DriverPickupsScreen(onBack = { nav.popBackStack() }) }
     }
 }
+
+/** Hands the app-wide [com.neerly.mobile.data.auth.SessionExpiry] to Welcome. */
+@dagger.hilt.android.lifecycle.HiltViewModel
+class SessionExpiryHolder @javax.inject.Inject constructor(
+    val expiry: com.neerly.mobile.data.auth.SessionExpiry
+) : androidx.lifecycle.ViewModel()

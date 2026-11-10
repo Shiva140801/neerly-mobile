@@ -730,4 +730,6 @@
     <string name="cust_placed_failed_sub">%1$s didn\'t go to a shop. The same jars may be available from another one nearby.</string>
     <string name="cust_placed_failed_other">See other shops</string>
     <string name="cust_placed_failed_refund">Nothing was charged for this order. If money left your account, it comes back to where you paid from.</string>
+    <string name="cust_tr_code_title">Delivery code</string>
+    <string name="cust_tr_need_help_short">Need help?</string>
 </resources>

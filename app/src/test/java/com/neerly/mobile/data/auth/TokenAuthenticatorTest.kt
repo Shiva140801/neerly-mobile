@@ -23,12 +23,14 @@ class TokenAuthenticatorTest {
     private val api: NeerlyApi = mockk()
     private val tokens: TokenStore = mockk(relaxed = true)
     private var access = "old-access"
-    private val auth = TokenAuthenticator(tokens, { api }, Moshi.Builder().build())
+    private val expiry = SessionExpiry(tokens)
+    private val auth = TokenAuthenticator(tokens, { api }, Moshi.Builder().build(), expiry)
 
     init {
         every { tokens.accessToken } answers { access }
         every { tokens.refreshToken } returns "refresh-1"
         every { tokens.deviceId() } returns "dev"
+        every { tokens.hasSession() } returns true
         every { tokens.updateAfterRefresh(any(), any(), any(), any(), any()) } answers { access = firstArg() }
     }
 
@@ -71,5 +73,15 @@ class TokenAuthenticatorTest {
         coEvery { api.refresh(any()) } throws RuntimeException("401")
         assertNull(auth.authenticate(null, unauthorized("old-access")))
         verify { tokens.clear() }
+        // …and the app is told, so it goes to sign-in with "Please sign in again".
+        org.junit.Assert.assertTrue(expiry.expired.value)
+        verify { tokens.sessionEndedNotice = true }
+    }
+
+    @Test
+    fun signedOut_401_isNotASessionExpiry() {
+        every { tokens.hasSession() } returns false
+        assertNull(auth.authenticate(null, unauthorized("old-access")))
+        org.junit.Assert.assertFalse(expiry.expired.value)
     }
 }

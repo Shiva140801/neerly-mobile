@@ -13,6 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -110,17 +112,24 @@ fun OrderTrackingScreen(
                     else {
                         EndedCard(order.status, order.paymentMethod)
                         // Failed before any driver had it = no shop said yes (board NoVendor).
-                        if (order.status == "FAILED" && order.driverId == null)
+                        if (order.status == "FAILED" && order.driverId == null) {
+                            Spacer(Modifier.height(NeerlySpacing.x3))
                             com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.cust_nv_see_others), { onOtherShops(order.id) })
+                        }
                     }
                 }
             }
-            if (order.status !in OrderTrackingViewModel.TERMINAL && order.status != "DELIVERED") item {
-                com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_tr_cancel), { onCancel(order.id) }, color = NeerlyColors.Err)
-            }
             if (!online) item { OfflineCapabilityCard(Modifier.fillMaxWidth()) }
-            item { TextButton(onClick = { onFileComplaint(order.id) }, modifier = Modifier.heightIn(min = 44.dp)) {
-                Text(stringResource(R.string.cust_tr_need_help), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) } }
+            // Board Tracking: "Need help?" and "Cancel order" as an equal pair at the bottom.
+            item {
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_tr_need_help_short), { onFileComplaint(order.id) },
+                        modifier = Modifier.weight(1f), color = NeerlyColors.Ink900)
+                    if (order.status !in OrderTrackingViewModel.TERMINAL && order.status != "DELIVERED")
+                        com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.cust_tr_cancel), { onCancel(order.id) },
+                            modifier = Modifier.weight(1f), color = NeerlyColors.Ink900)
+                }
+            }
         }
     }
 }
@@ -151,33 +160,31 @@ private fun StatusSteps(current: String) {
 
 @Composable
 private fun DeliveryCodeCard(code: String?, requesting: Boolean, error: String?, onRequest: () -> Unit) {
-    Surface(
-        color = NeerlyColors.CustomerSofter,
-        shape = RoundedCornerShape(NeerlyRadius.md),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(NeerlySpacing.x4)) {
-            Text(stringResource(R.string.cust_tr_code_label), fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                color = NeerlyColors.Ink600, letterSpacing = 0.8.sp)
-            if (code != null) {
-                Text(
-                    code.toCharArray().joinToString(" "),
-                    fontSize = 36.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
-                    letterSpacing = 4.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif
-                )
-                Text(stringResource(R.string.cust_tr_code_tell),
-                    fontSize = 13.sp, color = NeerlyColors.Ink600)
-            } else {
-                Text(stringResource(R.string.cust_tr_code_missing),
-                    fontSize = 13.sp, color = NeerlyColors.Ink700)
-                Spacer(Modifier.height(6.dp))
-                OutlinedButton(onClick = onRequest, enabled = !requesting) {
-                    Text(if (requesting) stringResource(R.string.cust_tr_code_getting) else stringResource(R.string.cust_tr_code_get),
-                        color = NeerlyColors.CustomerPrimary)
+    // Board Tracking: navy card, "Delivery code / Tell the driver at the door", digits in tiles.
+    Column(Modifier.fillMaxWidth().background(NeerlyColors.CustomerDark, RoundedCornerShape(NeerlyRadius.md))
+        .padding(horizontal = 18.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column {
+            Text(stringResource(R.string.cust_tr_code_title), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Paper)
+            Text(if (code != null) stringResource(R.string.cust_tr_code_tell) else stringResource(R.string.cust_tr_code_missing),
+                fontSize = 14.sp, color = com.neerly.mobile.core.design.Boondh.MutedOnNavy)
+        }
+        if (code != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = code.toCharArray().joinToString(" ") }) {
+                code.forEach { c ->
+                    Box(Modifier.weight(1f).heightIn(min = 56.dp).background(NeerlyColors.Paper, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                        Text(c.toString(), fontSize = 28.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                    }
                 }
             }
-            error?.let { Text(it, fontSize = 12.sp, color = NeerlyColors.Err) }
+        } else {
+            OutlinedButton(onClick = onRequest, enabled = !requesting, modifier = Modifier.heightIn(min = 48.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, com.neerly.mobile.core.design.Boondh.MutedOnNavy)) {
+                Text(if (requesting) stringResource(R.string.cust_tr_code_getting) else stringResource(R.string.cust_tr_code_get),
+                    color = NeerlyColors.Paper, fontWeight = FontWeight.SemiBold)
+            }
         }
+        error?.let { Text(it, fontSize = 13.sp, color = NeerlyColors.ErrSoft) }
     }
 }
 

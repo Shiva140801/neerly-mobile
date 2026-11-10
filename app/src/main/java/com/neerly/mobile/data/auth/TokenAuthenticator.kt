@@ -32,7 +32,8 @@ import javax.inject.Singleton
 class TokenAuthenticator @Inject constructor(
     private val tokens: TokenStore,
     private val apiLazy: Lazy<NeerlyApi>,
-    private val moshi: Moshi
+    private val moshi: Moshi,
+    private val expiry: SessionExpiry
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
@@ -41,6 +42,8 @@ class TokenAuthenticator @Inject constructor(
 
         // Refresh endpoint itself returning 401 means our refresh token is bad — bail.
         if (response.request.url.encodedPath.endsWith("/api/v1/auth/refresh")) return null
+        // A call made while signed out (Welcome, OTP) isn't a lost session.
+        if (!tokens.hasSession()) return null
 
         synchronized(this) {
             // Someone else refreshed while this call was in flight: use their token.
@@ -81,8 +84,10 @@ class TokenAuthenticator @Inject constructor(
                 } else pair.accessToken
             }
         }.getOrNull() ?: run {
-            // Refresh failed — clear tokens so the UI treats us as logged out.
+            // Refresh failed — the server has ended this session. Clear it and tell the UI,
+            // so every role lands on sign-in instead of a screen of "Try again".
             tokens.clear()
+            expiry.raise()
             return null
         }
 

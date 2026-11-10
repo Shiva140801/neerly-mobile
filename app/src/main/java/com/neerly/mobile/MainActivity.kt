@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     @Inject lateinit var languageSync: com.neerly.mobile.core.util.LanguageSync
     @Inject lateinit var deepLinks: com.neerly.mobile.push.DeepLinkBus
     @Inject lateinit var pushRegistration: com.neerly.mobile.push.PushRegistration
+    @Inject lateinit var sessionExpiry: com.neerly.mobile.data.auth.SessionExpiry
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(com.neerly.mobile.core.util.AppLocale.wrap(newBase))
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         val navController = rememberNavController()
                         NeerlyNavHost(navController, cartStore, tokenStore, languageSync)
                         com.neerly.mobile.navigation.PushLinkHandler(navController, deepLinks, tokenStore)
+                        com.neerly.mobile.navigation.SessionExpiryHandler(navController, sessionExpiry)
                     }
                 }
             }

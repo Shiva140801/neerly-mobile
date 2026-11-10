@@ -33,10 +33,16 @@ fun WelcomeScreen(
     onGetStarted: () -> Unit,
     onVendorRegister: () -> Unit = {},
     onTerms: () -> Unit = {},
-    onPrivacy: () -> Unit = {}
+    onPrivacy: () -> Unit = {},
+    /** True right after the server ended the session — say why we're back here, once. */
+    signedOutNotice: Boolean = false
 ) {
     val context = LocalContext.current
     AuthPageScaffold {
+        if (signedOutNotice) {
+            com.neerly.mobile.core.design.Notice(stringResource(R.string.core_session_expired), com.neerly.mobile.core.design.Tone.Info)
+            Spacer(Modifier.height(12.dp))
+        }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("boondh", fontFamily = FontFamily.Serif, fontSize = 24.sp, color = NeerlyColors.CustomerPrimary,
                 modifier = Modifier.weight(1f))

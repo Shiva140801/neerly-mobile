@@ -87,6 +87,11 @@ class TokenStore @Inject constructor(
     val activeRole: String? get() = prefs.getString(KEY_ACTIVE_ROLE, null)
     val grantedRoles: List<String> get() = prefs.getStringSet(KEY_GRANTED_ROLES, null)?.toList() ?: emptyList()
 
+    /** Set when the server ended the session; Welcome shows "Please sign in again" once, even after a restart. */
+    var sessionEndedNotice: Boolean
+        get() = prefs.getBoolean("session_ended_notice", false)
+        set(value) = prefs.edit().putBoolean("session_ended_notice", value).apply()
+
     var lastRolePreference: String?
         get() = prefs.getString(KEY_ROLE_PREF, null)
         set(value) = prefs.edit().putString(KEY_ROLE_PREF, value).apply()

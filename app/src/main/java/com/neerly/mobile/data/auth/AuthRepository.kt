@@ -27,7 +27,8 @@ class AuthRepository @Inject constructor(
     private val tokens: TokenStore,
     private val push: dagger.Lazy<com.neerly.mobile.push.PushRegistration>,
     private val phoneAuth: dagger.Lazy<com.neerly.mobile.feature.auth.PhoneAuthGateway>,
-    private val signedOutCleanup: dagger.Lazy<SignedOutCleanup>
+    private val signedOutCleanup: dagger.Lazy<SignedOutCleanup>,
+    private val sessionExpiry: dagger.Lazy<SessionExpiry>
 ) {
 
     suspend fun exchange(
@@ -53,6 +54,7 @@ class AuthRepository @Inject constructor(
             activeRole = resp.activeRole,
             grantedRoles = resp.grantedRoles
         )
+        runCatching { sessionExpiry.get().noticeShown() }  // signed in again
         push.get().register()
         return resp
     }
@@ -145,6 +147,7 @@ class AuthRepository @Inject constructor(
                 activeRole = resp.activeRole,
                 grantedRoles = resp.grantedRoles
             )
+            runCatching { sessionExpiry.get().noticeShown() }  // signed in again
             push.get().register()
         }.getOrNull()
     }

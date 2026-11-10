@@ -730,4 +730,6 @@
     <string name="cust_placed_failed_sub">%1$s ఏ షాప్‌కూ వెళ్లలేదు. ఇవే జార్లు దగ్గరలోని మరో షాప్‌లో ఉండవచ్చు.</string>
     <string name="cust_placed_failed_other">ఇతర షాపులు చూడండి</string>
     <string name="cust_placed_failed_refund">ఈ ఆర్డర్‌కు ఏమీ వసూలు చేయలేదు. మీ ఖాతా నుంచి డబ్బు వెళ్లి ఉంటే, మీరు చెల్లించిన చోటికే తిరిగి వస్తుంది.</string>
+    <string name="cust_tr_code_title">డెలివరీ కోడ్</string>
+    <string name="cust_tr_need_help_short">సహాయం కావాలా?</string>
 </resources>
