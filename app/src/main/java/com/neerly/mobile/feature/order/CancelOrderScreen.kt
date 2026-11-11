@@ -113,7 +113,8 @@ fun CancelOrderScreen(onBack: () -> Unit, onRefunds: () -> Unit, onRefundSetting
                            prepaid -> stringResource(R.string.cust_cx_cancel_refund, q.refund.rupees()); else -> stringResource(R.string.cust_tr_cancel) },
                     onClick = { reasonText?.let(vm::cancel) }, enabled = reason != null && !s.cancelling,
                     color = NeerlyColors.Err)
-                SecondaryButton(stringResource(R.string.cust_cx_keep), onBack)
+                TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.cust_cx_keep), color = NeerlyColors.CustomerPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
             } else SecondaryButton(stringResource(R.string.cust_back), onBack)
         })
     ) {
@@ -130,14 +131,26 @@ fun CancelOrderScreen(onBack: () -> Unit, onRefunds: () -> Unit, onRefundSetting
             Text(stringResource(R.string.cust_cx_late_body),
                 fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink700)
         }
-        item { SectionLabel(stringResource(R.string.cust_cx_why)) }
-        items(REASONS) { r ->
-            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                .selectable(selected = reason == r, onClick = { reason = r }, role = Role.RadioButton),
-                verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(selected = reason == r, onClick = null,
-                    colors = RadioButtonDefaults.colors(selectedColor = NeerlyColors.CustomerPrimary))
-                Spacer(Modifier.width(8.dp)); Text(stringResource(r), fontSize = 15.sp, color = NeerlyColors.Ink900)
+        // Board CancelOrder: "**What happened?** — helps the shop" in sentence case, then
+        // hairline-separated reason rows (one list item, so rows sit tight like the board).
+        item {
+            val why = stringResource(R.string.cust_cx_why)
+            Column {
+                Text(androidx.compose.ui.text.buildAnnotatedString {
+                    val cut = why.indexOf(" — ").takeIf { it > 0 } ?: why.length
+                    pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)); append(why.substring(0, cut)); pop()
+                    append(why.substring(cut))
+                }, fontSize = 16.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(bottom = 4.dp))
+                REASONS.forEach { r ->
+                    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                        .selectable(selected = reason == r, onClick = { reason = r }, role = Role.RadioButton),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = reason == r, onClick = null,
+                            colors = RadioButtonDefaults.colors(selectedColor = NeerlyColors.CustomerPrimary, unselectedColor = NeerlyColors.Ink300))
+                        Spacer(Modifier.width(8.dp)); Text(stringResource(r), fontSize = 17.sp, fontWeight = FontWeight.Medium, color = NeerlyColors.Ink900)
+                    }
+                    HorizontalDivider(color = NeerlyColors.Ink200)
+                }
             }
         }
         if (prepaid) item {
