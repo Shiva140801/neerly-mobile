@@ -25,7 +25,10 @@ data class Cart(
     /** "When?" — null is "Right now"; otherwise the window picked on the slot picker. */
     val slot: DeliverySlot? = null,
     /** Address picked in the cart (board Cart "Home · Change"); checkout starts from it. */
-    val addressId: String? = null
+    val addressId: String? = null,
+    /** The shop's arrival estimate for that address ("20–30 min"); null until fetched. */
+    val etaMin: Int? = null,
+    val etaMax: Int? = null
 ) {
     val isEmpty: Boolean get() = items.isEmpty()
 

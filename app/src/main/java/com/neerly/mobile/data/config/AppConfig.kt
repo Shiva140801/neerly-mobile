@@ -55,6 +55,17 @@ data class AppConfig(
         settings[key]?.toString()?.toBigDecimalOrNull() ?: BigDecimal(default)
     /** Boondh support line (admin setting `support.phone`); blank = don't offer a call. */
     val supportPhone: String get() = settings["support.phone"]?.toString()?.trim().orEmpty()
+    /**
+     * The arrival window when no shop estimate has arrived yet — the backend's formula
+     * (prep + default distance ÷ average speed, rounded up to 5, plus the band), from the
+     * same public admin settings, so the app never shows a made-up "20–30 min".
+     */
+    val fallbackEta: Pair<Int, Int> get() {
+        val prep = int("delivery.prep_minutes", 10); val speed = int("drivers.avg_speed_kmh", 18).coerceAtLeast(1)
+        val band = int("delivery.eta_band_minutes", 10); val km = int("delivery.eta_default_km", 3)
+        val low = (((prep + kotlin.math.ceil(km * 60.0 / speed).toInt()) + 4) / 5 * 5).coerceAtLeast(5)
+        return low to low + band
+    }
     /** How often open screens re-check what others can change (admin `app.live_refresh_seconds`). */
     val liveRefreshMs: Long get() = int("app.live_refresh_seconds", 15).coerceIn(5, 120) * 1000L
     private fun int(key: String, default: Int): Int =

@@ -88,7 +88,10 @@ fun CartScreen(
         if (short != null && quickAdds.isNotEmpty()) item {
             QuickAddsCard(quickAdds, vm::quickAdd, cfg.minOrderValue)
         }
-        item { WhenCard(cart.slot, onNow = vm::deliverNow, onPickSlot = onPickSlot) }
+        item {
+            val (lo, hi) = cart.etaMin?.let { lo -> lo to (cart.etaMax ?: lo) } ?: cfg.fallbackEta
+            WhenCard(cart.slot, stringResource(R.string.cust_cart_now_eta, lo, hi), onNow = vm::deliverNow, onPickSlot = onPickSlot)
+        }
         item { AddressCard(address, onChange = { if (addresses.isEmpty()) onAddAddress() else picking = true }) }
         item { Bill(cart, quote) }
         item {
@@ -114,11 +117,11 @@ fun CartScreen(
 
 /** Board Cart "When?": two tiles side by side — right now, or a picked window. */
 @Composable
-private fun WhenCard(slot: com.neerly.mobile.data.cart.DeliverySlot?, onNow: () -> Unit, onPickSlot: () -> Unit) {
+private fun WhenCard(slot: com.neerly.mobile.data.cart.DeliverySlot?, nowEta: String, onNow: () -> Unit, onPickSlot: () -> Unit) {
     Text(stringResource(R.string.cust_cart2_when), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
     Spacer(Modifier.height(8.dp))
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
-        WhenOption(stringResource(R.string.cust_cart_now), stringResource(R.string.cust_cart_now_eta, 20, 30), slot == null, onNow, Modifier.weight(1f).fillMaxHeight())
+        WhenOption(stringResource(R.string.cust_cart_now), nowEta, slot == null, onNow, Modifier.weight(1f).fillMaxHeight())
         val picked = slot?.let {
             val day = it.date.format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM", com.neerly.mobile.core.util.AppLocale.locale))
             "$day, " + com.neerly.mobile.core.design.timeWindow(it.start.toString(), it.end.toString())

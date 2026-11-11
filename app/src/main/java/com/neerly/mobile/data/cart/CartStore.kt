@@ -116,6 +116,12 @@ class CartStore @Inject constructor() {
     }
 
     /** "Right now" (null) or a picked window; kept until the shop changes or the cart empties. */
+    /** Stored only while the cart is still for [vendorId] (a shop switch must not inherit it). */
+    fun setEta(vendorId: String, min: Int?, max: Int?) {
+        val c = _state.value
+        if (c.vendorId == vendorId) _state.value = c.copy(etaMin = min, etaMax = max)
+    }
+
     fun setSlot(slot: DeliverySlot?) {
         _state.value = _state.value.copy(slot = slot)
     }

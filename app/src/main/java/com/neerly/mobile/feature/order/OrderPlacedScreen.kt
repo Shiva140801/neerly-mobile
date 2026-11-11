@@ -49,7 +49,21 @@ class OrderPlacedViewModel @Inject constructor(
     val cancelling = MutableStateFlow(false)
     val cancelled = MutableStateFlow(false)
     val cancelError = MutableStateFlow<String?>(null)
-    fun load(id: String) { if (order.value == null) viewModelScope.launch { order.value = runCatching { api.order(id) }.getOrNull() } }
+    /** The shop's arrival estimate for this order's address ("20–30 min"); null until known. */
+    val eta = MutableStateFlow<Pair<Int, Int>?>(null)
+    fun load(id: String) {
+        if (order.value != null) return
+        viewModelScope.launch {
+            val o = runCatching { api.order(id) }.getOrNull() ?: return@launch
+            order.value = o
+            val vendorId = o.vendorId ?: return@launch
+            if (o.requestedSlotStart != null) return@launch   // a booked slot shows its window instead
+            val a = runCatching { api.addresses() }.getOrNull()?.firstOrNull { it.id == o.addressId }
+            runCatching { api.vendor(vendorId, a?.latitude, a?.longitude) }.getOrNull()?.let { v ->
+                v.etaMinutesMin?.let { lo -> eta.value = lo to (v.etaMinutesMax ?: lo) }
+            }
+        }
+    }
 
     /**
      * Routing can fail moments after the order is placed (no shop serves it, or each one
@@ -94,6 +108,7 @@ fun OrderPlacedScreen(orderId: String, orderNumber: String, onTrack: () -> Unit,
     // The moment the customer wants updates: right after placing an order (plan §e), not at install.
     com.neerly.mobile.push.AskNotificationsOnce("customer", true)
     val o by vm.order.collectAsState()
+    val eta by vm.eta.collectAsState()
     val cancelling by vm.cancelling.collectAsState()
     val cancelled by vm.cancelled.collectAsState()
     val cancelError by vm.cancelError.collectAsState()
@@ -160,7 +175,7 @@ fun OrderPlacedScreen(orderId: String, orderNumber: String, onTrack: () -> Unit,
                 fontSize = 16.sp, lineHeight = 23.sp, color = NeerlyColors.Ink600)
             Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
                 .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(14.dp)).padding(horizontal = 16.dp, vertical = 4.dp)) {
-                FactRow(stringResource(R.string.cust_placed_arriving), stringResource(R.string.cust_cart_now_eta, 20, 30))
+                FactRow(stringResource(R.string.cust_placed_arriving), arrivingText(o, eta))
                 DashedRule()
                 FactRow(stringResource(R.string.cust_order), orderNumber)
                 o?.let {
@@ -214,4 +229,21 @@ private fun DropCheck() {
         val tick = Path().apply { moveTo(w * 0.30f, h * 0.66f); lineTo(w * 0.45f, h * 0.79f); lineTo(w * 0.72f, h * 0.52f) }
         drawPath(tick, Color.White, style = Stroke(width = w * 0.11f, cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
+}
+
+/** "Tomorrow, 6–9 AM" for a booked slot; otherwise the shop's estimate, or the admin-default one. */
+@Composable
+private fun arrivingText(o: OrderResponse?, eta: Pair<Int, Int>?): String {
+    val start = istTime(o?.requestedSlotStart); val end = istTime(o?.requestedSlotEnd)
+    if (start != null && end != null) {
+        val window = timeWindow(start.toLocalTime().toString(), end.toLocalTime().toString())
+        val today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))
+        return when (start.toLocalDate()) {
+            today -> stringResource(R.string.cust_placed_slot_today, window)
+            today.plusDays(1) -> stringResource(R.string.cust_placed_slot_tomorrow, window)
+            else -> stringResource(R.string.cust_placed_slot_day, shortDay(o?.requestedSlotStart), window)
+        }
+    }
+    val (lo, hi) = eta ?: com.neerly.mobile.data.config.LocalAppConfig.current.fallbackEta
+    return stringResource(R.string.cust_cart_now_eta, lo, hi)
 }

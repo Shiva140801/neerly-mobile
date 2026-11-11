@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -137,14 +138,28 @@ class CartViewModel @Inject constructor(
                 if (store.snapshot.addressId == null || list.none { it.id == store.snapshot.addressId }) {
                     store.setAddress((list.firstOrNull { it.isPrimary } ?: list.firstOrNull())?.id)
                 }
+                // Coordinates are known now — estimate for the real address, not the default distance.
+                refreshEta(store.snapshot.vendorId, store.snapshot.addressId)
             }
         }
+        // The shop's real arrival estimate for the chosen address (no more literal "20–30").
+        store.state.map { it.vendorId to it.addressId }.distinctUntilChanged()
+            .onEach { (vendorId, addressId) -> refreshEta(vendorId, addressId) }.launchIn(viewModelScope)
         // Re-price whenever the basket, the slot or the address changes.
         store.state.map { Triple(it.items, it.addressId, it.promoCode to it.slot) }
             .onEach { refreshQuote() }.launchIn(viewModelScope)
     }
 
     fun selectAddress(id: String) = store.setAddress(id)
+
+    private fun refreshEta(vendorId: String?, addressId: String?) {
+        vendorId ?: return
+        viewModelScope.launch {
+            val a = _addresses.value.firstOrNull { it.id == addressId }
+            runCatching { api.vendor(vendorId, a?.latitude, a?.longitude) }
+                .onSuccess { v -> store.setEta(vendorId, v.etaMinutesMin, v.etaMinutesMax) }
+        }
+    }
 
     private fun refreshQuote() {
         val c = store.snapshot
