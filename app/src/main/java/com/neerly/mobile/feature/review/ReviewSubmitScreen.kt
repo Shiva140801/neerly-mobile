@@ -56,6 +56,9 @@ fun ReviewSubmitScreen(
         title = stringResource(R.string.cust_rv_title),
         subtitle = if (isOrderNumber) stringResource(R.string.cust_co_payment_desc, vendorName) else stringResource(R.string.cust_rv_from, vendorName),
         onBack = onBack, backLabel = stringResource(R.string.cust_skip),
+        // Board RateOrder: "Skip" on the top row.
+        topAction = { androidx.compose.material3.TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.cust_skip), color = NeerlyColors.CustomerPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold) } },
         footer = {
             state.error?.let { Notice(it, Tone.Bad) }
             PrimaryButton(if (state.submitting) stringResource(R.string.cust_rv_sending) else stringResource(R.string.cust_rv_send), {
@@ -65,23 +68,36 @@ fun ReviewSubmitScreen(
     ) {
         item { StarRow(stringResource(R.string.cust_rv_delivery), stringResource(R.string.cust_rv_delivery_hint), vendorStars) { vendorStars = it } }
         item { StarRow(stringResource(R.string.cust_rv_water), stringResource(R.string.cust_rv_water_hint), waterStars) { waterStars = it } }
-        item { SectionLabel(stringResource(R.string.cust_rv_stood_out)) }
         item {
+            // Board: "What stood out?" in sentence case; selected chips filled ink.
+            Text(stringResource(R.string.cust_rv_stood_out).lowercase().replaceFirstChar { it.uppercase() },
+                fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900, modifier = Modifier.padding(bottom = 8.dp))
             FlowRowCompat {
                 tagLabels.forEach { t ->
                     val on = t in picked
                     FilterChip(selected = on, onClick = { picked = if (on) picked - t else picked + t },
-                        label = { Text(t, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) },
-                        modifier = Modifier.heightIn(min = 44.dp))
+                        label = { Text(t, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) },
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+                        colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = NeerlyColors.Ink900, selectedLabelColor = NeerlyColors.Paper,
+                            containerColor = NeerlyColors.Paper, labelColor = NeerlyColors.Ink900),
+                        border = androidx.compose.material3.FilterChipDefaults.filterChipBorder(enabled = true, selected = on,
+                            borderColor = NeerlyColors.Ink300, selectedBorderColor = NeerlyColors.Ink900),
+                        modifier = Modifier.heightIn(min = 48.dp))
                 }
             }
         }
         item {
-            Text(if (shop != null) stringResource(R.string.cust_rv_anything_for, shop) else stringResource(R.string.cust_rv_anything_else),
-                fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            val optional = stringResource(R.string.cust_rv_optional)
+            val label = if (shop != null) stringResource(R.string.cust_rv_anything_for, shop) else stringResource(R.string.cust_rv_anything_else)
+            Text(androidx.compose.ui.text.buildAnnotatedString {
+                val cut = label.indexOf(optional).takeIf { it >= 0 } ?: label.length
+                append(label.substring(0, cut))
+                pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Normal, color = NeerlyColors.Ink600)); append(label.substring(cut)); pop()
+            }, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(value = note, onValueChange = { if (it.length <= 1500) note = it },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
                 placeholder = { Text(stringResource(R.string.cust_rv_note_hint), color = NeerlyColors.Ink600) })
         }
     }
@@ -89,10 +105,11 @@ fun ReviewSubmitScreen(
 
 @Composable
 private fun StarRow(title: String, hint: String, rating: Int, onRate: (Int) -> Unit) {
-    BoondhCard {
+    // Board RateOrder: no card — a bold line, big amber stars, the verdict word under them.
+    androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-        Text(hint, fontSize = 13.sp, color = NeerlyColors.Ink600)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(hint, fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.offset(x = (-8).dp)) {
             for (i in 1..5) {
                 val on = i <= rating
                 val cd = androidx.compose.ui.res.pluralStringResource(R.plurals.cust_rv_star_cd, i, i, title)
@@ -100,11 +117,11 @@ private fun StarRow(title: String, hint: String, rating: Int, onRate: (Int) -> U
                     role = Role.RadioButton; selected = i == rating
                     contentDescription = cd
                 }) {
-                    Text(if (on) "★" else "☆", fontSize = 34.sp, color = if (on) Boondh.Amber else NeerlyColors.Ink400)
+                    Text(if (on) "★" else "☆", fontSize = 40.sp, color = if (on) Boondh.Amber else NeerlyColors.Ink400)
                 }
             }
         }
-        if (rating > 0) Text(stringResource(VERDICTS[rating]), fontFamily = FontFamily.Serif, fontSize = 18.sp, color = NeerlyColors.Ink900)
+        if (rating > 0) Text(stringResource(VERDICTS[rating]), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink600)
     }
 }
 

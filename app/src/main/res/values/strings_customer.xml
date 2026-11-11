@@ -806,4 +806,5 @@
     <string name="cust_rd_delivers">%1$s delivers here</string>
     <string name="cust_rd_outside">Outside %1$s\'s area</string>
     <string name="cust_rd_failed_here_line">Tried here today</string>
+    <string name="cust_rv_optional">(optional)</string>
 </resources>

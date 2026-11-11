@@ -806,4 +806,5 @@
     <string name="cust_rd_delivers">%1$s ఇక్కడ డెలివరీ చేస్తుంది</string>
     <string name="cust_rd_outside">%1$s పరిధి బయట</string>
     <string name="cust_rd_failed_here_line">ఈరోజు ఇక్కడ ప్రయత్నించారు</string>
+    <string name="cust_rv_optional">(ఐచ్ఛికం)</string>
 </resources>

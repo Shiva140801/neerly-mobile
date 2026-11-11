@@ -806,4 +806,5 @@
     <string name="cust_rd_delivers">%1$s यहाँ डिलीवर करता है</string>
     <string name="cust_rd_outside">%1$s के इलाके से बाहर</string>
     <string name="cust_rd_failed_here_line">आज यहाँ कोशिश की गई</string>
+    <string name="cust_rv_optional">(वैकल्पिक)</string>
 </resources>
