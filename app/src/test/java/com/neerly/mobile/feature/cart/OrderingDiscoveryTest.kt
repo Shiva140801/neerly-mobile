@@ -93,12 +93,15 @@ class OrderingDiscoveryTest {
         val vm = SlotPickerViewModel(api, store, com.neerly.mobile.support.TestStrings)
         advanceUntilIdle()
         assertEquals(0, vm.state.value.dayIndex)
-        vm.pickSlot(today.slots[0])                 // passed
-        assertNull(vm.state.value.picked)
-        assertFalse(vm.confirm())
+        // Board SlotPicker opens on the first window that can still be booked.
+        val firstToday = today.slots.firstOrNull { it.bookable }
+        assertEquals(firstToday, vm.state.value.picked)
+        vm.pickSlot(today.slots[0])                 // passed: the choice doesn't move
+        assertEquals(firstToday, vm.state.value.picked)
         vm.pickDay(1)
-        vm.pickSlot(sunday.slots[2])                // after the shop shuts
-        assertNull(vm.state.value.picked)
+        assertEquals(sunday.slots.first { it.bookable }, vm.state.value.picked)
+        vm.pickSlot(sunday.slots[2])                // after the shop shuts: ignored
+        assertEquals(sunday.slots.first { it.bookable }, vm.state.value.picked)
         vm.pickSlot(sunday.slots[0])
         assertTrue(vm.confirm())
         assertEquals(DeliverySlot(LocalDate.of(2026, 11, 8), LocalTime.of(6, 0), LocalTime.of(9, 0)), store.snapshot.slot)

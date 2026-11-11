@@ -83,9 +83,11 @@ class SlotPickerViewModel @Inject constructor(
                 .onSuccess { days ->
                     val current = cart.snapshot.slot
                     val dayIndex = SlotPickerLogic.initialDay(days, current)
+                    // Board SlotPicker opens with a window already chosen: the cart's own slot,
+                    // else the first one that can still be booked that day.
                     val picked = current?.let { s ->
                         days.getOrNull(dayIndex)?.slots?.firstOrNull { SlotPickerLogic.time(it.start) == s.start && it.bookable }
-                    }
+                    } ?: days.getOrNull(dayIndex)?.slots?.firstOrNull { it.bookable }
                     _state.value = _state.value.copy(loading = false, days = days, dayIndex = dayIndex, picked = picked)
                 }
                 .onFailure {
@@ -97,7 +99,7 @@ class SlotPickerViewModel @Inject constructor(
 
     fun pickDay(index: Int) {
         if (index !in _state.value.days.indices) return
-        _state.value = _state.value.copy(dayIndex = index, picked = null)
+        _state.value = _state.value.copy(dayIndex = index, picked = _state.value.days[index].slots.firstOrNull { it.bookable })
     }
 
     fun pickSlot(slot: SlotOptionDto) {
@@ -255,12 +257,12 @@ fun SlotPickerScreen(onBack: () -> Unit, onDone: () -> Unit, vm: SlotPickerViewM
                 val on = s.picked == slot
                 val window = timeWindow(slot.start, slot.end)
                 Row(
-                    Modifier.fillMaxWidth().heightIn(min = 64.dp)
+                    Modifier.fillMaxWidth().heightIn(min = 56.dp)
                         .background(if (slot.bookable) NeerlyColors.Paper else NeerlyColors.Ink100, RoundedCornerShape(14.dp))
                         .border(BorderStroke(if (on) 2.dp else 1.dp, if (on) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200), RoundedCornerShape(14.dp))
                         .clickable(enabled = slot.bookable, role = Role.RadioButton) { vm.pickSlot(slot) }
                         .semantics { selected = on; contentDescription = "$window, $part, $note" }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 9.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {

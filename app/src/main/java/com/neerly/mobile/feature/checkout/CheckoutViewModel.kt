@@ -256,9 +256,12 @@ class CheckoutViewModel @Inject constructor(
             startPolling(order, paymentId)
             return
         }
+        // The customer closed a card/wallet sheet themselves: nothing was declined, so no
+        // "your bank declined" page — they stay on checkout with "Payment cancelled".
+        if (code == PAYMENT_CANCELED) return
         val view = runCatching { api.clientError(paymentId, ClientPaymentError(code, bank)) }.getOrNull()
         _state.value = _state.value.copy(paymentPage =
-            PaymentPage.Failed(order, paymentId, method, view?.failureReason ?: bank, view?.holdUntil))
+            PaymentPage.Failed(order, paymentId, method, meaningful(view?.failureReason) ?: bank, view?.holdUntil))
     }
 
     /** Pending: the server hears the UPI app's answer through the webhook — check every few seconds. */
@@ -289,7 +292,7 @@ class CheckoutViewModel @Inject constructor(
             }
             "FAILED" -> if (_state.value.paymentPage is PaymentPage.Pending) {
                 _state.value = _state.value.copy(paymentPage =
-                    PaymentPage.Failed(order, paymentId, view.method, view.failureReason, view.holdUntil))
+                    PaymentPage.Failed(order, paymentId, view.method, meaningful(view.failureReason), view.holdUntil))
             }
         }
     }
@@ -350,12 +353,16 @@ class CheckoutViewModel @Inject constructor(
         /** Razorpay's error is a JSON string; the bank's words are error.description. */
         fun bankReason(raw: String?): String? {
             val text = raw?.trim()?.takeIf { it.isNotBlank() } ?: return null
-            if (!text.startsWith("{")) return text
+            if (!text.startsWith("{")) return meaningful(text)
             return runCatching {
                 val err = org.json.JSONObject(text).optJSONObject("error")
-                err?.optString("description")?.takeIf { it.isNotBlank() && it != "null" }
+                meaningful(err?.optString("description"))
             }.getOrNull()
         }
+
+        /** Razorpay's web checkout sometimes sends the JS words "undefined"/"null" as the reason. */
+        fun meaningful(text: String?): String? =
+            text?.trim()?.takeIf { it.isNotBlank() && it.lowercase() !in setOf("undefined", "null", "nan") }
     }
 }
 

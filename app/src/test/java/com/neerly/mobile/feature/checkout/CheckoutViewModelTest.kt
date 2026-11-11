@@ -345,5 +345,20 @@ class CheckoutViewModelTest {
         assertEquals("Daily UPI limit reached", CheckoutViewModel.bankReason("  Daily UPI limit reached "))
         assertNull(CheckoutViewModel.bankReason("   "))
         assertNull(CheckoutViewModel.bankReason(null))
+        // Razorpay's web checkout sends the JS words, which used to show as "Bank said: undefined".
+        assertNull(CheckoutViewModel.bankReason("undefined"))
+        assertNull(CheckoutViewModel.bankReason("""{"error":{"description":"undefined"}}"""))
+    }
+
+    @Test
+    fun closedCardSheet_staysOnCheckout_noBankDeclinedPage() = runTest(dispatcher) {
+        val vm = upiCheckout(PaymentOutcome.Declined("Payment cancelled. Nothing was taken.", code = 0))
+        advanceUntilIdle()
+        vm.selectPaymentMethod("CARD")
+        vm.placeAndPay(activity) { }
+        advanceUntilIdle()
+        assertNull(vm.state.value.paymentPage)
+        assertEquals("Payment cancelled. Nothing was taken.", vm.state.value.paymentProblem)
+        coVerify(exactly = 0) { payments.clientError(any(), any()) }
     }
 }
