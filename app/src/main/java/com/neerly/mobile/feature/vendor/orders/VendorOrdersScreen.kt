@@ -82,6 +82,8 @@ fun VendorOrdersScreen(
 ) {
     val s by vm.state.collectAsState()
     OnReturn(vm::load)
+    com.neerly.mobile.core.util.LivePoll(true, com.neerly.mobile.data.config.LocalAppConfig.current.liveRefreshMs) { vm.load() }
+    com.neerly.mobile.core.util.OnLiveChange({ it.type?.startsWith("SELLER_") == true }) { vm.load() }
     BoondhPage(
         title = stringResource(R.string.vend_tab_orders),
         subtitle = stringResource(R.string.vend_open_now, s.orders.count { it.status !in setOf("CANCELLED", "DELIVERED", "FAILED") }),

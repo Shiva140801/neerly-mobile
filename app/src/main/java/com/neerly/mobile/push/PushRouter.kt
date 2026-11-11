@@ -20,6 +20,9 @@ class PushRouter @Inject constructor(
 ) {
     fun handle(data: Map<String, String>, forceBackground: Boolean = false): PushPlanner.Decision {
         val payload = PushPayload.parse(data)
+        // Whatever screen shows this order/complaint re-reads it now (even if the push is
+        // later ignored or shown only in the shade).
+        com.neerly.mobile.core.util.LiveRefresh.fromPush(payload.type, payload.data)
         val env = PushPlanner.Env(
             activeRole = PushRole.of(tokens.activeRole),
             appForeground = AppForeground.isForeground && !forceBackground,

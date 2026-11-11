@@ -49,6 +49,7 @@ fun OrderTrackingScreen(
 ) {
     val state by vm.state.collectAsState()
     val online by vm.isOnline.collectAsState()
+    com.neerly.mobile.core.util.OnLiveChange({ it.orderId == null || it.orderId == state.order?.id }) { vm.refresh() }
     val order = state.order
     val t = state.tracking
     // Board 15: the heading is the one thing the customer wants to know right now.

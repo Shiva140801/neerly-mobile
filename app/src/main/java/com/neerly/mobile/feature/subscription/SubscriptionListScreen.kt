@@ -33,6 +33,7 @@ fun SubscriptionListScreen(
 ) {
     val state by vm.state.collectAsState()
     com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.OnLiveChange({ it.type?.startsWith("CUST_SUB") == true }) { vm.refresh() }
     val cfg = LocalAppConfig.current
     val cutoff = cfg.clock(cfg.subscriptionCutoff)
     val live = state.active + state.paused + state.pending

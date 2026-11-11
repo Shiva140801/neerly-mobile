@@ -55,6 +55,8 @@ data class AppConfig(
         settings[key]?.toString()?.toBigDecimalOrNull() ?: BigDecimal(default)
     /** Boondh support line (admin setting `support.phone`); blank = don't offer a call. */
     val supportPhone: String get() = settings["support.phone"]?.toString()?.trim().orEmpty()
+    /** How often open screens re-check what others can change (admin `app.live_refresh_seconds`). */
+    val liveRefreshMs: Long get() = int("app.live_refresh_seconds", 15).coerceIn(5, 120) * 1000L
     private fun int(key: String, default: Int): Int =
         settings[key]?.toString()?.toBigDecimalOrNull()?.toInt() ?: default
     private fun time(key: String, default: String): LocalTime =

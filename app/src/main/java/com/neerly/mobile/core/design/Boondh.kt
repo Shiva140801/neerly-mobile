@@ -248,14 +248,27 @@ fun shortDay(iso: String?): String {
 fun OnReturn(action: () -> Unit) {
     val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val latest = androidx.compose.runtime.rememberUpdatedState(action)
+    // The "already shown once" flag must live as long as the screen's view model, not the
+    // composition: a tab switch or back navigation rebuilds the composable but keeps the
+    // view model (its init load doesn't run again). With the flag in the effect, the first
+    // resume after every rebuild was skipped and the screen showed stale data — e.g. an
+    // order cancelled on tracking still read "Being packed" on the Orders tab.
+    val tracker: ReturnTracker = androidx.lifecycle.viewmodel.compose.viewModel(
+        key = "OnReturn:" + androidx.compose.runtime.currentCompositeKeyHash)
     androidx.compose.runtime.DisposableEffect(owner) {
-        var first = true
         val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
-            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) { if (first) first = false else latest.value() }
+            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME && tracker.shouldRun()) latest.value()
         }
         owner.lifecycle.addObserver(obs)
         onDispose { owner.lifecycle.removeObserver(obs) }
     }
+}
+
+/** Per-screen memory for [OnReturn]: skip only the very first resume of this view-model scope. */
+class ReturnTracker : androidx.lifecycle.ViewModel() {
+    private var seen = false
+    /** False exactly once (first show — the view model's own load covers it), true after. */
+    fun shouldRun(): Boolean = if (seen) true else { seen = true; false }
 }
 
 

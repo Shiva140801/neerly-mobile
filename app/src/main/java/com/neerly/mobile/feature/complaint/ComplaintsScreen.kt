@@ -46,6 +46,7 @@ class ComplaintsViewModel @Inject constructor(private val api: NeerlyApi, privat
 fun ComplaintsScreen(onBack: () -> Unit, onOpen: (String) -> Unit, onNew: () -> Unit, vm: ComplaintsViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     com.neerly.mobile.core.design.OnReturn(vm::load)
+    com.neerly.mobile.core.util.OnLiveChange({ it.complaintId != null || it.type?.contains("COMPLAINT") == true }) { vm.load() }
     BoondhPage(stringResource(R.string.acct_cmp_title), onBack = onBack, topAction = {
         androidx.compose.material3.Button(onClick = onNew, shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = NeerlyColors.Ink900),

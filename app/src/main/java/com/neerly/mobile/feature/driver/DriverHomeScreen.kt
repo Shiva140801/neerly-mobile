@@ -63,6 +63,8 @@ fun DriverHomeScreen(
     vm: DriverHomeViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    // Assignments, cash confirmations and shift changes arrive as pushes: re-read at once.
+    com.neerly.mobile.core.util.OnLiveChange({ it.type?.startsWith("DRIVER_") == true }) { vm.refresh() }
     val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, e ->

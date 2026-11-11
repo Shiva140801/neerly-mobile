@@ -76,6 +76,8 @@ fun NotificationFeedScreen(
     vm: NotificationFeedViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.OnLiveChange(action = vm::refresh)
     val unread = items.count { !it.isRead }
     val strings = com.neerly.mobile.core.util.rememberStrings()
     // Board Notifications: chevron with "Mark all read" on the right, day groups, hairline
@@ -90,7 +92,7 @@ fun NotificationFeedScreen(
                 Icon(androidx.compose.material.icons.Icons.Outlined.Settings, contentDescription = stringResource(R.string.acct_ntf_settings), tint = NeerlyColors.Ink900) }
         }
     ) {
-        if (loading || state.error != null || items.isEmpty()) {
+        if ((loading && items.isEmpty()) || state.error != null || items.isEmpty()) {
             item { LoadState(loading, state.error, vm::refresh, stringResource(R.string.acct_ntf_empty),
                 stringResource(R.string.acct_ntf_empty_body)) }
             return@BoondhPage

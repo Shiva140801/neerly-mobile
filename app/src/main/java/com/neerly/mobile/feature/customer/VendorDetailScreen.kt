@@ -64,6 +64,7 @@ fun VendorDetailScreen(
 ) {
     val state by vm.state.collectAsState()
     val online by vm.isOnline.collectAsState()
+    com.neerly.mobile.core.design.OnReturn(vm::refresh)
     var pendingSwitch by remember { mutableStateOf<ProductSheetSelection?>(null) }
     var sheetProduct by remember { mutableStateOf<ProductResponse?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -81,7 +82,7 @@ fun VendorDetailScreen(
     Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas)) {
         if (!online) OfflineBanner(onRetry = vm::refresh)
         when {
-            state.loading -> VendorDetailSkeleton()
+            state.loading && state.vendor == null -> VendorDetailSkeleton()
             state.error != null -> VendorDetailError(message = state.error!!, onRetry = vm::refresh, onBack = onBack)
             else -> {
                 val v = state.vendor

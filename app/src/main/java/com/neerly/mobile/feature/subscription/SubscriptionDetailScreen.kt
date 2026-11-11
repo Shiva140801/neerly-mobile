@@ -36,6 +36,8 @@ fun SubscriptionDetailScreen(
     vm: SubscriptionDetailViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    com.neerly.mobile.core.design.OnReturn(vm::load)
+    com.neerly.mobile.core.util.OnLiveChange({ it.type?.startsWith("CUST_SUB") == true }) { vm.load() }
     var mode by remember { mutableStateOf(Mode.Detail) }
     val s = state.subscription
     // A finished action returns to the detail behind its confirmation.

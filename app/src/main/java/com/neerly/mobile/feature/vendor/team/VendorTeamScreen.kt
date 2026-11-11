@@ -30,6 +30,8 @@ fun VendorTeamScreen(
 ) {
     val s by vm.state.collectAsState()
     OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.LivePoll(s.cash.any { it.confirmation == null && it.cashExpected.signum() > 0 }, com.neerly.mobile.data.config.LocalAppConfig.current.liveRefreshMs) { vm.refresh() }
+    com.neerly.mobile.core.util.OnLiveChange({ it.type?.startsWith("SELLER_") == true }) { vm.refresh() }
     when {
         s.count != null -> { BackHandler { vm.closeCount() }; CashCount(s.count!!, vm) }
         s.invite != null -> { BackHandler { vm.closeInvite() }; Invite(s.invite!!, vm) }

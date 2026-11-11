@@ -33,6 +33,7 @@ fun DepositsScreen(
 ) {
     val state by vm.state.collectAsState()
     com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.OnLiveChange({ it.type in setOf("CUST_JAR_DUE", "CUST_DELIVERED", "CUST_REFUND_SENT") }) { vm.refresh() }
     var returning by remember { mutableStateOf<DepositResponse?>(null) }
     val cfg = LocalAppConfig.current
 

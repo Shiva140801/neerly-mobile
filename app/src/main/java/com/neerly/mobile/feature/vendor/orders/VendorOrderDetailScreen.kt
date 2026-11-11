@@ -21,6 +21,9 @@ import com.neerly.mobile.feature.vendor.dashboard.statusWord
 fun VendorOrderDetailScreen(onBack: () -> Unit, vm: VendorOrderDetailViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     val o = s.order
+    com.neerly.mobile.core.design.OnReturn(vm::load)
+    com.neerly.mobile.core.util.LivePoll(o != null && o.status !in setOf("DELIVERED", "CANCELLED", "FAILED"), com.neerly.mobile.data.config.LocalAppConfig.current.liveRefreshMs) { vm.load() }
+    com.neerly.mobile.core.util.OnLiveChange({ it.orderId == null || it.orderId == o?.id }) { vm.load() }
     BoondhPage(
         title = o?.orderNumber ?: stringResource(R.string.vend_order),
         onBack = onBack, backLabel = stringResource(R.string.vend_tab_orders),

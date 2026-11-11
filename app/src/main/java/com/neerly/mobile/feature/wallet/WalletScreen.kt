@@ -56,6 +56,7 @@ fun WalletScreen(
 ) {
     val state by vm.state.collectAsState()
     com.neerly.mobile.core.design.OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.OnLiveChange({ it.type in setOf("CUST_WALLET_MOVED", "CUST_REFUND_SENT", "CUST_DELIVERED") }) { vm.refresh() }
     val context = LocalContext.current
     var addOpen by remember { mutableStateOf(false) }
     state.added?.let { done ->

@@ -66,6 +66,10 @@ fun CustomerHomeScreen(
 ) {
     val state by vm.state.collectAsState()
     val online by vm.isOnline.collectAsState()
+    // Open orders change on the shop's and driver's phones: keep re-checking while one is open,
+    // and re-read at once when a push says something moved.
+    com.neerly.mobile.core.util.LivePoll(state.activeOrders.isNotEmpty(), com.neerly.mobile.data.config.LocalAppConfig.current.liveRefreshMs) { vm.refresh(); vm.refreshUnread() }
+    com.neerly.mobile.core.util.OnLiveChange { vm.refresh(); vm.refreshUnread() }
     // Back from adding the first address: reload so shops for that pincode show up.
     val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(owner) {
@@ -125,7 +129,7 @@ fun CustomerHomeScreen(
                         fontWeight = FontWeight.Medium, fontSize = 32.sp, lineHeight = 36.sp, color = NeerlyColors.Ink600)
                 }
             }
-            if (state.loading) { item { HomeSkeleton() }; return@LazyColumn }
+            if (state.loading && state.primaryAddress == null && state.vendors.isEmpty() && state.activeOrders.isEmpty()) { item { HomeSkeleton() }; return@LazyColumn }
             if (state.error != null) { item { com.neerly.mobile.core.design.LoadState(false, state.error, vm::refresh) }; return@LazyColumn }
             if (state.primaryAddress == null) item {
                 com.neerly.mobile.core.design.BoondhCard {
