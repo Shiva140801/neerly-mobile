@@ -27,6 +27,14 @@ class NotificationFeedViewModel @Inject constructor(
     private val _state = MutableStateFlow(NotificationFeedUiState())
     val state: StateFlow<NotificationFeedUiState> = _state.asStateFlow()
 
+    /**
+     * Rows the customer marked read on this screen. A refresh that was already in flight
+     * (live refresh on return / on a push) can land after "Mark all read" with the old
+     * unread rows — without this they came back as unread (user report).
+     */
+    private val readHere = mutableSetOf<String>()
+    private var markAllPending = false
+
     init { refresh() }
 
     fun refresh() {
@@ -36,7 +44,9 @@ class NotificationFeedViewModel @Inject constructor(
                 .onSuccess { rows ->
                     _state.value = NotificationFeedUiState(
                         loading = false,
-                        items = rows.map { it.toFeedItem() }
+                        items = rows.map { it.toFeedItem() }.map {
+                            if (it.id in readHere || (markAllPending && !it.isRead)) it.copy(isRead = true) else it
+                        }
                     )
                 }
                 .onFailure {
@@ -49,6 +59,7 @@ class NotificationFeedViewModel @Inject constructor(
     }
 
     fun markRead(id: String) {
+        readHere += id
         // Optimistic flip.
         _state.value = _state.value.copy(
             items = _state.value.items.map {
@@ -65,10 +76,19 @@ class NotificationFeedViewModel @Inject constructor(
     fun markAllRead() {
         val before = _state.value.items
         if (before.none { !it.isRead }) return
-        _state.value = _state.value.copy(items = before.map { it.copy(isRead = true) })
+        readHere += before.map { it.id }
+        markAllPending = true
+        _state.value = _state.value.copy(items = before.map { it.copy(isRead = true) }, markError = null)
         viewModelScope.launch {
             runCatching { repo.markAllNotificationsRead() }
-                .onFailure { _state.value = _state.value.copy(items = before) }
+                .onSuccess { markAllPending = false; refresh() }
+                .onFailure {
+                    // Say so instead of silently flipping the dots back.
+                    markAllPending = false
+                    readHere -= before.filter { !it.isRead }.map { it.id }.toSet()
+                    _state.value = _state.value.copy(items = before,
+                        markError = it.userMessage("notifications", com.neerly.mobile.R.string.acct_ntf_mark_failed, strings))
+                }
         }
     }
 
@@ -85,5 +105,7 @@ class NotificationFeedViewModel @Inject constructor(
 data class NotificationFeedUiState(
     val loading: Boolean = true,
     val items: List<FeedItem> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    /** "Mark all read" failed — shown above the list, which stays visible. */
+    val markError: String? = null
 )

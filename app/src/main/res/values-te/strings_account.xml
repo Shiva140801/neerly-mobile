@@ -637,4 +637,5 @@
         <item quantity="one">%1$d జార్</item>
         <item quantity="other">%1$d జార్లు</item>
     </plurals>
+    <string name="acct_ntf_mark_failed">చదివినట్లు గుర్తించలేకపోయాం. కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.</string>
 </resources>

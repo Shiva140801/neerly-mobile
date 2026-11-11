@@ -92,6 +92,7 @@ fun NotificationFeedScreen(
                 Icon(androidx.compose.material.icons.Icons.Outlined.Settings, contentDescription = stringResource(R.string.acct_ntf_settings), tint = NeerlyColors.Ink900) }
         }
     ) {
+        state.markError?.let { m -> item { com.neerly.mobile.core.design.Notice(m, com.neerly.mobile.core.design.Tone.Bad) } }
         if ((loading && items.isEmpty()) || state.error != null || items.isEmpty()) {
             item { LoadState(loading, state.error, vm::refresh, stringResource(R.string.acct_ntf_empty),
                 stringResource(R.string.acct_ntf_empty_body)) }

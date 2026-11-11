@@ -637,4 +637,5 @@
         <item quantity="one">%1$d जार</item>
         <item quantity="other">%1$d जार</item>
     </plurals>
+    <string name="acct_ntf_mark_failed">पढ़ा हुआ नहीं कर पाए। कनेक्शन देखकर फिर कोशिश करें।</string>
 </resources>

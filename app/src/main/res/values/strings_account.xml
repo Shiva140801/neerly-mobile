@@ -637,4 +637,5 @@
         <item quantity="one">%1$d jar</item>
         <item quantity="other">%1$d jars</item>
     </plurals>
+    <string name="acct_ntf_mark_failed">Couldn\'t mark them read. Check your connection and try again.</string>
 </resources>
