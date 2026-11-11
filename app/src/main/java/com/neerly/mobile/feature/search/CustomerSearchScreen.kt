@@ -402,6 +402,7 @@ private fun VendorResultRow(vendor: SearchVendorHit, query: String, onClick: () 
             val kmFmt = stringResource(R.string.cust_km, "%s")
             val bits = listOfNotNull(
                 vendor.rating?.let { "${it.setScale(1, java.math.RoundingMode.HALF_UP)} ★" },
+                vendor.etaMinutesMin?.let { lo -> stringResource(R.string.cust_home_eta, lo, vendor.etaMinutesMax ?: lo) },
                 vendor.distanceKm?.let { kmFmt.replace("%s", it.setScale(1, java.math.RoundingMode.HALF_UP).toPlainString()) }
             ).joinToString(" · ")
             Text(bits.ifBlank { stringResource(R.string.cust_search_tap_stock) }, fontSize = 15.sp, color = NeerlyColors.Ink600)

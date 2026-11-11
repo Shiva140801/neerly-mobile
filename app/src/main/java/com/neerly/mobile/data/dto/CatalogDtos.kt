@@ -122,5 +122,7 @@ data class SearchVendorHit(
     val businessName: String,
     val status: String,
     val rating: BigDecimal? = null,
-    val distanceKm: BigDecimal? = null
+    val distanceKm: BigDecimal? = null,
+    val etaMinutesMin: Int? = null,
+    val etaMinutesMax: Int? = null
 )
