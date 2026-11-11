@@ -769,7 +769,7 @@
     </plurals>
     <string name="cust_shop2_after_hours">Closed now · opens %1$s. You can still book a slot for later.</string>
     <string name="cust_shop2_after_hours_plain">Closed now. You can still book a slot for later.</string>
-    <string name="cust_oh_nothing_charged">Nothing was charged</string>
+    <string name="cust_oh_nothing_charged">Nothing charged</string>
     <string name="cust_oh_refund_line">Refund on its way</string>
     <string name="cust_money_refunded_wallet">Refunded %1$s to your wallet</string>
     <string name="cust_money_refunded_source">Refunded %1$s to how you paid</string>
@@ -780,4 +780,10 @@
     <string name="cust_placed_slot_today">Today, %1$s</string>
     <string name="cust_placed_slot_tomorrow">Tomorrow, %1$s</string>
     <string name="cust_placed_slot_day">%1$s, %2$s</string>
+    <string name="cust_oh_not_delivered">Not delivered</string>
+    <string name="cust_oh_delivered">Delivered</string>
+    <string name="cust_oh_see_refund">See refund</string>
+    <string name="cust_oh_try_again">Try again</string>
+    <string name="cust_oh_today">Today · %1$s</string>
+    <string name="cust_oh_yesterday">Yesterday · %1$s</string>
 </resources>

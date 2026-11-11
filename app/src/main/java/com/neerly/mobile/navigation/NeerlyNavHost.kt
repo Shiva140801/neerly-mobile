@@ -580,7 +580,9 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onSelectTab = nav::switchTab,
                 onRate = { id, name -> nav.navigate(Routes.reviewSubmit(id, name)) },
                 onInvoice = { id -> nav.navigate(Routes.invoice(id)) },
-                onCart = { nav.navigate(Routes.Cart) }
+                onCart = { nav.navigate(Routes.Cart) },
+                onRefunds = { nav.navigate(Routes.Refunds) },
+                onTryAgain = { id -> nav.navigate(Routes.redeliver(id, "time")) }
             )
         }
         // ---- Week 3 ----
@@ -689,9 +691,11 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
             ProfileScreen(
                 onBack = { nav.popBackStack() },
                 onAddresses = { nav.navigate(Routes.AddressList) },
-                onWallet = { nav.navigate(Routes.Wallet) },
-                onOrders = { nav.navigate(Routes.OrderHistory) },
-                onSubscriptions = { nav.navigate(Routes.Subscriptions) },
+                // Orders, Subs and Wallet are tabs: switch to them like the bottom bar does.
+                // Pushing the tab screen left it with no back arrow and the wrong tab lit.
+                onWallet = { nav.switchTab(CustomerTab.Wallet) },
+                onOrders = { nav.switchTab(CustomerTab.Orders) },
+                onSubscriptions = { nav.switchTab(CustomerTab.Subs) },
                 onDeposits = { nav.navigate(Routes.Deposits) },
                 onComplaints = { nav.navigate(Routes.Complaints) },
                 onNotifications = { nav.navigate(Routes.NotificationFeed) },

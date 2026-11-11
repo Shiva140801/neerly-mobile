@@ -32,19 +32,18 @@ fun OrderHistoryScreen(
     onRate: (String, String) -> Unit = { _, _ -> },
     onInvoice: (String) -> Unit = {},
     onCart: () -> Unit = {},
+    onRefunds: () -> Unit = {},
+    onTryAgain: (String) -> Unit = {},
     vm: OrderHistoryViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
-    // The tab keeps its view model across tab switches, and OnReturn skips the first
-    // resume after the screen is rebuilt — so a cancel made on the tracking screen never
-    // reached this list. Reload every time the screen appears, and keep re-checking while
-    // an order is open: the shop and driver change its status from their phones.
-    LaunchedEffect(Unit) { vm.refresh() }
+    // Re-read on every return (OnReturn now survives tab switches), when a push says an
+    // order moved, and on a timer while one is open — the shop and driver change its status
+    // from their phones.
     com.neerly.mobile.core.design.OnReturn(vm::refresh)
-    val anyActive = state.orders.any { it.status in ACTIVE }
-    LaunchedEffect(anyActive) {
-        while (anyActive) { kotlinx.coroutines.delay(OrderHistoryViewModel.LIVE_REFRESH_MS); vm.refresh() }
-    }
+    com.neerly.mobile.core.util.OnLiveChange(action = vm::refresh)
+    com.neerly.mobile.core.util.LivePoll(state.orders.any { it.status in ACTIVE },
+        com.neerly.mobile.data.config.LocalAppConfig.current.liveRefreshMs) { vm.refresh() }
     BoondhPage(stringResource(R.string.cust_oh_title), bottomBar = { CustomerBottomBar(current = CustomerTab.Orders, onSelect = onSelectTab) }) {
         if (state.orders.isEmpty()) {
             item { LoadState(state.loading, state.error, vm::refresh, stringResource(R.string.cust_oh_empty), stringResource(R.string.cust_oh_empty_body)) }
@@ -55,37 +54,17 @@ fun OrderHistoryScreen(
             // Board Orders: the label lives inside the navy card, not above it.
             items(active, key = { it.id }) { o -> ActiveCard(o, vm.codeFor(o.id)) { onOpen(o.id) } }
         }
-        if (earlier.isNotEmpty()) {
-            item { SectionLabel(stringResource(R.string.cust_oh_earlier)) }
-            items(earlier, key = { it.id }) { o ->
-                // Board Orders: hairline rows; filled ink "Reorder", outlined pills beside it.
-                Column(Modifier.fillMaxWidth().clickable { onOpen(o.id) }.padding(vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(verticalAlignment = Alignment.Top) {
-                        Column(Modifier.weight(1f)) {
-                            Text(o.vendorName ?: stringResource(R.string.cust_oh_order_no, o.orderNumber), fontSize = 17.sp, fontWeight = FontWeight.Bold,
-                                color = if (o.status in ENDED_UNDELIVERED) NeerlyColors.Ink600 else NeerlyColors.Ink900)
-                            Text(listOf(shortDay(o.placedAt), itemsLine(o), o.orderNumber.substringAfterLast('-')).filter { it.isNotBlank() }.joinToString(" · "),
-                                fontSize = 14.sp, lineHeight = 20.sp, color = NeerlyColors.Ink600)
-                        }
-                        // A cancelled or failed order wasn't paid for (or was refunded): strike the amount.
-                        Text(o.totalAmount.rupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold,
-                            color = if (o.status in ENDED_UNDELIVERED) NeerlyColors.Ink500 else NeerlyColors.Ink900,
-                            textDecoration = if (o.status in ENDED_UNDELIVERED) androidx.compose.ui.text.style.TextDecoration.LineThrough else null)
-                    }
-                    // Board Orders: a row's state is a coloured line under the meta ("Help request
-                    // open · leaking jar" in amber) — cancelled in red, not delivered in amber.
-                    if (o.status in ENDED_UNDELIVERED) Text(
-                        listOf(endLine(o), if (o.paymentMethod == "COD") stringResource(R.string.cust_oh_nothing_charged) else stringResource(R.string.cust_oh_refund_line))
-                            .joinToString(" · "),
-                        fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                        color = if (o.status == "CANCELLED") NeerlyColors.Err else NeerlyColors.Warn)
-                    if (o.status == "DELIVERED") Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Pillbutton(stringResource(R.string.cust_oh_reorder), filled = true) { if (vm.reorder(o)) onCart() }
-                        Pillbutton(stringResource(R.string.cust_oh_rate), filled = false) { onRate(o.id, o.vendorName ?: o.orderNumber) }
-                        Pillbutton(stringResource(R.string.cust_oh_invoice), filled = false) { onInvoice(o.id) }
-                    }
+        // Board OrdersStates: history grouped by day ("TODAY · TUE 10 NOV"); each row is the
+        // shop, "items · #0050", a coloured state word + what happened to the money, the
+        // amount (struck when nothing was delivered) and one text action on the right.
+        // One list item per day: the page's 14 dp item gap then separates days only, and rows
+        // inside a day sit as tight as the board.
+        earlier.groupBy { dayKey(it.placedAt) }.forEach { (_, day) ->
+            item(key = "day-" + day.first().id) {
+                Column {
+                    SectionLabel(dayHeader(day.first().placedAt), Modifier.padding(bottom = 2.dp))
+                    day.forEach { o -> HistoryRow(o, onOpen, onRate, onInvoice, onRefunds, onTryAgain) { if (vm.reorder(o)) onCart() } }
                 }
-                HorizontalDivider(color = NeerlyColors.Ink200)
             }
         }
     }
@@ -149,4 +128,75 @@ private fun endLine(o: OrderResponse) = when (o.status) {
     "CANCELLED" -> stringResource(R.string.cust_oh_cancelled)
     "FAILED" -> stringResource(R.string.cust_oh_failed)
     else -> ""
+}
+
+@Composable
+private fun HistoryRow(
+    o: OrderResponse, onOpen: (String) -> Unit, onRate: (String, String) -> Unit, onInvoice: (String) -> Unit,
+    onRefunds: () -> Unit, onTryAgain: (String) -> Unit, onReorder: () -> Unit
+) {
+    val undelivered = o.status in ENDED_UNDELIVERED
+    val refund = o.moneyState in setOf("REFUND_PENDING", "REFUNDED", "REFUND_FAILED") ||
+        (o.moneyState == null && undelivered && o.paymentMethod != "COD")
+    Column(Modifier.fillMaxWidth().clickable { onOpen(o.id) }.padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.Top) {
+            Text(o.vendorName ?: stringResource(R.string.cust_oh_order_no, o.orderNumber), Modifier.weight(1f),
+                fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            Text(o.totalAmount.rupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                color = if (undelivered) NeerlyColors.Ink500 else NeerlyColors.Ink900,
+                textDecoration = if (undelivered) androidx.compose.ui.text.style.TextDecoration.LineThrough else null)
+        }
+        Text(listOf(itemsLine(o), "#" + o.orderNumber.substringAfterLast('-')).filter { it.isNotBlank() }.joinToString(" · "),
+            fontSize = 14.sp, color = NeerlyColors.Ink600)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val (word, wordColor) = when (o.status) {
+                "CANCELLED" -> stringResource(R.string.cust_oh_cancelled) to NeerlyColors.Err
+                "FAILED" -> stringResource(R.string.cust_oh_not_delivered) to NeerlyColors.Warn
+                else -> stringResource(R.string.cust_oh_delivered) to NeerlyColors.Ok
+            }
+            Text(androidx.compose.ui.text.buildAnnotatedString {
+                pushStyle(androidx.compose.ui.text.SpanStyle(color = wordColor, fontWeight = FontWeight.Bold)); append(word); pop()
+                if (undelivered) {
+                    pushStyle(androidx.compose.ui.text.SpanStyle(color = if (refund) NeerlyColors.Ok else NeerlyColors.Ink600))
+                    append(" · "); append(orderMoneyLine(o).replaceFirstChar { it.lowercase() }); pop()
+                }
+            }, Modifier.weight(1f), fontSize = 15.sp)
+            val action: Pair<String, () -> Unit>? = when {
+                !undelivered -> null
+                refund -> stringResource(R.string.cust_oh_see_refund) to onRefunds
+                o.status == "FAILED" -> stringResource(R.string.cust_oh_try_again) to { onTryAgain(o.id) }
+                else -> stringResource(R.string.cust_oh_reorder) to onReorder
+            }
+            // Board OrdersStates: the action is plain text sitting on the state line, so the row
+            // stays as tight as the board. Its tap area is the text plus 6 dp — below the 48 dp
+            // guideline (logged as a design issue); the whole row still opens the order.
+            action?.let { (label, go) ->
+                Text(label, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary,
+                    modifier = Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = go)
+                        .padding(horizontal = 6.dp, vertical = 6.dp))
+            }
+        }
+        if (o.status == "DELIVERED") Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 8.dp)) {
+            Pillbutton(stringResource(R.string.cust_oh_reorder), filled = true, onClick = onReorder)
+            Pillbutton(stringResource(R.string.cust_oh_rate), filled = false) { onRate(o.id, o.vendorName ?: o.orderNumber) }
+            Pillbutton(stringResource(R.string.cust_oh_invoice), filled = false) { onInvoice(o.id) }
+        }
+    }
+    HorizontalDivider(color = NeerlyColors.Ink200)
+}
+
+private fun dayKey(iso: String?): String = iso?.take(10).orEmpty()
+
+/** "Today · Tue 10 Nov", "Yesterday · Mon 9 Nov", else "Sun 8 Nov" — uppercased by SectionLabel. */
+@Composable
+private fun dayHeader(iso: String?): String {
+    val zone = java.time.ZoneId.of("Asia/Kolkata")
+    val day = runCatching { java.time.OffsetDateTime.parse(iso).atZoneSameInstant(zone).toLocalDate() }
+        .recoverCatching { java.time.Instant.parse(iso).atZone(zone).toLocalDate() }.getOrNull()
+    val today = java.time.LocalDate.now(zone)
+    return when (day) {
+        today -> stringResource(R.string.cust_oh_today, shortDay(iso))
+        today.minusDays(1) -> stringResource(R.string.cust_oh_yesterday, shortDay(iso))
+        else -> shortDay(iso)
+    }
 }

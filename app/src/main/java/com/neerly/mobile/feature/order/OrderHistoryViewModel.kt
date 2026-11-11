@@ -43,11 +43,6 @@ class OrderHistoryViewModel @Inject constructor(
 
     init { load() }
 
-    companion object {
-        /** How often the list re-checks while an order is still open. */
-        const val LIVE_REFRESH_MS = 15_000L
-    }
-
     fun refresh() = load()
 
     fun load() {

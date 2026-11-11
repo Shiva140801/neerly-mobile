@@ -780,4 +780,10 @@
     <string name="cust_placed_slot_today">आज, %1$s</string>
     <string name="cust_placed_slot_tomorrow">कल, %1$s</string>
     <string name="cust_placed_slot_day">%1$s, %2$s</string>
+    <string name="cust_oh_not_delivered">डिलीवर नहीं हुआ</string>
+    <string name="cust_oh_delivered">डिलीवर हो गया</string>
+    <string name="cust_oh_see_refund">रिफ़ंड देखें</string>
+    <string name="cust_oh_try_again">फिर से कोशिश करें</string>
+    <string name="cust_oh_today">आज · %1$s</string>
+    <string name="cust_oh_yesterday">कल · %1$s</string>
 </resources>
