@@ -71,11 +71,11 @@
     <string name="vend_bank">बैंक</string>
     <string name="vend_bank_account">बैंक खाता</string>
     <string name="vend_bank_check_note">पहले भुगतान से पहले Boondh की टीम खाते का नाम आपके PAN और रद्द चेक से मिलाती है।</string>
-    <string name="vend_bank_checked_note">Boondh ने टेस्ट जमा से इस खाते की पुष्टि की।</string>
+    <string name="vend_bank_checked_note">Boondh ने यह खाता जाँच लिया है। भुगतान यहीं आएँगे।</string>
     <string name="vend_bank_checking">%1$s · Boondh जाँच रहा है</string>
     <string name="vend_bank_first_title">आपका पैसा कहाँ भेजें?</string>
     <string name="vend_bank_name_opt">बैंक का नाम (वैकल्पिक)</string>
-    <string name="vend_bank_saved">सेव हो गया। सोमवार का भुगतान इसी खाते में जाएगा।</string>
+    <string name="vend_bank_saved">सेव हो गया। अगले भुगतान से पहले Boondh इसकी जाँच करेगा।</string>
     <string name="vend_bank_sub">हर सोमवार, पिछले सोमवार–रविवार का भुगतान आता है। हर जार लौटने तक उसकी जमा राशि अलग रहती है।</string>
     <string name="vend_bank_unchecked_note">भुगतान यहीं आएगा। Boondh ने अभी टेस्ट जमा नहीं भेजा, इसलिए नंबर दोबारा जाँचें — गलत नंबर पर भुगतान लौट आता है।</string>
     <string name="vend_bill_delivery">डिलीवरी</string>
@@ -1114,4 +1114,9 @@
         <item quantity="one">%1$d दिन देर</item>
         <item quantity="other">%1$d दिन देर</item>
     </plurals>
+    <string name="vend_bank_under_review">जाँच में है</string>
+    <string name="vend_bank_rejected">स्वीकार नहीं हुआ</string>
+    <string name="vend_bank_review_note">बैंक विवरण जाँच में हैं। Boondh आपके चेक से नाम और नंबर मिलाता है, आमतौर पर एक दिन में। सत्यापित होने के बाद भुगतान शुरू होंगे।</string>
+    <string name="vend_bank_rejected_note">Boondh यह खाता स्वीकार नहीं कर सका: %1$s. दोबारा भेजने के लिए विवरण बदलें।</string>
+    <string name="vend_bank_rejected_note_plain">Boondh यह खाता स्वीकार नहीं कर सका। दोबारा भेजने के लिए विवरण बदलें।</string>
 </resources>

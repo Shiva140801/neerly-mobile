@@ -17,8 +17,8 @@ import javax.inject.Inject
 
 /**
  * Boards V04 / V33 — where payouts go. One active account per vendor; saving a new one
- * replaces the old server-side. The backend doesn't run a penny-drop yet (it marks a saved
- * account "MANUAL" straight away), so the screen calls it "saved", never "verified".
+ * replaces the old server-side. A new account waits for a Boondh admin to check it against
+ * the cheque before any payout goes there ([review]).
  */
 @HiltViewModel
 class VendorBankViewModel @Inject constructor(
@@ -73,9 +73,15 @@ class VendorBankViewModel @Inject constructor(
             else -> null
         }
 
-        /** What we can honestly say about an account: only a real test deposit counts as checked. */
-        fun checked(a: VendorBankAccountResponse): Boolean =
-            a.verifiedAt != null && a.verificationMethod != null && a.verificationMethod != "MANUAL"
+        /** Where the account's review stands, as the server reports it. */
+        fun review(a: VendorBankAccountResponse): BankReview = when {
+            a.status == "REJECTED" -> BankReview.Rejected
+            a.status == "VERIFIED" || (a.status.isBlank() && a.verifiedAt != null) -> BankReview.Verified
+            else -> BankReview.UnderReview
+        }
+
+        /** Verified accounts get paid; an under-review or rejected one does not. */
+        fun checked(a: VendorBankAccountResponse): Boolean = review(a) == BankReview.Verified
     }
 }
 
@@ -88,3 +94,5 @@ data class VendorBankUiState(
     val saved: Boolean = false,
     val error: String? = null
 )
+
+enum class BankReview { UnderReview, Verified, Rejected }

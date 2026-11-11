@@ -57,14 +57,23 @@ fun VendorBankScreen(
 @Composable
 private fun CurrentAccount(a: VendorBankAccountResponse) {
     BoondhCard {
-        if (VendorBankViewModel.checked(a)) Pill(stringResource(R.string.vend_checked), Tone.Ok) else Pill(stringResource(R.string.vend_saved), Tone.Neutral)
+        val review = VendorBankViewModel.review(a)
+        when (review) {
+            BankReview.Verified -> Pill(stringResource(R.string.vend_checked), Tone.Ok)
+            BankReview.UnderReview -> Pill(stringResource(R.string.vend_bank_under_review), Tone.Warn)
+            BankReview.Rejected -> Pill(stringResource(R.string.vend_bank_rejected), Tone.Bad)
+        }
         Text("${a.bankName ?: stringResource(R.string.vend_bank_account)} ${a.accountNumberMasked}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
         InfoRow(stringResource(R.string.vend_holder), trailing = a.accountHolderName)
         InfoRow(stringResource(R.string.vend_ifsc), trailing = listOfNotNull(a.ifsc, a.branchName).joinToString(" · "))
         InfoRow(stringResource(R.string.vend_type), trailing = a.accountType.lowercase().replaceFirstChar { it.uppercase() })
         InfoRow(stringResource(R.string.vend_added), trailing = shortDay(a.addedAt))
-        Text(stringResource(if (VendorBankViewModel.checked(a)) R.string.vend_bank_checked_note else R.string.vend_bank_unchecked_note),
-            fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
+        when (review) {
+            BankReview.Verified -> Text(stringResource(R.string.vend_bank_checked_note), fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
+            BankReview.UnderReview -> Notice(stringResource(R.string.vend_bank_review_note), Tone.Warn)
+            BankReview.Rejected -> Notice(a.rejectionReason?.let { stringResource(R.string.vend_bank_rejected_note, it) }
+                ?: stringResource(R.string.vend_bank_rejected_note_plain), Tone.Bad)
+        }
     }
 }
 

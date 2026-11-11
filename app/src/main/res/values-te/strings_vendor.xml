@@ -71,11 +71,11 @@
     <string name="vend_bank">బ్యాంక్</string>
     <string name="vend_bank_account">బ్యాంక్ ఖాతా</string>
     <string name="vend_bank_check_note">మొదటి చెల్లింపుకి ముందు Boondh టీమ్ ఖాతాలోని పేరుని మీ PAN, రద్దు చెక్‌తో సరిచూస్తుంది.</string>
-    <string name="vend_bank_checked_note">టెస్ట్ డిపాజిట్‌తో Boondh ఈ ఖాతాని నిర్ధారించింది.</string>
+    <string name="vend_bank_checked_note">Boondh ఈ ఖాతాను తనిఖీ చేసింది. చెల్లింపులు ఇక్కడికే వస్తాయి.</string>
     <string name="vend_bank_checking">%1$s · Boondh తనిఖీ చేస్తోంది</string>
     <string name="vend_bank_first_title">మీ డబ్బు ఎక్కడికి పంపాలి?</string>
     <string name="vend_bank_name_opt">బ్యాంక్ పేరు (ఐచ్ఛికం)</string>
-    <string name="vend_bank_saved">సేవ్ అయింది. సోమవారం చెల్లింపు ఈ ఖాతాకి వస్తుంది.</string>
+    <string name="vend_bank_saved">సేవ్ అయింది. తదుపరి చెల్లింపుకు ముందు Boondh దీన్ని తనిఖీ చేస్తుంది.</string>
     <string name="vend_bank_sub">ప్రతి సోమవారం, ముందు వారం సోమవారం–ఆదివారం డబ్బు వస్తుంది. ప్రతి జార్ తిరిగి వచ్చే వరకు జార్ డిపాజిట్లు వేరుగా ఉంటాయి.</string>
     <string name="vend_bank_unchecked_note">చెల్లింపులు ఇక్కడికి వస్తాయి. Boondh ఇంకా టెస్ట్ డిపాజిట్ పంపలేదు, కాబట్టి నంబర్ మళ్ళీ చూసుకోండి — తప్పైతే చెల్లింపు తిరిగి వస్తుంది.</string>
     <string name="vend_bill_delivery">డెలివరీ</string>
@@ -1114,4 +1114,9 @@
         <item quantity="one">%1$d రోజు ఆలస్యం</item>
         <item quantity="other">%1$d రోజులు ఆలస్యం</item>
     </plurals>
+    <string name="vend_bank_under_review">పరిశీలనలో ఉంది</string>
+    <string name="vend_bank_rejected">అంగీకరించలేదు</string>
+    <string name="vend_bank_review_note">బ్యాంక్ వివరాలు పరిశీలనలో ఉన్నాయి. Boondh మీ చెక్‌తో పేరు, నంబర్‌ను సరిచూస్తుంది, సాధారణంగా ఒక రోజులో. ధృవీకరించిన తర్వాత చెల్లింపులు మొదలవుతాయి.</string>
+    <string name="vend_bank_rejected_note">Boondh ఈ ఖాతాను అంగీకరించలేకపోయింది: %1$s. మళ్లీ పంపడానికి వివరాలు మార్చండి.</string>
+    <string name="vend_bank_rejected_note_plain">Boondh ఈ ఖాతాను అంగీకరించలేకపోయింది. మళ్లీ పంపడానికి వివరాలు మార్చండి.</string>
 </resources>

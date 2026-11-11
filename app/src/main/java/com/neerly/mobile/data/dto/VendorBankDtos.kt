@@ -21,7 +21,11 @@ data class VendorBankAccountResponse(
     val verifiedAt: String?,
     val verificationMethod: String?,
     val addedAt: String,
-    val deactivatedAt: String?
+    val deactivatedAt: String?,
+    /** PENDING_VERIFICATION until a Boondh admin checks it; payouts only go to VERIFIED. */
+    val status: String = "PENDING_VERIFICATION",
+    /** The admin's reason when REJECTED, for the shop to fix. */
+    val rejectionReason: String? = null
 )
 
 @JsonClass(generateAdapter = true)

@@ -71,11 +71,11 @@
     <string name="vend_bank">Bank</string>
     <string name="vend_bank_account">Bank account</string>
     <string name="vend_bank_check_note">Boondh\'s team checks the name on the account against your PAN and cancelled cheque before the first payout.</string>
-    <string name="vend_bank_checked_note">Boondh confirmed this account with a test deposit.</string>
+    <string name="vend_bank_checked_note">Boondh checked this account. Payouts go here.</string>
     <string name="vend_bank_checking">%1$s · Boondh is checking it</string>
     <string name="vend_bank_first_title">Where should we send your money?</string>
     <string name="vend_bank_name_opt">Bank name (optional)</string>
-    <string name="vend_bank_saved">Saved. Monday\'s payout goes to this account.</string>
+    <string name="vend_bank_saved">Saved. Boondh will check it before the next payout.</string>
     <string name="vend_bank_sub">Payouts land every Monday, for the Monday–Sunday before. Jar deposits stay separate until each jar comes back.</string>
     <string name="vend_bank_unchecked_note">Payouts go here. Boondh hasn\'t sent a test deposit to it yet, so double-check the number — a wrong one bounces the payout.</string>
     <string name="vend_bill_delivery">Delivery</string>
@@ -1114,4 +1114,9 @@
         <item quantity="one">%1$d day late</item>
         <item quantity="other">%1$d days late</item>
     </plurals>
+    <string name="vend_bank_under_review">Under review</string>
+    <string name="vend_bank_rejected">Not accepted</string>
+    <string name="vend_bank_review_note">Bank details under review. Boondh checks the name and number against your cheque, usually within a day. Payouts start once it\'s verified.</string>
+    <string name="vend_bank_rejected_note">Boondh couldn\'t accept this account: %1$s. Change the details to send it again.</string>
+    <string name="vend_bank_rejected_note_plain">Boondh couldn\'t accept this account. Change the details to send it again.</string>
 </resources>

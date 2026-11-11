@@ -104,11 +104,16 @@ class VendorMoneyTeamViewModelTest {
     }
 
     @Test
-    fun bank_autoMarkedManualAccountIsNotCalledChecked() {
+    fun bank_reviewFollowsTheServerStatus_onlyVerifiedIsPaid() {
         val a = VendorBankAccountResponse("1", "R K", "•••• 1234", "HDFC0001234", "HDFC", null, "SAVINGS", true,
-            "2026-08-23T12:41:34Z", "MANUAL", "2026-08-23T12:41:34Z", null)
+            null, null, "2026-08-23T12:41:34Z", null, status = "PENDING_VERIFICATION")
+        assertEquals(com.neerly.mobile.feature.vendor.bank.BankReview.UnderReview, VendorBankViewModel.review(a))
         assertFalse(VendorBankViewModel.checked(a))
-        assertTrue(VendorBankViewModel.checked(a.copy(verificationMethod = "PENNY_DROP")))
+        val verified = a.copy(status = "VERIFIED", verifiedAt = "2026-08-24T10:00:00Z", verificationMethod = "MANUAL")
+        assertTrue(VendorBankViewModel.checked(verified))
+        val rejected = a.copy(status = "REJECTED", rejectionReason = "Name doesn't match")
+        assertEquals(com.neerly.mobile.feature.vendor.bank.BankReview.Rejected, VendorBankViewModel.review(rejected))
+        assertFalse(VendorBankViewModel.checked(rejected))
     }
 
     @Test
