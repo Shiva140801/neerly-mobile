@@ -239,6 +239,18 @@ fun shortDay(iso: String?): String {
         .getOrDefault(iso.take(10))
 }
 
+/** The IST moment of an ISO instant, or null — for grouping by day and showing a clock time. */
+fun istTime(iso: String?): java.time.ZonedDateTime? {
+    if (iso.isNullOrBlank()) return null
+    val ist = java.time.ZoneId.of("Asia/Kolkata")
+    return runCatching { java.time.OffsetDateTime.parse(iso).atZoneSameInstant(ist) }
+        .recoverCatching { java.time.Instant.parse(iso).atZone(ist) }.getOrNull()
+}
+
+/** "9:12 AM" in IST, in the app's language. */
+fun clockTime(iso: String?): String =
+    istTime(iso)?.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a", com.neerly.mobile.core.util.AppLocale.locale)) ?: ""
+
 /**
  * Runs [action] each time the screen comes back to the foreground (back from a detail screen,
  * or the app returning) — not on first show, when the view model's own load already ran.

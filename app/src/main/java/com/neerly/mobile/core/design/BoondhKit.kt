@@ -1,5 +1,7 @@
 package com.neerly.mobile.core.design
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -152,6 +154,34 @@ fun ListRow(onClick: (() -> Unit)? = null, divider: Boolean = true, content: @Co
                 .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp), content = content
         )
+        if (divider) HorizontalDivider(color = NeerlyColors.Ink200)
+    }
+}
+
+/** The boards' radio: a light ring, filled indigo with a white dot when chosen. Decorative — the row carries the semantics. */
+@Composable
+fun RingRadio(selected: Boolean) {
+    Box(Modifier.size(26.dp).clip(androidx.compose.foundation.shape.CircleShape)
+        .background(if (selected) NeerlyColors.CustomerPrimary else NeerlyColors.Paper)
+        .border(if (selected) 0.dp else 1.5.dp, NeerlyColors.Ink300, androidx.compose.foundation.shape.CircleShape)
+        .clearAndSetSemantics { }, contentAlignment = Alignment.Center) {
+        if (selected) Box(Modifier.size(10.dp).background(NeerlyColors.Paper, androidx.compose.foundation.shape.CircleShape))
+    }
+}
+
+/** A choice row for single-select lists (Help reasons, cancel reasons): ring radio + label on hairlines. */
+@Composable
+fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit, divider: Boolean = true) {
+    Column {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            RingRadio(selected)
+            Text(label, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+        }
         if (divider) HorizontalDivider(color = NeerlyColors.Ink200)
     }
 }

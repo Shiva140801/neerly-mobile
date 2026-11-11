@@ -104,7 +104,8 @@ fun OtpScreen(
 
         Spacer(Modifier.height(NeerlySpacing.x5))
 
-        // Minimal keypad stub — real Firebase Phone Auth handles input. This demos UI.
+        // The code itself: typed, or filled by SMS auto-read / Firebase instant verification.
+        // It feeds the boxes above and Verify (Firebase Phone Auth in release, dev OTP in debug).
         OutlinedTextField(
             value = code,
             onValueChange = { if (it.length <= 6 && it.all(Char::isDigit)) code = it },

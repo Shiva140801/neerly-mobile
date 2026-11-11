@@ -122,7 +122,7 @@ fun HelpScreen(
         subtitle = o?.let { listOfNotNull(it.orderNumber, driver?.let { d -> stringResource(R.string.acct_help_with, d) }).joinToString(" · ") },
         footer = {
             s.error?.let { Notice(it, Tone.Bad) }
-            if (s.sent == null) PrimaryButton(if (s.sending) stringResource(R.string.acct_evt_sending) else stringResource(R.string.acct_help_send), vm::send, enabled = s.canSend)
+            if (s.sent == null) PrimaryButton(when { s.sending -> stringResource(R.string.acct_evt_sending); s.reason == null -> stringResource(R.string.acct_help_pick_what); else -> stringResource(R.string.acct_help_send) }, vm::send, enabled = s.canSend)
             else {
                 PrimaryButton(stringResource(R.string.acct_help_open_thread), { onOpenThread(s.sent!!.id) })
                 SecondaryButton(stringResource(R.string.acct_help_see_all), onAllRequests)
@@ -144,43 +144,47 @@ fun HelpScreen(
             return@BoondhPage
         }
         val reasons = HelpReason.forOrder(s.order?.status)
+        // Board Help: reasons as hairline choice rows; the note field is always there and
+        // says what to do first, instead of appearing out of nowhere after a pick.
         items(reasons.size) { i ->
             val r = reasons[i]
-            val on = s.reason == r
-            BoondhCard(Modifier.border(if (on) 2.dp else 0.dp, if (on) NeerlyColors.CustomerPrimary else Color.Transparent, RoundedCornerShape(14.dp)),
-                onClick = { vm.pick(r) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = on, onClick = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(reasonLabel(r, driver), fontSize = 16.sp, color = NeerlyColors.Ink900)
-                }
+            com.neerly.mobile.core.design.ChoiceRow(reasonLabel(r, driver), s.reason == r, { vm.pick(r) }, divider = true)
+        }
+        item {
+            val r = s.reason
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(if (r == HelpReason.OTHER) stringResource(R.string.acct_help_more) else stringResource(R.string.acct_help_more_optional),
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                OutlinedTextField(value = s.details, onValueChange = vm::details, enabled = r != null,
+                    modifier = Modifier.fillMaxWidth(), minLines = 3, shape = RoundedCornerShape(14.dp),
+                    placeholder = { Text(if (r == null) stringResource(R.string.acct_help_pick_first) else stringResource(r.hintRes)) },
+                    colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = NeerlyColors.Paper, focusedContainerColor = NeerlyColors.Paper,
+                        disabledContainerColor = NeerlyColors.Paper, unfocusedBorderColor = NeerlyColors.Ink300, disabledBorderColor = NeerlyColors.Ink200))
             }
         }
-        s.reason?.let { r -> item {
-            Column {
-                Text(if (r == HelpReason.OTHER) stringResource(R.string.acct_help_more) else stringResource(R.string.acct_help_more_optional), fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
-                Spacer(Modifier.height(4.dp))
-                OutlinedTextField(value = s.details, onValueChange = vm::details, modifier = Modifier.fillMaxWidth(), minLines = 3,
-                    placeholder = { Text(stringResource(r.hintRes)) })
-            }
-        } }
         if (s.order?.status != "DELIVERED") item {
             Text(stringResource(R.string.acct_help_after_arrive), fontSize = 13.sp, color = NeerlyColors.Ink600) }
-        item { Text(stringResource(R.string.acct_help_hours, cfg.clock(cfg.supportOpens), cfg.clock(cfg.supportCloses)), fontSize = 13.sp, color = NeerlyColors.Ink600) }
-        if (cfg.supportPhone.isNotBlank()) item { CallSupport(cfg.supportPhone) }
+        // "Rather talk? Call Boondh support, 6 AM – 10 PM" when a number is set; otherwise just the hours.
+        item {
+            val hours = stringResource(R.string.acct_help_hours, cfg.clock(cfg.supportOpens), cfg.clock(cfg.supportCloses))
+            if (cfg.supportPhone.isNotBlank()) CallSupport(cfg.supportPhone,
+                stringResource(R.string.acct_help_rather_talk, cfg.clock(cfg.supportOpens), cfg.clock(cfg.supportCloses)))
+            else Text(hours, fontSize = 14.sp, color = NeerlyColors.Ink600)
+        }
     }
 }
 
 /** Shown only when admins have set `support.phone`; opens the dialler, never calls by itself. */
 @Composable
-private fun CallSupport(phone: String) {
+private fun CallSupport(phone: String, label: String) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    SecondaryButton(stringResource(R.string.acct_help_call), {
+    TextButton(onClick = {
         runCatching {
             context.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:$phone")))
         }
-    })
+    }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+        Text(label, color = NeerlyColors.CustomerPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+    }
 }
 
 /** "Ravi can't find my place" when we know the driver's name. */

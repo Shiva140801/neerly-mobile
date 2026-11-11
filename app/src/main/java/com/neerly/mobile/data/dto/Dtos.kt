@@ -91,7 +91,10 @@ data class ComplaintResponse(
     val awardedAmount: java.math.BigDecimal? = null,
     val resolvedAt: String? = null,
     val closedAt: String? = null,
-    val messages: List<ComplaintMessageDto> = emptyList()
+    val messages: List<ComplaintMessageDto> = emptyList(),
+    /** For the thread header "NEE-… · with Sri Ganesh". */
+    val orderNumber: String? = null,
+    val vendorName: String? = null
 )
 
 @JsonClass(generateAdapter = true)

@@ -56,7 +56,19 @@ class RefundsViewModel @Inject constructor(private val api: NeerlyApi, private v
                 .onFailure { _s.value = RefundsUiState(false, error = it.userMessage("refunds", R.string.acct_refunds_load_failed, strings)) }
         }
     }
+
+    /** Re-read in the background (poll / return / push): keep the list on screen, ignore a blip. */
+    fun refresh() {
+        viewModelScope.launch {
+            runCatching { api.myRefunds().content }.onSuccess { r -> _s.value = _s.value.copy(loading = false, error = null, refunds = r) }
+        }
+    }
 }
+
+/** A refund still moving (requested → approved → processing) — worth re-checking. */
+internal fun refundMoving(status: String) = status in setOf("REQUESTED", "APPROVED", "PROCESSING")
+/** How often an open refund or thread re-checks while it's on screen. */
+internal const val LIVE_RECHECK_MS = 15_000L
 
 private fun refundDone(r: RefundResponse) = r.status == "COMPLETED"
 @Composable
@@ -71,6 +83,10 @@ private fun refundTo(mode: String) = if (mode == "WALLET") stringResource(R.stri
 @Composable
 fun RefundsScreen(onBack: () -> Unit, onOpen: (String) -> Unit, onSetting: () -> Unit, vm: RefundsViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
+    // A refund moves on the server (approved, sent): show it without a manual refresh.
+    OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.OnLiveChange(action = vm::refresh)
+    com.neerly.mobile.core.util.LivePoll(s.refunds.any { refundMoving(it.status) }, LIVE_RECHECK_MS, vm::refresh)
     val dest = s.me?.let { if (it.refundDestination == "WALLET") stringResource(R.string.acct_refunds_go_wallet) else stringResource(R.string.acct_refunds_go_source) }
     // Board Refunds: where refunds go as a card with Change; on-the-way framed in indigo;
     // done ones as hairline rows with the amount in green.
@@ -119,11 +135,19 @@ class RefundDetailViewModel @Inject constructor(private val api: NeerlyApi, save
         runCatching { api.refund(id) }.onSuccess { _s.value = RefundDetailUiState(false, it) }
             .onFailure { _s.value = RefundDetailUiState(false, error = it.userMessage("refund", R.string.acct_refund_load_failed, strings)) }
     } }
+
+    /** Background re-read that keeps the refund on screen (no spinner, no error on a blip). */
+    fun refresh() { viewModelScope.launch {
+        runCatching { api.refund(id) }.onSuccess { _s.value = RefundDetailUiState(false, it) }
+    } }
 }
 
 @Composable
 fun RefundDetailScreen(onBack: () -> Unit, onSetting: () -> Unit, onHelp: () -> Unit, vm: RefundDetailViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
+    OnReturn(vm::refresh)
+    com.neerly.mobile.core.util.OnLiveChange(action = vm::refresh)
+    com.neerly.mobile.core.util.LivePoll(s.refund?.let { refundMoving(it.status) } == true, LIVE_RECHECK_MS, vm::refresh)
     val cfg = LocalAppConfig.current
     val r = s.refund
     BoondhPage(r?.let { refundTitle(it) } ?: stringResource(R.string.acct_refund), onBack = onBack, backLabel = stringResource(R.string.acct_profile_refunds)) {

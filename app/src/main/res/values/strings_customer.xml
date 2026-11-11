@@ -776,4 +776,8 @@
     <string name="cust_money_refunded">Refunded</string>
     <string name="cust_money_refund_failed">Refund didn\'t go through — we\'re on it</string>
     <string name="cust_tr_failed_next">%1$s. Try again in a little while, or pick another shop.</string>
+    <string name="cust_language_eyebrow">Before we start</string>
+    <string name="cust_placed_slot_today">Today, %1$s</string>
+    <string name="cust_placed_slot_tomorrow">Tomorrow, %1$s</string>
+    <string name="cust_placed_slot_day">%1$s, %2$s</string>
 </resources>

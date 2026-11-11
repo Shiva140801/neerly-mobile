@@ -39,6 +39,13 @@ class ComplaintThreadViewModel @Inject constructor(
         }
     }
 
+    /** Background re-read for replies and status (poll / return / push); keeps the thread on screen. */
+    fun refresh() {
+        viewModelScope.launch {
+            runCatching { repo.complaint(complaintId) }.onSuccess { _state.value = _state.value.copy(loading = false, error = null, complaint = it) }
+        }
+    }
+
     fun appendMessage(message: String) {
         if (message.isBlank()) return
         _state.value = _state.value.copy(sending = true, error = null)

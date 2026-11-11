@@ -776,4 +776,8 @@
     <string name="cust_money_refunded">वापस कर दिया</string>
     <string name="cust_money_refund_failed">रिफ़ंड नहीं हो पाया — हम देख रहे हैं</string>
     <string name="cust_tr_failed_next">%1$s। थोड़ी देर बाद फिर कोशिश करें, या दूसरी दुकान चुनें।</string>
+    <string name="cust_language_eyebrow">शुरू करने से पहले</string>
+    <string name="cust_placed_slot_today">आज, %1$s</string>
+    <string name="cust_placed_slot_tomorrow">कल, %1$s</string>
+    <string name="cust_placed_slot_day">%1$s, %2$s</string>
 </resources>

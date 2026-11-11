@@ -776,4 +776,8 @@
     <string name="cust_money_refunded">తిరిగి ఇచ్చాం</string>
     <string name="cust_money_refund_failed">రీఫండ్ జరగలేదు — మేము చూస్తున్నాం</string>
     <string name="cust_tr_failed_next">%1$s. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి, లేదా మరో షాప్‌ను ఎంచుకోండి.</string>
+    <string name="cust_language_eyebrow">మొదలుపెట్టే ముందు</string>
+    <string name="cust_placed_slot_today">ఈరోజు, %1$s</string>
+    <string name="cust_placed_slot_tomorrow">రేపు, %1$s</string>
+    <string name="cust_placed_slot_day">%1$s, %2$s</string>
 </resources>

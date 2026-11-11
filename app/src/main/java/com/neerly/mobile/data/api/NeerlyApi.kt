@@ -160,8 +160,13 @@ interface NeerlyApi {
         @Query("lng") lng: Double? = null
     ): PageResponse<VendorCardResponse>
 
+    /** [lat]/[lng] of the delivery address make the shop's arrival estimate this address's. */
     @GET("api/v1/customer/vendors/{id}")
-    suspend fun vendor(@Path("id") id: String): VendorCardResponse
+    suspend fun vendor(
+        @Path("id") id: String,
+        @Query("lat") lat: Double? = null,
+        @Query("lng") lng: Double? = null
+    ): VendorCardResponse
 
     @GET("api/v1/customer/vendors/{id}/products")
     suspend fun vendorProducts(@Path("id") vendorId: String): List<ProductResponse>
@@ -383,6 +388,10 @@ interface NeerlyApi {
 
     @POST("api/v1/customer/events")
     suspend fun createEventBooking(@Body body: CreateEventBookingRequest): EventBookingResponse
+
+    /** The customer's own event requests, newest event first. */
+    @GET("api/v1/customer/events")
+    suspend fun eventBookings(@Query("page") page: Int = 0, @Query("size") size: Int = 20): List<EventBookingResponse>
 
     @GET("api/v1/customer/events/{id}")
     suspend fun eventBooking(@Path("id") id: String): EventBookingResponse

@@ -66,6 +66,8 @@ object Routes {
     const val Otp = "otp/{phone}/{role}"
     const val Name = "name"
     const val Language = "language"
+    /** The same picker opened from Profile: back chevron, Continue returns instead of onboarding. */
+    const val LanguageSettings = "language/settings"
     const val Address = "address"
     const val ReferralCode = "referral-code"
     const val RolePicker = "auth/role-picker"
@@ -114,6 +116,9 @@ object Routes {
     const val Subscriptions = "customer/subscriptions"
     const val SubscriptionNew = "customer/subscription/new"
     const val EventBookingNew = "customer/event/new"
+    const val EventBookings = "customer/events"
+    const val EventBookingDetail = "customer/events/{id}"
+    fun eventBookingDetail(id: String) = "customer/events/$id"
     const val SubscriptionDetail = "customer/subscription/{subscriptionId}"
     const val Deposits = "customer/deposits"
     const val ComplaintThread = "customer/complaint/{complaintId}"
@@ -370,6 +375,9 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         }
         composable(Routes.Name) { NameScreen(onContinue = { nav.navigate(Routes.Language) }) }
         composable(Routes.Language) { LanguageScreen(onPicked = { nav.navigate(Routes.ReferralCode) }, languageSync = languageSync) }
+        composable(Routes.LanguageSettings) {
+            LanguageScreen(onPicked = { nav.popBackStack() }, languageSync = languageSync, onBack = { nav.popBackStack() })
+        }
         composable(Routes.ReferralCode) {
             com.neerly.mobile.feature.auth.ReferralCodeScreen(onDone = { nav.navigate(Routes.Address) })
         }
@@ -611,11 +619,22 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
         }
         composable(Routes.EventBookingNew) {
             EventBookingScreen(
-                onCreated = { _ ->
-                    // TODO Sprint 2: navigate to a dedicated EventBookingDetailScreen
-                    nav.popBackStack(Routes.CustomerHome, inclusive = false)
-                },
+                // Straight to where the request stands (board EventRequestSent), not Home.
+                onCreated = { id -> nav.navigate(Routes.eventBookingDetail(id)) { popUpTo(Routes.EventBookingNew) { inclusive = true } } },
                 onBack = { nav.popBackStack() }
+            )
+        }
+        composable(Routes.EventBookings) {
+            com.neerly.mobile.feature.event.EventBookingsScreen(
+                onBack = { nav.popBackStack() },
+                onOpen = { id -> nav.navigate(Routes.eventBookingDetail(id)) },
+                onNew = { nav.navigate(Routes.EventBookingNew) }
+            )
+        }
+        composable(Routes.EventBookingDetail) {
+            com.neerly.mobile.feature.event.EventBookingDetailScreen(
+                onBack = { nav.popBackStack() },
+                onAskAnother = { nav.navigate(Routes.EventBookingNew) }
             )
         }
         composable(Routes.SubscriptionDetail) {
@@ -680,7 +699,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onVendorDashboard = { nav.navigate(Routes.roleGate(PortalRole.VENDOR)) },
                 onBecomeVendor = { nav.navigate(Routes.VendorOnboarding) },
                 onDriverMode = { nav.navigate(Routes.roleGate(PortalRole.DRIVER)) },
-                onEventBooking = { nav.navigate(Routes.EventBookingNew) },
+                onEventBooking = { nav.navigate(Routes.EventBookings) },
                 onSwitchRole = { nav.navigate(Routes.RolePicker) },
                 onSelectTab = nav::switchTab,
                 onLogout = { nav.navigate(Routes.Welcome) { popUpTo(nav.graph.id) { inclusive = true } } },
@@ -689,7 +708,7 @@ fun NeerlyNavHost(nav: NavHostController, cartStore: CartStore, tokenStore: Toke
                 onRefundSetting = { nav.navigate(Routes.RefundSetting) },
                 onHelp = { nav.navigate(Routes.help(null)) },
                 onReferEarn = { nav.navigate(Routes.ReferEarn) },
-                onLanguage = { nav.navigate(Routes.Language) },
+                onLanguage = { nav.navigate(Routes.LanguageSettings) },
                 onLegal = { nav.navigate(Routes.legal(com.neerly.mobile.feature.legal.LegalDoc.Terms)) }
             )
         }

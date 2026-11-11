@@ -62,7 +62,11 @@ data class EventBookingResponse(
     val customerNotes: String?,
     val vendorNotes: String?,
     val rejectionReason: String?,
-    val pickup: PickupScheduleResponse?
+    val pickup: PickupScheduleResponse?,
+    val vendorName: String? = null,
+    /** When an unanswered request expires (ISO instant). */
+    val answerBy: String? = null,
+    val cancellationReason: String? = null
 )
 
 @JsonClass(generateAdapter = true)
