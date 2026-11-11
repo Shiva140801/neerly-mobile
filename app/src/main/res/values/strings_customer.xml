@@ -771,4 +771,9 @@
     <string name="cust_shop2_after_hours_plain">Closed now. You can still book a slot for later.</string>
     <string name="cust_oh_nothing_charged">Nothing was charged</string>
     <string name="cust_oh_refund_line">Refund on its way</string>
+    <string name="cust_money_refunded_wallet">Refunded %1$s to your wallet</string>
+    <string name="cust_money_refunded_source">Refunded %1$s to how you paid</string>
+    <string name="cust_money_refunded">Refunded</string>
+    <string name="cust_money_refund_failed">Refund didn\'t go through — we\'re on it</string>
+    <string name="cust_tr_failed_next">%1$s. Try again in a little while, or pick another shop.</string>
 </resources>

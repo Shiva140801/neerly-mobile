@@ -61,7 +61,15 @@ data class OrderResponse(
     /** Set when the driver couldn't hand it over (board DeliveryFailed). */
     val failedDelivery: FailedDeliveryView? = null,
     /** This order re-delivers that failed one. */
-    val redeliveryOf: String? = null
+    val redeliveryOf: String? = null,
+    /** Booked window of a scheduled order (ISO instants); null for right now. */
+    val requestedSlotStart: String? = null,
+    val requestedSlotEnd: String? = null,
+    /** Cancelled/failed only: NOT_CHARGED | REFUNDED | REFUND_PENDING | REFUND_FAILED (server truth). */
+    val moneyState: String? = null,
+    val refundedAmount: java.math.BigDecimal? = null,
+    /** WALLET | ORIGINAL. */
+    val refundMode: String? = null
 )
 
 /** Mirrors backend `FailedDeliveryView`: why a drop failed and what's still possible. */

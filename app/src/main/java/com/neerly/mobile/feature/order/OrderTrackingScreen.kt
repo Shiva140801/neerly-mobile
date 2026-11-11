@@ -111,7 +111,7 @@ fun OrderTrackingScreen(
                             onTryAgain = { onRedeliver(order.id, "time") }, onElsewhere = { onRedeliver(order.id, "place") },
                             onOpenOrder = onOpenOrder, onChanged = vm::refresh)
                     else {
-                        EndedCard(order.status, order.paymentMethod)
+                        EndedCard(order.status, order.paymentMethod, orderMoneyLine(order))
                         // Failed before any driver had it = no shop said yes (board NoVendor).
                         if (order.status == "FAILED" && order.driverId == null) {
                             Spacer(Modifier.height(NeerlySpacing.x3))
@@ -190,14 +190,13 @@ private fun DeliveryCodeCard(code: String?, requesting: Boolean, error: String?,
 }
 
 @Composable
-private fun EndedCard(status: String, paymentMethod: String?) {
+private fun EndedCard(status: String, paymentMethod: String?, money: String) {
+    // The money line is the server's truth (refunded / on its way / nothing charged); a
+    // failed order adds what to do next.
     val (title, body) = if (status == "FAILED") {
-        stringResource(R.string.cust_tr_failed_title) to
-            if (paymentMethod == "COD") stringResource(R.string.cust_tr_failed_cod)
-            else stringResource(R.string.cust_tr_failed_paid)
+        stringResource(R.string.cust_tr_failed_title) to stringResource(R.string.cust_tr_failed_next, money)
     } else {
-        stringResource(R.string.cust_tr_cancelled_title) to
-            if (paymentMethod == "COD") stringResource(R.string.cust_tr_cancelled_cod) else stringResource(R.string.cust_tr_cancelled_paid)
+        stringResource(R.string.cust_tr_cancelled_title) to money
     }
     Surface(
         color = NeerlyColors.ErrSoft,
