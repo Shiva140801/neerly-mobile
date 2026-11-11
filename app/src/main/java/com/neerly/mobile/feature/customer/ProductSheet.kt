@@ -22,6 +22,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Remove
@@ -132,7 +139,9 @@ fun payTodayFor(
  * product with neither flag is treated as keep, mirroring the backend.
  */
 fun defaultModeFor(allowKeep: Boolean, allowTransfer: Boolean): ContainerMode =
-    if (allowTransfer && !allowKeep) ContainerMode.TRANSFER_AND_RETURN else ContainerMode.KEEP
+    // Board Product opens on "Swap at the door · No deposit": the cheaper, usual choice.
+    // Defaulting to keep quoted a ₹300 deposit on a ₹50 jar unless the customer noticed.
+    if (allowTransfer) ContainerMode.TRANSFER_AND_RETURN else ContainerMode.KEEP
 
 private const val MAX_QTY = 10
 
@@ -143,7 +152,8 @@ fun ProductSheetContent(
     initialQuantity: Int,
     alreadyInCart: Boolean,
     onConfirm: (ProductSheetSelection) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClose: (() -> Unit)? = null
 ) {
     val allowsKeep = product.allowKeepContainer
     val allowsTransfer = product.allowTransferAndReturn
@@ -169,30 +179,25 @@ fun ProductSheetContent(
             .padding(horizontal = NeerlySpacing.x5)
             .padding(bottom = NeerlySpacing.x5)
     ) {
-        ProductHero(product)
-
-        Spacer(Modifier.height(NeerlySpacing.x4))
-        TitleRow(product, vendorName)
+        SheetHeader(product, vendorName, onClose)
 
         if (bothModes) {
-            SectionLabel(stringResource(R.string.cust_ps_mode), Modifier.padding(top = NeerlySpacing.x4, bottom = NeerlySpacing.x2))
+            Text(stringResource(R.string.cust_ps_jar_q), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
+                modifier = Modifier.padding(top = NeerlySpacing.x4, bottom = NeerlySpacing.x2))
             ModeCard(
-                title = stringResource(R.string.cust_ps_keep),
-                subtitle = if (hasDeposit) {
-                    stringResource(R.string.cust_ps_keep_deposit, deposit.asRupees())
-                } else {
-                    stringResource(R.string.cust_ps_keep_free)
-                },
-                selected = mode == ContainerMode.KEEP,
-                onClick = { mode = ContainerMode.KEEP }
+                title = stringResource(R.string.cust_ps_swap_door),
+                subtitle = stringResource(R.string.cust_ps_swap_body),
+                trailing = stringResource(R.string.cust_ps_no_deposit).replaceFirstChar { it.uppercase() }, trailingColor = NeerlyColors.Ok,
+                selected = mode == ContainerMode.TRANSFER_AND_RETURN,
+                onClick = { mode = ContainerMode.TRANSFER_AND_RETURN }
             )
             Spacer(Modifier.height(NeerlySpacing.x2))
             ModeCard(
-                title = stringResource(R.string.cust_ps_swap),
-                subtitle = stringResource(R.string.cust_ps_swap_lead) + " · " + stringResource(R.string.cust_ps_no_deposit),
-                highlightSubtitle = stringResource(R.string.cust_ps_no_deposit),
-                selected = mode == ContainerMode.TRANSFER_AND_RETURN,
-                onClick = { mode = ContainerMode.TRANSFER_AND_RETURN }
+                title = stringResource(R.string.cust_ps_keep_jar),
+                subtitle = if (hasDeposit) stringResource(R.string.cust_ps_keep_body) else stringResource(R.string.cust_ps_keep_free),
+                trailing = if (hasDeposit) stringResource(R.string.cust_ps_per_jar, deposit.asRupees()) else null,
+                selected = mode == ContainerMode.KEEP,
+                onClick = { mode = ContainerMode.KEEP }
             )
         } else if (!allowsKeep && !allowsTransfer && !product.template.allowsDeposit) {
             // Ice bags, sealed cases, tankers: nothing comes back, so no jar talk at all.
@@ -206,22 +211,11 @@ fun ProductSheetContent(
             )
         }
 
-        // The deposit gets display type whenever the customer is actually going
-        // to be charged one — this is the number that can dwarf the water price.
-        if (mode == ContainerMode.KEEP && hasDeposit) {
-            Spacer(Modifier.height(NeerlySpacing.x3))
-            DepositHighlight(deposit = deposit, retentionHours = product.retentionHours)
-        }
-
+        // Board Product: the deposit lives in the "Keep the jar" option and the bill below;
+        // the separate deposit card the old sheet showed isn't on the board.
         Spacer(Modifier.height(NeerlySpacing.x3))
-        PayTodayPanel(
-            quantity = qty,
-            waterTotal = waterTotal,
-            depositTotal = depositTotal,
-            payToday = payToday,
-            keepingContainer = mode == ContainerMode.KEEP,
-            productHasDeposit = hasDeposit
-        )
+        BillCard(qty = qty, price = product.price, waterTotal = waterTotal, depositTotal = depositTotal,
+            payToday = payToday, showDeposit = hasDeposit || allowsKeep)
 
         Spacer(Modifier.height(NeerlySpacing.x4))
         Row(
@@ -229,7 +223,7 @@ fun ProductSheetContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
         ) {
-            QuantityStepper(
+            BoxStepper(
                 quantity = qty,
                 onDecrease = { if (qty > 1) qty-- },
                 onIncrease = { if (qty < MAX_QTY) qty++ }
@@ -238,8 +232,8 @@ fun ProductSheetContent(
                 onClick = {
                     onConfirm(ProductSheetSelection(product, qty, mode))
                 },
-                modifier = Modifier.weight(1f).height(52.dp),
-                shape = RoundedCornerShape(NeerlyRadius.pill),
+                modifier = Modifier.weight(1f).height(56.dp),
+                shape = RoundedCornerShape(NeerlyRadius.md),
                 colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)
             ) {
                 val label = when {
@@ -339,11 +333,13 @@ private fun ModeCard(
     subtitle: String,
     selected: Boolean,
     onClick: () -> Unit,
-    highlightSubtitle: String? = null
+    highlightSubtitle: String? = null,
+    trailing: String? = null,
+    trailingColor: androidx.compose.ui.graphics.Color = NeerlyColors.Ink900
 ) {
     val borderColor = if (selected) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200
     Surface(
-        color = if (selected) NeerlyColors.CustomerSofter else NeerlyColors.Paper,
+        color = NeerlyColors.Paper,
         shape = RoundedCornerShape(NeerlyRadius.md),
         modifier = Modifier
             .fillMaxWidth()
@@ -364,13 +360,16 @@ private fun ModeCard(
             horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)
         ) {
             RadioDot(selected)
-            Column {
-                Text(
-                    title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (selected) NeerlyColors.CustomerDark else NeerlyColors.Ink900
-                )
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        title, Modifier.weight(1f),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = NeerlyColors.Ink900
+                    )
+                    trailing?.let { Text(it, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = trailingColor) }
+                }
                 Spacer(Modifier.height(2.dp))
                 if (highlightSubtitle != null && subtitle.endsWith(highlightSubtitle)) {
                     Row {
@@ -387,7 +386,7 @@ private fun ModeCard(
                         )
                     }
                 } else {
-                    Text(subtitle, fontSize = 12.sp, color = NeerlyColors.Ink600)
+                    Text(subtitle, fontSize = 15.sp, lineHeight = 21.sp, color = NeerlyColors.Ink600)
                 }
             }
         }
@@ -672,5 +671,79 @@ private fun StepperButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(20.dp))
+    }
+}
+
+/** Board Product header: jar tile, serif name, shop line, the "₹60 A JAR" chip, close ✕. */
+@Composable
+private fun SheetHeader(product: ProductResponse, vendorName: String?, onClose: (() -> Unit)?) {
+    Row(Modifier.fillMaxWidth().padding(top = NeerlySpacing.x2), verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(NeerlySpacing.x3)) {
+        Box(Modifier.size(72.dp).clip(RoundedCornerShape(NeerlyRadius.md)).background(NeerlyColors.WarnSoft),
+            contentAlignment = Alignment.Center) {
+            val photo = product.photoUrl
+            if (!photo.isNullOrBlank()) AsyncImage(model = photo, contentDescription = null, contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize())
+            else Text("🫙", fontSize = 34.sp)
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(listOfNotNull(product.brand?.takeIf { it.isNotBlank() }, product.name).joinToString(" · "),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 22.sp, lineHeight = 26.sp,
+                fontWeight = FontWeight.Medium, color = NeerlyColors.Ink900)
+            vendorName?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 14.sp, color = NeerlyColors.Ink600) }
+            Text(stringResource(R.string.cust_ps_a_jar, product.price.asRupees()).uppercase(), fontSize = 12.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = NeerlyColors.CustomerPrimary,
+                modifier = Modifier.background(NeerlyColors.CustomerSofter, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        }
+        onClose?.let {
+            IconButton(onClick = it, modifier = Modifier.size(48.dp)) {
+                Icon(androidx.compose.material.icons.Icons.Outlined.Close, contentDescription = stringResource(R.string.cust_ps_close), tint = NeerlyColors.Ink700)
+            }
+        }
+    }
+}
+
+/** Board Product bill: dotted leaders, the deposit marked REFUNDABLE, "You pay today" in serif. */
+@Composable
+private fun BillCard(qty: Int, price: BigDecimal, waterTotal: BigDecimal, depositTotal: BigDecimal, payToday: BigDecimal, showDeposit: Boolean) {
+    Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(NeerlyRadius.md))
+        .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(NeerlyRadius.md)).padding(horizontal = NeerlySpacing.x4, vertical = NeerlySpacing.x3),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LeaderRow(stringResource(R.string.cust_ps_bill_water, qty, price.asRupees()), null, waterTotal.asRupees())
+        if (showDeposit) LeaderRow(stringResource(R.string.cust_ps_jar_deposit), stringResource(R.string.cust_ps_refundable_pill), depositTotal.asRupees())
+        HorizontalDivider(color = NeerlyColors.Ink200)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.cust_ps_pay_today_line), Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+            Text(payToday.asRupees(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 24.sp,
+                fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        }
+    }
+}
+
+@Composable
+private fun LeaderRow(label: String, tag: String?, amount: String) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        Text(label, fontSize = 15.sp, color = NeerlyColors.Ink900)
+        tag?.let { Text(" " + it.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp, color = NeerlyColors.Ok) }
+        androidx.compose.foundation.Canvas(Modifier.weight(1f).height(10.dp).padding(horizontal = 6.dp)) {
+            drawLine(NeerlyColors.Ink300, androidx.compose.ui.geometry.Offset(0f, size.height - 2f),
+                androidx.compose.ui.geometry.Offset(size.width, size.height - 2f), strokeWidth = 2f,
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(2f, 6f)))
+        }
+        Text(amount, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+    }
+}
+
+/** Board Product stepper: an outlined box with − n +, not the pill with a filled plus. */
+@Composable
+private fun BoxStepper(quantity: Int, onDecrease: () -> Unit, onIncrease: () -> Unit) {
+    Row(Modifier.height(56.dp).border(1.dp, NeerlyColors.Ink300, RoundedCornerShape(NeerlyRadius.md)),
+        verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onDecrease, enabled = quantity > 1, modifier = Modifier.size(52.dp)) {
+            Text("−", fontSize = 24.sp, color = if (quantity > 1) NeerlyColors.Ink900 else NeerlyColors.Ink300) }
+        Text(quantity.toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900,
+            modifier = Modifier.widthIn(min = 28.dp).semantics { contentDescription = quantity.toString() }, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        IconButton(onClick = onIncrease, enabled = quantity < MAX_QTY, modifier = Modifier.size(52.dp)) {
+            Text("+", fontSize = 24.sp, color = NeerlyColors.Ink900) }
     }
 }

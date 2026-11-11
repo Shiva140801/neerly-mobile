@@ -272,6 +272,7 @@ fun VendorDetailScreen(
                 vendorName = state.vendor?.businessName,
                 initialQuantity = vm.quantityInCart(product.id),
                 alreadyInCart = vm.quantityInCart(product.id) > 0,
+                onClose = { closeSheet() },
                 onConfirm = { selection ->
                     when (vm.setCartLine(selection)) {
                         is AddOutcome.Added -> {
@@ -385,39 +386,56 @@ private fun SoldOutSheet(
         if (at.toLocalDate() == java.time.LocalDate.now(zone)) at.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a", loc))
         else com.neerly.mobile.core.design.shortDay(iso)
     }.getOrNull() }
+    // Board OutOfStock: one grey pill "SOLD OUT SINCE 9:18 AM · BACK TOMORROW", serif name,
+    // then "Want one sooner?" as hairline rows with an outlined Add.
+    val pill = listOfNotNull(
+        since?.let { stringResource(R.string.cust_oos_since, it) } ?: stringResource(R.string.cust_oos_sold_out),
+        alt.backOn?.let { stringResource(R.string.cust_oos_back, backDay(it)) }
+    ).joinToString(" · ")
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        com.neerly.mobile.core.design.Pill(stringResource(R.string.cust_oos_sold_out), com.neerly.mobile.core.design.Tone.Warn)
-        Text(alt.name, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 22.sp, color = NeerlyColors.Ink900)
-        listOfNotNull(
-            since?.let { stringResource(R.string.cust_oos_since, it) },
-            alt.backOn?.let { stringResource(R.string.cust_oos_back, com.neerly.mobile.core.design.shortDay(it)) }
-        ).takeIf { it.isNotEmpty() }?.let { Text(it.joinToString(" · "), fontSize = 14.sp, color = NeerlyColors.Ink600) }
-        com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_oos_sooner))
+        Text(pill.uppercase(), fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = NeerlyColors.Ink700,
+            modifier = Modifier.background(NeerlyColors.Ink100, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+        Text(alt.name, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 26.sp, lineHeight = 30.sp, color = NeerlyColors.Ink900)
+        com.neerly.mobile.core.design.SectionLabel(stringResource(R.string.cust_oos_sooner), Modifier.padding(top = 6.dp))
         if (alt.otherShops.isEmpty() && alt.sameShop.isEmpty()) Text(stringResource(R.string.cust_oos_none), fontSize = 14.sp, color = NeerlyColors.Ink600)
-        alt.otherShops.forEach { o ->
-            AltRow(title = "${o.name} · ${o.vendorName ?: ""}", detail = stringResource(R.string.cust_oos_other_shop), price = o.price,
-                action = stringResource(R.string.cust_oos_open)) { onOpenShop(o.vendorId) }
-        }
-        alt.sameShop.forEach { o ->
-            AltRow(title = o.name, detail = stringResource(R.string.cust_oos_same_shop), price = o.price,
-                action = stringResource(R.string.cust_add)) { onAddHere(o.productId) }
+        Column {
+            alt.otherShops.forEach { o ->
+                AltRow(title = listOfNotNull(o.name, o.vendorName).joinToString(" · "), detail = stringResource(R.string.cust_oos_other_shop), price = o.price,
+                    action = stringResource(R.string.cust_oos_open)) { onOpenShop(o.vendorId) }
+            }
+            alt.sameShop.forEach { o ->
+                AltRow(title = o.name, detail = stringResource(R.string.cust_oos_same_shop), price = o.price,
+                    action = stringResource(R.string.cust_add)) { onAddHere(o.productId) }
+            }
         }
     }
 }
 
+/** "tomorrow" / "Wed" for the pill's "back …". */
+@Composable
+private fun backDay(iso: String): String {
+    val zone = java.time.ZoneId.of("Asia/Kolkata")
+    val d = runCatching { java.time.LocalDate.parse(iso.take(10)) }.getOrNull() ?: return com.neerly.mobile.core.design.shortDay(iso)
+    return if (d == java.time.LocalDate.now(zone).plusDays(1)) stringResource(R.string.cust_oos_tomorrow) else com.neerly.mobile.core.design.shortDay(iso)
+}
+
 @Composable
 private fun AltRow(title: String, detail: String, price: java.math.BigDecimal, action: String, onClick: () -> Unit) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink900)
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
             Text(detail, fontSize = 13.sp, color = NeerlyColors.Ink600)
         }
-        Text(price.asRupees(), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
-        Spacer(Modifier.width(8.dp))
-        OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 44.dp)) {
-            Text(action, color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+        Text(price.asRupees(), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+        Spacer(Modifier.width(10.dp))
+        OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 44.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink300),
+            contentPadding = PaddingValues(horizontal = 14.dp)) {
+            Text(action, color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.Bold)
         }
     }
+    HorizontalDivider(color = NeerlyColors.Ink200)
 }
 
 @Composable

@@ -374,7 +374,7 @@
     <string name="cust_shop_nothing_listed">ఇంకా ఏమీ పెట్టలేదు</string>
     <string name="cust_shop_nothing_listed_body">ఈ షాప్ ఇంకా నీళ్ళు పెట్టలేదు. మీ దగ్గర మరో షాప్ చూడండి.</string>
     <string name="cust_shop_replied">%1$s సమాధానం: %2$s</string>
-    <string name="cust_shop_sold_out">ఈరోజు అయిపోయింది · రేపు మళ్ళీ</string>
+    <string name="cust_shop_sold_out">అయిపోయింది</string>
     <string name="cust_shop_swap">ఖాళీ జార్ గుమ్మం దగ్గర మార్చుకోండి</string>
     <string name="cust_shop_switch_body">మీ కార్ట్‌లో వేరే షాప్ వస్తువులు ఉన్నాయి. వాటి బదులు %1$s వస్తువులు పెట్టాలా?</string>
     <string name="cust_shop_switch_title">షాప్ మార్చాలా?</string>
@@ -787,4 +787,16 @@
     <string name="cust_oh_today">ఈరోజు · %1$s</string>
     <string name="cust_oh_yesterday">నిన్న · %1$s</string>
     <string name="cust_ps_one_way">తిరిగి ఇవ్వాల్సింది ఏమీ లేదు — ఇది మీదే.</string>
+    <string name="cust_ps_jar_q">జార్ సంగతి ఏంటి?</string>
+    <string name="cust_ps_swap_door">డోర్ వద్ద మార్చుకోండి</string>
+    <string name="cust_ps_swap_body">కొత్త జార్ వచ్చినప్పుడు మీ ఖాళీ జార్ ఇవ్వండి.</string>
+    <string name="cust_ps_keep_jar">జార్ ఉంచుకోండి</string>
+    <string name="cust_ps_keep_body">ఇవ్వడానికి ఖాళీ జార్ లేదా? డిపాజిట్ కట్టండి — జార్ తిరిగి ఇచ్చినప్పుడు వెనక్కి వస్తుంది.</string>
+    <string name="cust_ps_per_jar">%1$s/జార్</string>
+    <string name="cust_ps_a_jar">జార్‌కు %1$s</string>
+    <string name="cust_ps_bill_water">నీళ్లు · %1$d × %2$s</string>
+    <string name="cust_ps_jar_deposit">జార్ డిపాజిట్</string>
+    <string name="cust_ps_pay_today_line">ఈరోజు మీరు కట్టేది</string>
+    <string name="cust_ps_close">మూసివేయండి</string>
+    <string name="cust_oos_tomorrow">రేపు</string>
 </resources>

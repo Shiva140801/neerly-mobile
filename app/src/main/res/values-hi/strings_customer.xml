@@ -374,7 +374,7 @@
     <string name="cust_shop_nothing_listed">अभी कुछ नहीं लिस्ट किया</string>
     <string name="cust_shop_nothing_listed_body">इस दुकान ने अभी पानी नहीं डाला. पास की कोई और दुकान देखें.</string>
     <string name="cust_shop_replied">%1$s का जवाब: %2$s</string>
-    <string name="cust_shop_sold_out">आज खत्म · कल फिर मिलेगा</string>
+    <string name="cust_shop_sold_out">खत्म हो गया</string>
     <string name="cust_shop_swap">खाली जार दरवाज़े पर बदलें</string>
     <string name="cust_shop_switch_body">आपके कार्ट में दूसरी दुकान का सामान है. उसकी जगह %1$s का सामान रखें?</string>
     <string name="cust_shop_switch_title">दुकान बदलें?</string>
@@ -787,4 +787,16 @@
     <string name="cust_oh_today">आज · %1$s</string>
     <string name="cust_oh_yesterday">कल · %1$s</string>
     <string name="cust_ps_one_way">कुछ लौटाना नहीं — यह आपका है।</string>
+    <string name="cust_ps_jar_q">जार का क्या करें?</string>
+    <string name="cust_ps_swap_door">दरवाज़े पर बदलें</string>
+    <string name="cust_ps_swap_body">नया जार आने पर अपना खाली जार दे दें।</string>
+    <string name="cust_ps_keep_jar">जार रख लें</string>
+    <string name="cust_ps_keep_body">देने को खाली जार नहीं? जमा राशि दें — जार लौटाने पर वापस मिलेगी।</string>
+    <string name="cust_ps_per_jar">%1$s/जार</string>
+    <string name="cust_ps_a_jar">%1$s प्रति जार</string>
+    <string name="cust_ps_bill_water">पानी · %1$d × %2$s</string>
+    <string name="cust_ps_jar_deposit">जार जमा</string>
+    <string name="cust_ps_pay_today_line">आज आप देंगे</string>
+    <string name="cust_ps_close">बंद करें</string>
+    <string name="cust_oos_tomorrow">कल</string>
 </resources>

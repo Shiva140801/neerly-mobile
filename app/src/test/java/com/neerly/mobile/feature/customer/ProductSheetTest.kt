@@ -76,8 +76,9 @@ class ProductSheetTest {
     }
 
     @Test
-    fun defaultMode_bothAllowed_opensOnKeep() {
-        assertEquals(ContainerMode.KEEP, defaultModeFor(allowKeep = true, allowTransfer = true))
+    fun defaultMode_bothAllowed_opensOnSwap_noDeposit() {
+        // Board Product: "Swap at the door · No deposit" is the selected, first option.
+        assertEquals(ContainerMode.TRANSFER_AND_RETURN, defaultModeFor(allowKeep = true, allowTransfer = true))
     }
 
     @Test

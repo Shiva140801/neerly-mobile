@@ -374,7 +374,7 @@
     <string name="cust_shop_nothing_listed">Nothing listed yet</string>
     <string name="cust_shop_nothing_listed_body">This shop hasn\'t put up its water. Try another shop near you.</string>
     <string name="cust_shop_replied">%1$s replied: %2$s</string>
-    <string name="cust_shop_sold_out">Sold out today · back tomorrow</string>
+    <string name="cust_shop_sold_out">Sold out</string>
     <string name="cust_shop_swap">Swap your empty at the door</string>
     <string name="cust_shop_switch_body">You already have items from another shop in your cart. Replace them with items from %1$s?</string>
     <string name="cust_shop_switch_title">Switch shop?</string>
@@ -787,4 +787,16 @@
     <string name="cust_oh_today">Today · %1$s</string>
     <string name="cust_oh_yesterday">Yesterday · %1$s</string>
     <string name="cust_ps_one_way">Nothing to return — it\'s yours to keep.</string>
+    <string name="cust_ps_jar_q">What about the jar?</string>
+    <string name="cust_ps_swap_door">Swap at the door</string>
+    <string name="cust_ps_swap_body">Hand over your empty jar when the new one arrives.</string>
+    <string name="cust_ps_keep_jar">Keep the jar</string>
+    <string name="cust_ps_keep_body">No empty to give back? Pay a deposit — it comes back when you return the jar.</string>
+    <string name="cust_ps_per_jar">%1$s/jar</string>
+    <string name="cust_ps_a_jar">%1$s a jar</string>
+    <string name="cust_ps_bill_water">Water · %1$d × %2$s</string>
+    <string name="cust_ps_jar_deposit">Jar deposit</string>
+    <string name="cust_ps_pay_today_line">You pay today</string>
+    <string name="cust_ps_close">Close</string>
+    <string name="cust_oos_tomorrow">tomorrow</string>
 </resources>
