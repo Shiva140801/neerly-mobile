@@ -30,10 +30,47 @@ data class ShopProduct(
     val retentionHours: Int? = null,
     val pausedUntil: String? = null,          // YYYY-MM-DD
     val soldThisMonth: Long? = null,
-    val containersInStock: Int? = null
+    val containersInStock: Int? = null,
+    val photoUrl: String? = null,
+    /** Set for a product the shop made itself (no template fits). */
+    val custom: ShopCustomInfo? = null,
+    /** APPROVED | PENDING_REVIEW | REJECTED — custom products wait for Boondh. */
+    val reviewStatus: String = "APPROVED",
+    val reviewReason: String? = null
 ) {
-    val name: String get() = listOfNotNull(brand?.takeIf { it.isNotBlank() }, template.displayName).joinToString(" ")
+    val name: String get() = if (custom != null) template.displayName
+        else listOfNotNull(brand?.takeIf { it.isNotBlank() }, template.displayName).joinToString(" ")
 }
+
+/** Backend `CustomProductInfo`: what it is, how it's measured, how it's packed. */
+@JsonClass(generateAdapter = true)
+data class ShopCustomInfo(
+    val category: String,            // WATER | ICE | OTHER
+    val kind: String? = null,
+    val unit: String,                // L | ML | KG | PCS
+    val size: BigDecimal,
+    val packaging: String,           // RETURNABLE | SEALED | BAG | TANKER | LOOSE
+    val packCount: Int? = null,
+    val name: String? = null
+)
+
+/** Backend `CreateCustomProductRequest` — POST …/products/custom, PUT …/products/{id}/custom. */
+@JsonClass(generateAdapter = true)
+data class CustomProductBody(
+    val category: String,
+    val kind: String? = null,
+    val unit: String,
+    val size: BigDecimal,
+    val packaging: String,
+    val packCount: Int? = null,
+    val name: String? = null,
+    val price: BigDecimal,
+    val dailyCapacity: Int,
+    val depositAmount: BigDecimal? = null,
+    val allowEmptySwap: Boolean = true,
+    val photoUrl: String? = null,
+    val description: String? = null
+)
 
 /** Backend `ProductTemplateResponse`. */
 @JsonClass(generateAdapter = true)
@@ -90,6 +127,12 @@ interface VendorCatalogApi {
 
     @POST("api/v1/vendor/catalog/products")
     suspend fun create(@Body body: NewProduct): ShopProduct
+
+    @POST("api/v1/vendor/catalog/products/custom")
+    suspend fun createCustom(@Body body: CustomProductBody): ShopProduct
+
+    @retrofit2.http.PUT("api/v1/vendor/catalog/products/{id}/custom")
+    suspend fun updateCustom(@Path("id") id: String, @Body body: CustomProductBody): ShopProduct
 }
 
 @Module

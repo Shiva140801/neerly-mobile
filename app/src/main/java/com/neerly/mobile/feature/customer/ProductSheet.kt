@@ -194,6 +194,10 @@ fun ProductSheetContent(
                 selected = mode == ContainerMode.TRANSFER_AND_RETURN,
                 onClick = { mode = ContainerMode.TRANSFER_AND_RETURN }
             )
+        } else if (!allowsKeep && !allowsTransfer && !product.template.allowsDeposit) {
+            // Ice bags, sealed cases, tankers: nothing comes back, so no jar talk at all.
+            Spacer(Modifier.height(NeerlySpacing.x4))
+            Text(stringResource(R.string.cust_ps_one_way), fontSize = 13.sp, color = NeerlyColors.Ink600)
         } else {
             Spacer(Modifier.height(NeerlySpacing.x4))
             SingleModeNotice(

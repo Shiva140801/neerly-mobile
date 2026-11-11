@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -126,13 +127,20 @@ class VendorAddProductViewModel @Inject constructor(
 }
 
 /**
- * Board V29 — add a product from one of Boondh's product types. Board V40 ("start from blank")
- * isn't offered: every product needs a type, and only Boondh admins create types.
+ * Board V29 — add a product from one of Boondh's product types, or make your own
+ * (VendorCustomProductScreen) when nothing fits — a 1 kg bag of ice, a 500 ml × 24 case.
  */
 @Composable
 fun VendorAddProductScreen(onBack: () -> Unit, onDone: () -> Unit = onBack, vm: VendorAddProductViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     LaunchedEffect(s.created) { if (s.created != null) onDone() }
+    // "Not in the list? Make your own" — a product no template covers (1 kg ice cubes).
+    var custom by rememberSaveable { mutableStateOf(false) }
+    if (custom) {
+        androidx.activity.compose.BackHandler { custom = false }
+        VendorCustomProductScreen(onBack = { custom = false }, onDone = { onDone() })
+        return
+    }
     val t = s.picked
     if (t == null) {
         BoondhPage(title = stringResource(R.string.vend_what_adding), onBack = onBack, backLabel = stringResource(R.string.vend_what_you_sell),
@@ -145,8 +153,7 @@ fun VendorAddProductScreen(onBack: () -> Unit, onDone: () -> Unit = onBack, vm: 
                         if (tpl.categoryCode in s.alreadySelling) stringResource(R.string.vend_you_sell_this) else null, NeerlyColors.Ink600)
                 }
             }
-            item { SecondaryButton(stringResource(R.string.vend_start_blank), vm::startBlank, color = NeerlyColors.VendorPrimary) }
-            item { Text(stringResource(R.string.vend_ask_add_type), fontSize = 13.sp, color = NeerlyColors.Ink600) }
+            item { SecondaryButton(stringResource(R.string.vend_cp_make_own), { custom = true }, color = NeerlyColors.VendorPrimary) }
         }
         return
     }

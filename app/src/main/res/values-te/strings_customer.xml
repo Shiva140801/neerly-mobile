@@ -786,4 +786,5 @@
     <string name="cust_oh_try_again">మళ్లీ ప్రయత్నించండి</string>
     <string name="cust_oh_today">ఈరోజు · %1$s</string>
     <string name="cust_oh_yesterday">నిన్న · %1$s</string>
+    <string name="cust_ps_one_way">తిరిగి ఇవ్వాల్సింది ఏమీ లేదు — ఇది మీదే.</string>
 </resources>

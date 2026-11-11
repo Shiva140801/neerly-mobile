@@ -56,6 +56,9 @@ fun VendorCatalogScreen(
                     )
                 }
                 when {
+                    // Custom products wait for Boondh before customers see them.
+                    p.reviewStatus == "PENDING_REVIEW" -> Pill(stringResource(R.string.vend_cp_under_review), Tone.Warn)
+                    p.reviewStatus == "REJECTED" -> Pill(stringResource(R.string.vend_cp_not_accepted, p.reviewReason.orEmpty()), Tone.Bad)
                     !on -> Pill(p.pausedUntil?.let { stringResource(R.string.vend_off_back_on, shortDay(it)) } ?: stringResource(R.string.vend_off_until_on), Tone.Warn)
                     p.status == "OUT_OF_STOCK" -> Pill(stringResource(R.string.vend_sold_out), Tone.Bad)
                     else -> p.soldThisMonth?.takeIf { it > 0 }?.let { Pill(stringResource(R.string.vend_sold_month, it), Tone.Ok) }

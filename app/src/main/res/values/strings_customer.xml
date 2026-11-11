@@ -786,4 +786,5 @@
     <string name="cust_oh_try_again">Try again</string>
     <string name="cust_oh_today">Today · %1$s</string>
     <string name="cust_oh_yesterday">Yesterday · %1$s</string>
+    <string name="cust_ps_one_way">Nothing to return — it\'s yours to keep.</string>
 </resources>

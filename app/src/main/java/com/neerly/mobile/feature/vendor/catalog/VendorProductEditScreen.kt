@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -107,6 +108,13 @@ class VendorProductEditViewModel @Inject constructor(
 fun VendorProductEditScreen(onBack: () -> Unit, onCountJars: () -> Unit = {}, vm: VendorProductEditViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     val p = s.product
+    // A custom product reopens the guided form to change what it is (name, size, packing).
+    var editingCustom by rememberSaveable { mutableStateOf(false) }
+    if (editingCustom && p?.custom != null) {
+        androidx.activity.compose.BackHandler { editingCustom = false }
+        VendorCustomProductScreen(onBack = { editingCustom = false }, onDone = { editingCustom = false; vm.load() }, editing = p)
+        return
+    }
     BoondhPage(
         title = p?.name ?: stringResource(R.string.vend_edit_product), onBack = onBack, backLabel = stringResource(R.string.vend_what_you_sell),
         footer = if (p == null) null else ({
@@ -117,6 +125,13 @@ fun VendorProductEditScreen(onBack: () -> Unit, onCountJars: () -> Unit = {}, vm
         })
     ) {
         if (p == null) { item { LoadState(s.loading, s.error, vm::load) }; return@BoondhPage }
+        if (p.custom != null) item {
+            when (p.reviewStatus) {
+                "PENDING_REVIEW" -> Notice(stringResource(R.string.vend_cp_review_note), Tone.Info)
+                "REJECTED" -> Notice(stringResource(R.string.vend_cp_not_accepted, p.reviewReason.orEmpty()), Tone.Bad)
+            }
+            SecondaryButton(stringResource(R.string.vend_cp_edit_details), { editingCustom = true }, color = NeerlyColors.VendorPrimary)
+        }
         item {
             BoondhCard {
                 Text(stringResource(R.string.vend_price_per_jar), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeerlyColors.Ink700)
