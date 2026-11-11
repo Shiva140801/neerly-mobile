@@ -6,6 +6,8 @@ import com.neerly.mobile.core.design.rupees
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -83,9 +85,25 @@ fun WithdrawScreen(onBack: () -> Unit, onJars: () -> Unit, vm: WithdrawViewModel
     val parsed = amount.toBigDecimalOrNull()
     val valid = parsed != null && parsed >= BigDecimal.TEN && parsed <= max && upi.contains('@')
 
-    Column(Modifier.fillMaxSize().background(NeerlyColors.Canvas).verticalScroll(rememberScrollState())
+    // Board WalletWithdraw: chevron back, bordered totals card, the Withdraw button pinned
+    // to the bottom (it used to float mid-page under the jars link).
+    val showForm = state.done == null && !state.loading && w != null
+    androidx.compose.material3.Scaffold(containerColor = NeerlyColors.Canvas, bottomBar = {
+        if (showForm) Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            state.error?.let { Text(it, color = NeerlyColors.Err, fontSize = 14.sp) }
+            Button(onClick = { parsed?.let { vm.withdraw(it, upi) } }, enabled = valid && !state.sending,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)) {
+                Text(if (state.sending) stringResource(R.string.acct_withdraw_sending) else stringResource(R.string.acct_withdraw_cta, parsed?.rupees() ?: "—"), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }) { pad ->
+    Column(Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState())
         .padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("‹ " + stringResource(R.string.acct_wallet_title), color = NeerlyColors.CustomerPrimary, fontSize = 15.sp) }
+        androidx.compose.material3.IconButton(onClick = onBack, modifier = Modifier.size(48.dp).offset(x = (-12).dp)) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                contentDescription = stringResource(R.string.acct_wallet_title), tint = NeerlyColors.Ink900, modifier = Modifier.size(30.dp)) }
 
         val done = state.done
         if (done != null) {
@@ -105,7 +123,8 @@ fun WithdrawScreen(onBack: () -> Unit, onJars: () -> Unit, vm: WithdrawViewModel
         if (state.loading) { CircularProgressIndicator(color = NeerlyColors.CustomerPrimary); return@Column }
         if (w == null) { Text(state.error ?: stringResource(R.string.acct_withdraw_load_failed), color = NeerlyColors.Err); return@Column }
 
-        Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(14.dp)).padding(16.dp),
+        Column(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
+            .border(1.dp, NeerlyColors.Ink200, RoundedCornerShape(14.dp)).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Line(stringResource(R.string.acct_withdraw_in_wallet), w.availableAmount.rupees())
             if (w.promoBalance.signum() > 0) Line(stringResource(R.string.acct_withdraw_promo_stays), "−" + w.promoBalance.rupees())
@@ -113,22 +132,18 @@ fun WithdrawScreen(onBack: () -> Unit, onJars: () -> Unit, vm: WithdrawViewModel
             Line(stringResource(R.string.acct_withdraw_can), max.rupees(), bold = true)
         }
 
+        Text(stringResource(R.string.acct_withdraw_amount), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
         OutlinedTextField(value = amount, onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-            label = { Text(stringResource(R.string.acct_withdraw_amount)) }, supportingText = { Text(stringResource(R.string.acct_withdraw_amount_hint, max.rupees(), java.math.BigDecimal.TEN.rupees())) },
+            shape = RoundedCornerShape(14.dp), supportingText = { Text(stringResource(R.string.acct_withdraw_amount_hint, max.rupees(), java.math.BigDecimal.TEN.rupees())) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = upi, onValueChange = { upi = it.trim() }, label = { Text(stringResource(R.string.acct_withdraw_upi)) },
+        OutlinedTextField(value = upi, onValueChange = { upi = it.trim() }, shape = RoundedCornerShape(14.dp), label = { Text(stringResource(R.string.acct_withdraw_upi)) },
             placeholder = { Text(stringResource(R.string.acct_withdraw_upi_hint)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
         Text(stringResource(R.string.acct_withdraw_timing, cfg.refundDaysMin, cfg.refundDaysMax),
             fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600)
         TextButton(onClick = onJars, contentPadding = PaddingValues(0.dp)) { Text(stringResource(R.string.acct_withdraw_see_jars), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold) }
 
-        state.error?.let { Text(it, color = NeerlyColors.Err, fontSize = 14.sp) }
-        Button(onClick = { parsed?.let { vm.withdraw(it, upi) } }, enabled = valid && !state.sending,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = NeerlyColors.CustomerPrimary)) {
-            Text(if (state.sending) stringResource(R.string.acct_withdraw_sending) else stringResource(R.string.acct_withdraw_cta, parsed?.rupees() ?: "—"), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        }
+    }
     }
 }
 
@@ -136,7 +151,8 @@ fun WithdrawScreen(onBack: () -> Unit, onJars: () -> Unit, vm: WithdrawViewModel
 private fun Line(label: String, value: String, bold: Boolean = false) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(label, Modifier.weight(1f), fontSize = 14.sp, color = NeerlyColors.Ink700, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
-        Text(value, fontSize = 15.sp, color = NeerlyColors.Ink900, fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold)
+        Text(value, fontSize = if (bold) 22.sp else 15.sp, color = NeerlyColors.Ink900,
+            fontFamily = if (bold) FontFamily.Serif else null, fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold)
     }
 }
 
