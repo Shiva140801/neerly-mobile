@@ -187,8 +187,6 @@ object SlotPickerLogic {
 fun SlotPickerScreen(onBack: () -> Unit, onDone: () -> Unit, vm: SlotPickerViewModel = hiltViewModel()) {
     val s by vm.state.collectAsState()
     val day = s.day
-    val hourFmt = DateTimeFormatter.ofPattern("h a", AppLocale.locale)
-    val weekday = DateTimeFormatter.ofPattern("EEE", AppLocale.locale)
     val dayMonth = DateTimeFormatter.ofPattern("EEE d MMM", AppLocale.locale)
     val today = stringResource(R.string.cust_slot_today)
     fun dayName(i: Int, d: SlotDayDto) = if (i == 0) today else LocalDate.parse(d.date).format(dayMonth)
@@ -208,72 +206,10 @@ fun SlotPickerScreen(onBack: () -> Unit, onDone: () -> Unit, vm: SlotPickerViewM
         })
     ) {
         if (s.loading || s.error != null) { item { LoadState(s.loading, s.error, vm::load) }; return@BoondhPage }
-        item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                itemsIndexed(s.days) { i, d ->
-                    val on = i == s.dayIndex
-                    val closed = !d.open
-                    val date = LocalDate.parse(d.date)
-                    val tag = when {
-                        closed -> stringResource(R.string.cust_slot_tag_closed)
-                        else -> SlotPickerLogic.shortDayClose(d)?.let { stringResource(R.string.cust_slot_tag_till, it.format(hourFmt)) } ?: ""
-                    }
-                    Column(
-                        Modifier.widthIn(min = 64.dp).heightIn(min = 72.dp)
-                            .background(if (on) NeerlyColors.Ink900 else if (closed) NeerlyColors.Ink100 else NeerlyColors.Paper, RoundedCornerShape(14.dp))
-                            .then(if (on) Modifier else Modifier.border(BorderStroke(1.dp, NeerlyColors.Ink200), RoundedCornerShape(14.dp)))
-                            .clickable(role = Role.Tab) { vm.pickDay(i) }
-                            .semantics { selected = on; contentDescription = listOf(dayName(i, d), tag).filter { it.isNotBlank() }.joinToString(", ") }
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        val fg = if (on) NeerlyColors.Paper else NeerlyColors.Ink900
-                        Text(if (i == 0) today else date.format(weekday), fontSize = 13.sp, color = fg)
-                        Text(date.dayOfMonth.toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = fg)
-                        Text(tag, fontSize = 11.sp, color = when { on -> NeerlyColors.Ink200; closed -> NeerlyColors.Err; else -> NeerlyColors.Ink600 })
-                    }
-                }
-            }
-        }
+        item { SlotDayTiles(s.days, s.dayIndex, vm::pickDay) }
         if (s.nothingBookable) item { Notice(stringResource(R.string.cust_slot_none), Tone.Warn) }
         day?.slots?.forEach { slot ->
-            item(key = "${day.date}-${slot.start}") {
-                val note = when (val n = SlotPickerLogic.noteOf(day, slot)) {
-                    SlotPickerLogic.Note.Room -> stringResource(R.string.cust_slot_note_room)
-                    SlotPickerLogic.Note.Filling -> stringResource(R.string.cust_slot_note_filling)
-                    SlotPickerLogic.Note.Full -> stringResource(R.string.cust_slot_note_full)
-                    SlotPickerLogic.Note.Passed -> stringResource(R.string.cust_slot_note_passed)
-                    is SlotPickerLogic.Note.ShopClosed -> n.label?.let { stringResource(R.string.cust_slot_note_closed_for, it) } ?: stringResource(R.string.cust_slot_note_closed)
-                    is SlotPickerLogic.Note.Shuts -> stringResource(R.string.cust_slot_note_shuts, n.at.format(hourFmt))
-                    is SlotPickerLogic.Note.Opens -> stringResource(R.string.cust_slot_note_opens, n.at.format(hourFmt))
-                }
-                val part = when (SlotPickerLogic.partOf(SlotPickerLogic.time(slot.start))) {
-                    SlotPickerLogic.Part.EARLY -> stringResource(R.string.cust_slot_part_early)
-                    SlotPickerLogic.Part.MORNING -> stringResource(R.string.cust_slot_part_morning)
-                    SlotPickerLogic.Part.AFTERNOON -> stringResource(R.string.cust_slot_part_afternoon)
-                    SlotPickerLogic.Part.EVENING -> stringResource(R.string.cust_slot_part_evening)
-                }
-                val on = s.picked == slot
-                val window = timeWindow(slot.start, slot.end)
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                        .background(if (slot.bookable) NeerlyColors.Paper else NeerlyColors.Ink100, RoundedCornerShape(14.dp))
-                        .border(BorderStroke(if (on) 2.dp else 1.dp, if (on) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200), RoundedCornerShape(14.dp))
-                        .clickable(enabled = slot.bookable, role = Role.RadioButton) { vm.pickSlot(slot) }
-                        .semantics { selected = on; contentDescription = "$window, $part, $note" }
-                        .padding(horizontal = 16.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(window, fontSize = 17.sp, fontWeight = FontWeight.Bold,
-                            color = if (slot.bookable) NeerlyColors.Ink900 else NeerlyColors.Ink600)
-                        Text(part, fontSize = 13.sp, color = NeerlyColors.Ink600)
-                    }
-                    Text(note, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = when (slot.state) {
-                        "OPEN" -> NeerlyColors.Ok; "FILLING" -> NeerlyColors.Warn; else -> NeerlyColors.Ink600 })
-                }
-            }
+            item(key = "${day.date}-${slot.start}") { SlotWindowRow(day, slot, s.picked == slot) { vm.pickSlot(slot) } }
         }
         // "Closed Mon 9 and Tue 10 for Diwali." — the days the shop told us it's shut.
         val closed = s.days.filter { !it.open }
@@ -283,5 +219,79 @@ fun SlotPickerScreen(onBack: () -> Unit, onDone: () -> Unit, vm: SlotPickerViewM
             Text(if (label != null) stringResource(R.string.cust_slot_closed_days_for, list, label) else stringResource(R.string.cust_slot_closed_days, list),
                 fontSize = 13.sp, lineHeight = 19.sp, color = NeerlyColors.Ink600, modifier = Modifier.padding(top = 4.dp))
         }
+    }
+}
+
+/** Board SlotPicker's day tiles — shared with the re-delivery time picker (board SlotPickerRedeliver). */
+@Composable
+fun SlotDayTiles(days: List<SlotDayDto>, selected: Int, onPick: (Int) -> Unit) {
+    val hourFmt = DateTimeFormatter.ofPattern("h a", AppLocale.locale)
+    val weekday = DateTimeFormatter.ofPattern("EEE", AppLocale.locale)
+    val dayMonth = DateTimeFormatter.ofPattern("EEE d MMM", AppLocale.locale)
+    val today = stringResource(R.string.cust_slot_today)
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        itemsIndexed(days) { i, d ->
+            val on = i == selected
+            val closed = !d.open
+            val date = LocalDate.parse(d.date)
+            val tag = when {
+                closed -> stringResource(R.string.cust_slot_tag_closed)
+                else -> SlotPickerLogic.shortDayClose(d)?.let { stringResource(R.string.cust_slot_tag_till, it.format(hourFmt)) } ?: ""
+            }
+            Column(
+                Modifier.widthIn(min = 64.dp).heightIn(min = 72.dp)
+                    .background(if (on) NeerlyColors.Ink900 else if (closed) NeerlyColors.Ink100 else NeerlyColors.Paper, RoundedCornerShape(14.dp))
+                    .then(if (on) Modifier else Modifier.border(BorderStroke(1.dp, NeerlyColors.Ink200), RoundedCornerShape(14.dp)))
+                    .clickable(role = Role.Tab) { onPick(i) }
+                    .semantics { this.selected = on; contentDescription = listOf(if (i == 0) today else date.format(dayMonth), tag).filter { it.isNotBlank() }.joinToString(", ") }
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                val fg = if (on) NeerlyColors.Paper else NeerlyColors.Ink900
+                Text(if (i == 0) today else date.format(weekday), fontSize = 13.sp, color = fg)
+                Text(date.dayOfMonth.toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = fg)
+                Text(tag, fontSize = 11.sp, color = when { on -> NeerlyColors.Ink200; closed -> NeerlyColors.Err; else -> NeerlyColors.Ink600 })
+            }
+        }
+    }
+}
+
+/** Board SlotPicker's window row: "12 – 3 PM / Afternoon" with the state note on the right. */
+@Composable
+fun SlotWindowRow(day: SlotDayDto, slot: SlotOptionDto, picked: Boolean, onPick: () -> Unit) {
+    val hourFmt = DateTimeFormatter.ofPattern("h a", AppLocale.locale)
+    val note = when (val n = SlotPickerLogic.noteOf(day, slot)) {
+        SlotPickerLogic.Note.Room -> stringResource(R.string.cust_slot_note_room)
+        SlotPickerLogic.Note.Filling -> stringResource(R.string.cust_slot_note_filling)
+        SlotPickerLogic.Note.Full -> stringResource(R.string.cust_slot_note_full)
+        SlotPickerLogic.Note.Passed -> stringResource(R.string.cust_slot_note_passed)
+        is SlotPickerLogic.Note.ShopClosed -> n.label?.let { stringResource(R.string.cust_slot_note_closed_for, it) } ?: stringResource(R.string.cust_slot_note_closed)
+        is SlotPickerLogic.Note.Shuts -> stringResource(R.string.cust_slot_note_shuts, n.at.format(hourFmt))
+        is SlotPickerLogic.Note.Opens -> stringResource(R.string.cust_slot_note_opens, n.at.format(hourFmt))
+    }
+    val part = when (SlotPickerLogic.partOf(SlotPickerLogic.time(slot.start))) {
+        SlotPickerLogic.Part.EARLY -> stringResource(R.string.cust_slot_part_early)
+        SlotPickerLogic.Part.MORNING -> stringResource(R.string.cust_slot_part_morning)
+        SlotPickerLogic.Part.AFTERNOON -> stringResource(R.string.cust_slot_part_afternoon)
+        SlotPickerLogic.Part.EVENING -> stringResource(R.string.cust_slot_part_evening)
+    }
+    val window = timeWindow(slot.start, slot.end)
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .background(if (slot.bookable) NeerlyColors.Paper else NeerlyColors.Ink100, RoundedCornerShape(14.dp))
+            .border(BorderStroke(if (picked) 2.dp else 1.dp, if (picked) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200), RoundedCornerShape(14.dp))
+            .clickable(enabled = slot.bookable, role = Role.RadioButton, onClick = onPick)
+            .semantics { selected = picked; contentDescription = "$window, $part, $note" }
+            .padding(horizontal = 16.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(window, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                color = if (slot.bookable) NeerlyColors.Ink900 else NeerlyColors.Ink600)
+            Text(part, fontSize = 13.sp, color = NeerlyColors.Ink600)
+        }
+        Text(note, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = when (slot.state) {
+            "OPEN" -> NeerlyColors.Ok; "FILLING" -> NeerlyColors.Warn; else -> NeerlyColors.Ink600 })
     }
 }

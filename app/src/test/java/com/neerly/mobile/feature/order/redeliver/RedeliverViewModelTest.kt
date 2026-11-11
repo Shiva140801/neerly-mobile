@@ -56,16 +56,18 @@ class RedeliverViewModelTest {
     @Test
     fun slot_isSentAsTheInstantInHyderabad() = runTest(dispatcher) {
         coEvery { api.order("o1") } returns failed
-        coEvery { redelivery.slotDays("v1", any()) } returns SlotCalendar("v1", listOf(
-            SlotDayRow("2026-11-09", open = false, closedReason = "HOLIDAY"),
-            SlotDayRow("2026-11-10", open = true, slots = listOf(
-                SlotOptionRow("09:00:00", "12:00:00", "FULL"), SlotOptionRow("12:00:00", "15:00:00", "OPEN")))))
+        coEvery { redelivery.slotDays("v1", any()) } returns com.neerly.mobile.data.dto.SlotCalendarResponse("v1", listOf(
+            com.neerly.mobile.data.dto.SlotDayDto("2026-11-09", open = false, closedReason = "HOLIDAY", slots = emptyList()),
+            com.neerly.mobile.data.dto.SlotDayDto("2026-11-10", open = true, slots = listOf(
+                com.neerly.mobile.data.dto.SlotOptionDto("09:00:00", "12:00:00", "FULL"), com.neerly.mobile.data.dto.SlotOptionDto("12:00:00", "15:00:00", "OPEN")))))
         coEvery { redelivery.redeliver("o1", any()) } returns failed.copy(id = "o2", status = "PLACED", redeliveryOf = "o1")
         val vm = vm("time")
         advanceUntilIdle()
         assertEquals(1, vm.state.value.dayIndex)              // the first day with an open slot
+        // Opens with the first window that can still be booked already chosen.
+        assertEquals(vm.state.value.days[1].slots[1], vm.state.value.slot)
         vm.pickSlot(vm.state.value.days[1].slots[0])           // full: ignored
-        assertNull(vm.state.value.slot)
+        assertEquals(vm.state.value.days[1].slots[1], vm.state.value.slot)
         vm.pickSlot(vm.state.value.days[1].slots[1])
         vm.book()
         advanceUntilIdle()

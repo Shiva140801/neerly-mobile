@@ -31,31 +31,6 @@ data class CloseFailedResponse(
     val keptForTrip: BigDecimal
 )
 
-/** Mirrors backend `SlotCalendarResponse` (GET /customer/vendors/{id}/slot-days). */
-@JsonClass(generateAdapter = true)
-data class SlotCalendar(val vendorId: String, val days: List<SlotDayRow> = emptyList())
-
-@JsonClass(generateAdapter = true)
-data class SlotDayRow(
-    val date: String,
-    val open: Boolean,
-    val closedReason: String? = null,
-    val label: String? = null,
-    val slots: List<SlotOptionRow> = emptyList()
-)
-
-@JsonClass(generateAdapter = true)
-data class SlotOptionRow(
-    /** "12:00:00" */
-    val start: String,
-    val end: String,
-    /** OPEN | FILLING | FULL | PASSED | CLOSED */
-    val state: String,
-    val remaining: Int? = null
-) {
-    val bookable: Boolean get() = state == "OPEN" || state == "FILLING"
-}
-
 /** Board DeliveryFailed and its two pickers. */
 interface RedeliveryApi {
     @POST("api/v1/customer/orders/{id}/redeliver")
@@ -65,7 +40,7 @@ interface RedeliveryApi {
     suspend fun closeFailed(@Path("id") orderId: String): CloseFailedResponse
 
     @GET("api/v1/customer/vendors/{id}/slot-days")
-    suspend fun slotDays(@Path("id") vendorId: String, @Query("days") days: Int = 3): SlotCalendar
+    suspend fun slotDays(@Path("id") vendorId: String, @Query("days") days: Int = 3): com.neerly.mobile.data.dto.SlotCalendarResponse
 }
 
 @Module

@@ -4,7 +4,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,9 +64,9 @@ data class AddressChoice(val address: AddressResponse, val served: Boolean)
 data class RedeliverUi(
     val loading: Boolean = true,
     val order: OrderResponse? = null,
-    val days: List<SlotDayRow> = emptyList(),
+    val days: List<com.neerly.mobile.data.dto.SlotDayDto> = emptyList(),
     val dayIndex: Int = 0,
-    val slot: SlotOptionRow? = null,
+    val slot: com.neerly.mobile.data.dto.SlotOptionDto? = null,
     val addresses: List<AddressChoice> = emptyList(),
     val addressId: String? = null,
     val booking: Boolean = false,
@@ -99,8 +103,10 @@ class RedeliverViewModel @Inject constructor(
                 val order = api.order(orderId)
                 if (mode == RedeliverMode.Time) {
                     val days = order.vendorId?.let { redelivery.slotDays(it, DAYS).days }.orEmpty()
-                    _state.value = _state.value.copy(order = order, days = days,
-                        dayIndex = days.indexOfFirst { d -> d.open && d.slots.any { it.bookable } }.coerceAtLeast(0))
+                    val dayIndex = days.indexOfFirst { d -> d.open && d.slots.any { it.bookable } }.coerceAtLeast(0)
+                    // Board SlotPickerRedeliver opens with the first window that can still be booked chosen.
+                    _state.value = _state.value.copy(order = order, days = days, dayIndex = dayIndex,
+                        slot = days.getOrNull(dayIndex)?.slots?.firstOrNull { it.bookable })
                 } else {
                     val all = api.addresses()
                     val served = all.map { it.pincode }.distinct().associateWith { pin ->
@@ -116,8 +122,8 @@ class RedeliverViewModel @Inject constructor(
         }
     }
 
-    fun pickDay(i: Int) { _state.value = _state.value.copy(dayIndex = i, slot = null) }
-    fun pickSlot(s: SlotOptionRow) { if (s.bookable) _state.value = _state.value.copy(slot = s) }
+    fun pickDay(i: Int) { _state.value = _state.value.copy(dayIndex = i, slot = _state.value.days.getOrNull(i)?.slots?.firstOrNull { it.bookable }) }
+    fun pickSlot(s: com.neerly.mobile.data.dto.SlotOptionDto) { if (s.bookable) _state.value = _state.value.copy(slot = s) }
     fun pickAddress(a: AddressChoice) { if (a.served) _state.value = _state.value.copy(addressId = a.address.id) }
 
     fun book() {
@@ -224,8 +230,15 @@ fun RedeliverScreen(
             if (topUp != null) PrimaryButton(stringResource(R.string.cust_rd_add_and_book, topUp.rupees()),
                 { context.findActivity()?.let(vm::topUpAndBook) }, enabled = !s.booking)
             else PrimaryButton(
-                if (s.booking) stringResource(R.string.cust_rd_booking)
-                else fee?.let { stringResource(R.string.cust_rd_book_fee, it.rupees()) } ?: stringResource(R.string.cust_rd_book),
+                when {
+                    s.booking -> stringResource(R.string.cust_rd_booking)
+                    // Board: "Send again today, 12 – 3 PM · pay ₹25" — say when, not just "Book".
+                    time && s.slot != null && fee != null -> s.days.getOrNull(s.dayIndex)?.let { d ->
+                        stringResource(R.string.cust_rd_send_again, sendDay(d.date), timeWindow(s.slot!!.start, s.slot!!.end), fee.rupees())
+                    } ?: stringResource(R.string.cust_rd_book_fee, fee.rupees())
+                    fee != null -> stringResource(R.string.cust_rd_book_fee, fee.rupees())
+                    else -> stringResource(R.string.cust_rd_book)
+                },
                 vm::book, enabled = s.canBook)
         }
     ) {
@@ -233,61 +246,55 @@ fun RedeliverScreen(
         if (!time) item { Text(stringResource(R.string.cust_rd_where_body, order.vendorName ?: stringResource(R.string.cust_the_shop)),
             fontSize = 14.sp, color = NeerlyColors.Ink700) }
         if (time) {
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = androidx.compose.ui.Modifier.horizontalScroll(rememberScrollState())) {
-                    s.days.forEachIndexed { i, d ->
-                        FilterChip(selected = i == s.dayIndex, onClick = { vm.pickDay(i) }, enabled = d.open,
-                            label = { Text(dayLabel(d.date) + if (!d.open) " · " + stringResource(R.string.cust_rd_closed) else "") })
-                    }
-                }
-            }
+            // Same day tiles and window rows as the cart's picker (boards SlotPicker / SlotPickerRedeliver).
+            item { com.neerly.mobile.feature.cart.SlotDayTiles(s.days, s.dayIndex, vm::pickDay) }
             val day = s.days.getOrNull(s.dayIndex)
             val slots = day?.slots.orEmpty().filter { it.state != "CLOSED" }
             if (day == null || slots.none { it.bookable }) item { Notice(stringResource(R.string.cust_rd_no_slots), Tone.Warn) }
-            slots.forEach { sl ->
-                item {
-                    BoondhCard(onClick = if (sl.bookable) ({ vm.pickSlot(sl) }) else null) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(timeWindow(sl.start, sl.end), fontSize = 16.sp,
-                                fontWeight = if (s.slot == sl) FontWeight.Bold else FontWeight.Medium,
-                                color = if (sl.bookable) NeerlyColors.Ink900 else NeerlyColors.Ink400)
-                            when {
-                                s.slot == sl -> Pill(stringResource(R.string.cust_rd_picked), Tone.Info)
-                                sl.state == "FULL" -> Pill(stringResource(R.string.cust_rd_full), Tone.Neutral)
-                                sl.state == "PASSED" -> Pill(stringResource(R.string.cust_rd_passed), Tone.Neutral)
-                                sl.state == "FILLING" -> Pill(stringResource(R.string.cust_rd_filling), Tone.Warn)
-                            }
-                        }
-                    }
-                }
+            if (day != null) slots.forEach { sl ->
+                item(key = "${day.date}-${sl.start}") { com.neerly.mobile.feature.cart.SlotWindowRow(day, sl, s.slot == sl) { vm.pickSlot(sl) } }
             }
         } else {
+            // Board AddressPickerRedeliver: radio rows; the status is a coloured line — green
+            // when the shop delivers there, red when it's outside the shop's area.
             s.addresses.forEach { a ->
                 item {
-                    BoondhCard(onClick = if (a.served) ({ vm.pickAddress(a) }) else null) {
-                        Text(a.address.label.ifBlank { a.address.buildingName }, fontSize = 16.sp,
-                            fontWeight = if (s.addressId == a.address.id) FontWeight.Bold else FontWeight.Medium,
-                            color = if (a.served) NeerlyColors.Ink900 else NeerlyColors.Ink400)
-                        Text(listOf(a.address.flatNumber, a.address.buildingName, a.address.street).filter { it.isNotBlank() }.joinToString(", ") + " · " + a.address.pincode,
-                            fontSize = 13.sp, color = NeerlyColors.Ink600)
-                        when {
-                            s.addressId == a.address.id -> Pill(stringResource(R.string.cust_rd_picked), Tone.Info)
-                            a.address.id == order.addressId -> Pill(stringResource(R.string.cust_rd_failed_here), Tone.Neutral)
-                            !a.served -> Text(stringResource(R.string.cust_rd_not_served), fontSize = 12.sp, color = NeerlyColors.Ink600)
+                    val on = s.addressId == a.address.id
+                    androidx.compose.foundation.layout.Row(androidx.compose.ui.Modifier.fillMaxWidth()
+                        .background(if (a.served) NeerlyColors.Paper else NeerlyColors.Ink100, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                        .border(if (on) 2.dp else 1.dp, if (on) NeerlyColors.CustomerPrimary else NeerlyColors.Ink200, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                        .then(if (a.served) androidx.compose.ui.Modifier.selectable(selected = on, role = androidx.compose.ui.semantics.Role.RadioButton) { vm.pickAddress(a) } else androidx.compose.ui.Modifier)
+                        .padding(horizontal = 14.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        androidx.compose.material3.RadioButton(selected = on, onClick = null, enabled = a.served,
+                            colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = NeerlyColors.CustomerPrimary, unselectedColor = NeerlyColors.Ink300))
+                        androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(a.address.label.ifBlank { a.address.buildingName }, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                            Text(listOf(a.address.flatNumber, a.address.buildingName, a.address.street).filter { it.isNotBlank() }.joinToString(", ") + " · " + a.address.pincode,
+                                fontSize = 14.sp, color = NeerlyColors.Ink600)
+                            val (line, colour) = when {
+                                !a.served -> stringResource(R.string.cust_rd_outside, order.vendorName ?: stringResource(R.string.cust_the_shop)) to NeerlyColors.Err
+                                a.address.id == order.addressId -> stringResource(R.string.cust_rd_failed_here_line) to NeerlyColors.Warn
+                                else -> stringResource(R.string.cust_rd_delivers, order.vendorName ?: stringResource(R.string.cust_the_shop)) to NeerlyColors.Ok
+                            }
+                            Text(line, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colour)
                         }
                     }
                 }
             }
             item { SecondaryButton(stringResource(R.string.cust_rd_add_address), onAddAddress) }
         }
+        // Board: the "every new trip costs ₹25" note first, then a compact bill.
+        fee?.let { item { Text(stringResource(R.string.cust_rd_every_trip, it.rupees()), fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink700) } }
         item {
-            BoondhCard {
-                fee?.let { InfoRow(stringResource(R.string.cust_rd_new_trip_fee), trailing = it.rupees()) }
-                if (prepaid) InfoRow(stringResource(R.string.cust_rd_water_paid), trailing = BigDecimal.ZERO.rupees())
-                else InfoRow(stringResource(R.string.cust_rd_water_cash), trailing = order.subtotal.rupees())
+            androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.fillMaxWidth()
+                .background(NeerlyColors.Paper, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                .border(1.dp, NeerlyColors.Ink200, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                fee?.let { BillLine(stringResource(R.string.cust_rd_new_trip_fee), it.rupees()) }
+                if (prepaid) BillLine(stringResource(R.string.cust_rd_water_paid), BigDecimal.ZERO.rupees())
+                else BillLine(stringResource(R.string.cust_rd_water_cash), order.subtotal.rupees())
             }
         }
-        fee?.let { item { Text(stringResource(R.string.cust_rd_every_trip, it.rupees()), fontSize = 13.sp, color = NeerlyColors.Ink600) } }
     }
 }
 
@@ -296,3 +303,23 @@ fun RedeliverScreen(
 private fun dayLabel(date: String): String = runCatching {
     DateTimeFormatter.ofPattern("EEE d", com.neerly.mobile.core.util.AppLocale.locale).format(LocalDate.parse(date))
 }.getOrDefault(date)
+
+@Composable
+private fun BillLine(label: String, amount: String) {
+    Row(androidx.compose.ui.Modifier.fillMaxWidth()) {
+        Text(label, androidx.compose.ui.Modifier.weight(1f), fontSize = 15.sp, color = NeerlyColors.Ink900)
+        Text(amount, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+    }
+}
+
+/** "today" / "tomorrow" / "Fri 13" for the book button. */
+@Composable
+private fun sendDay(date: String): String {
+    val d = runCatching { LocalDate.parse(date) }.getOrNull() ?: return date
+    val today = LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))
+    return when (d) {
+        today -> stringResource(R.string.cust_rd_today)
+        today.plusDays(1) -> stringResource(R.string.cust_rd_tomorrow)
+        else -> dayLabel(date)
+    }
+}

@@ -800,4 +800,10 @@
     <string name="cust_ps_close">Close</string>
     <string name="cust_oos_tomorrow">tomorrow</string>
     <string name="cust_cx_cancel_anyway">Cancel anyway · get %1$s</string>
+    <string name="cust_rd_send_again">Send again %1$s, %2$s · pay %3$s</string>
+    <string name="cust_rd_today">today</string>
+    <string name="cust_rd_tomorrow">tomorrow</string>
+    <string name="cust_rd_delivers">%1$s delivers here</string>
+    <string name="cust_rd_outside">Outside %1$s\'s area</string>
+    <string name="cust_rd_failed_here_line">Tried here today</string>
 </resources>

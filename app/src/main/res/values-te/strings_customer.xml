@@ -800,4 +800,10 @@
     <string name="cust_ps_close">మూసివేయండి</string>
     <string name="cust_oos_tomorrow">రేపు</string>
     <string name="cust_cx_cancel_anyway">అయినా రద్దు చేయండి · %1$s వెనక్కి</string>
+    <string name="cust_rd_send_again">మళ్లీ పంపండి %1$s, %2$s · %3$s కట్టండి</string>
+    <string name="cust_rd_today">ఈరోజు</string>
+    <string name="cust_rd_tomorrow">రేపు</string>
+    <string name="cust_rd_delivers">%1$s ఇక్కడ డెలివరీ చేస్తుంది</string>
+    <string name="cust_rd_outside">%1$s పరిధి బయట</string>
+    <string name="cust_rd_failed_here_line">ఈరోజు ఇక్కడ ప్రయత్నించారు</string>
 </resources>
