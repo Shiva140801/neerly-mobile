@@ -638,4 +638,9 @@
         <item quantity="other">%1$d జార్లు</item>
     </plurals>
     <string name="acct_ntf_mark_failed">చదివినట్లు గుర్తించలేకపోయాం. కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="acct_wallet_balance_now">ప్రస్తుత బ్యాలెన్స్ %1$s</string>
+    <string name="acct_wallet_topup_range">%1$s నుండి %2$s మధ్య ఇవ్వండి</string>
+    <string name="acct_wallet_pay_from">UPI లేదా కార్డ్</string>
+    <string name="acct_wallet_pay_from_sub">Razorpay ద్వారా చెల్లింపు · తర్వాత యాప్ ఎంచుకోండి</string>
+    <string name="acct_wallet_add_amount">%1$s జోడించండి</string>
 </resources>

@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -107,8 +108,9 @@ fun WalletScreen(
     }
 
     if (addOpen) {
-        ModalBottomSheet(onDismissRequest = { addOpen = false }, containerColor = NeerlyColors.Paper) {
-            AddMoneySheet(disabled = state.toppingUp) { amount ->
+        ModalBottomSheet(onDismissRequest = { addOpen = false }, containerColor = NeerlyColors.Canvas,
+            sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+            AddMoneySheet(balance = state.balance?.balance, disabled = state.toppingUp) { amount ->
                 addOpen = false
                 context.findActivity()?.let { vm.topup(it, amount) }
             }
@@ -176,21 +178,66 @@ private fun JarCard(jars: Int, held: BigDecimal, dueToday: Int, onClick: () -> U
     }
 }
 
+/**
+ * Board AddMoney: balance line, a big ₹ amount the customer can type (any amount within the
+ * admin limits — the old sheet only had four presets), single-line presets, how it's paid,
+ * and "Add ₹500".
+ */
 @Composable
-private fun AddMoneySheet(disabled: Boolean, onPick: (BigDecimal) -> Unit) {
+private fun AddMoneySheet(balance: BigDecimal?, disabled: Boolean, onPick: (BigDecimal) -> Unit) {
     val cfg = LocalAppConfig.current
     val amounts = listOf("200", "500", "1000", "2000").map(::BigDecimal).filter { it in cfg.topupMin..cfg.topupMax }
-    Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(stringResource(R.string.acct_wallet_add_money), fontFamily = FontFamily.Serif, fontSize = 24.sp, color = NeerlyColors.Ink900)
-        Text(stringResource(R.string.acct_wallet_topup_hint, cfg.topupMax.rupees()), fontSize = 14.sp, color = NeerlyColors.Ink600)
+    var text by remember { mutableStateOf(amounts.getOrNull(1)?.toPlainString() ?: "") }
+    val amount = text.toBigDecimalOrNull()
+    val valid = amount != null && amount >= cfg.topupMin && amount <= cfg.topupMax
+    Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 24.dp).navigationBarsPadding().imePadding(),
+        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(R.string.acct_wallet_add_money), fontFamily = FontFamily.Serif, fontSize = 30.sp, color = NeerlyColors.Ink900)
+            balance?.let { Text(stringResource(R.string.acct_wallet_balance_now, it.rupees()), fontSize = 15.sp, color = NeerlyColors.Ink600) }
+        }
+        Row(Modifier.fillMaxWidth().heightIn(min = 96.dp)
+            .background(NeerlyColors.Paper, RoundedCornerShape(16.dp))
+            .border(BorderStroke(2.dp, if (text.isEmpty() || valid) NeerlyColors.CustomerPrimary else NeerlyColors.Err), RoundedCornerShape(16.dp))
+            .padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("₹", fontFamily = FontFamily.Serif, fontSize = 40.sp, color = NeerlyColors.Ink600)
+            Spacer(Modifier.width(10.dp))
+            androidx.compose.foundation.text.BasicTextField(
+                value = text, onValueChange = { v -> text = v.filter(Char::isDigit).take(6).trimStart('0') },
+                singleLine = true, enabled = !disabled,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                textStyle = androidx.compose.ui.text.TextStyle(fontFamily = FontFamily.Serif, fontSize = 44.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900),
+                modifier = Modifier.weight(1f).semantics { contentDescription = "amount" })
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             amounts.forEach { a ->
+                val on = amount == a
                 OutlinedButton(
-                    onClick = { onPick(a) }, enabled = !disabled, modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, NeerlyColors.Ink200)
-                ) { Text(a.rupees(), fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900) }
+                    onClick = { text = a.toPlainString() }, enabled = !disabled, modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(horizontal = 4.dp),
+                    border = BorderStroke(1.dp, if (on) NeerlyColors.Ink900 else NeerlyColors.Ink200),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = if (on) NeerlyColors.Ink900 else NeerlyColors.Paper)
+                ) { Text(a.rupees(), fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false,
+                    color = if (on) NeerlyColors.Paper else NeerlyColors.Ink900) }
             }
         }
+        Text(if (text.isNotEmpty() && !valid) stringResource(R.string.acct_wallet_topup_range, cfg.topupMin.rupees(), cfg.topupMax.rupees())
+            else stringResource(R.string.acct_wallet_topup_hint, cfg.topupMax.rupees()),
+            fontSize = 14.sp, color = if (text.isNotEmpty() && !valid) NeerlyColors.Err else NeerlyColors.Ink600)
+        Row(Modifier.fillMaxWidth().background(NeerlyColors.Paper, RoundedCornerShape(14.dp))
+            .border(BorderStroke(1.dp, NeerlyColors.Ink200), RoundedCornerShape(14.dp)).padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(40.dp).background(NeerlyColors.Ink100, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                Text("📱", fontSize = 18.sp) }
+            Column {
+                Text(stringResource(R.string.acct_wallet_pay_from), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900)
+                Text(stringResource(R.string.acct_wallet_pay_from_sub), fontSize = 13.sp, color = NeerlyColors.Ink600)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        com.neerly.mobile.core.design.PrimaryButton(
+            if (valid) stringResource(R.string.acct_wallet_add_amount, amount!!.rupees()) else stringResource(R.string.acct_wallet_add_money),
+            { amount?.let(onPick) }, enabled = valid && !disabled)
     }
 }
 
@@ -244,32 +291,40 @@ private fun AddMoneyDonePage(done: TopUpDone, onBack: () -> Unit, onOrderWater: 
         java.time.format.DateTimeFormatter.ofPattern("EEE d MMM, h:mm a", com.neerly.mobile.core.util.AppLocale.locale)
             .withZone(java.time.ZoneId.of("Asia/Kolkata")).format(done.at)
     }
-    com.neerly.mobile.core.design.BoondhPage(
-        title = stringResource(R.string.acct_added_title),
-        footer = {
+    // Board AddMoneyDone: centred green tick, "ADDED TO WALLET", the amount in serif, one meta
+    // line, the subscription note just above the buttons, "Order water" as a text link.
+    androidx.activity.compose.BackHandler(onBack = onBack)
+    androidx.compose.material3.Scaffold(containerColor = NeerlyColors.Canvas, bottomBar = {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            done.coverage?.let { c ->
+                val n = done.deliveriesCovered
+                if (n != null) Text(androidx.compose.ui.res.pluralStringResource(R.plurals.acct_added_covers, n,
+                    c.shopName ?: stringResource(R.string.cust_the_shop), c.perDelivery.rupees(), done.newBalance!!.rupees(), n),
+                    fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink900,
+                    modifier = Modifier.fillMaxWidth().background(NeerlyColors.WarnSoft, RoundedCornerShape(14.dp)).padding(16.dp))
+            }
             com.neerly.mobile.core.design.PrimaryButton(stringResource(R.string.acct_added_back), onBack)
-            com.neerly.mobile.core.design.SecondaryButton(stringResource(R.string.acct_added_order), onOrderWater)
-        }
-    ) {
-        item {
-            Text(done.amount.rupees(), fontFamily = FontFamily.Serif, fontWeight = FontWeight.Medium,
-                fontSize = 44.sp, color = NeerlyColors.Ok)
-        }
-        item {
-            com.neerly.mobile.core.design.BoondhCard {
-                com.neerly.mobile.core.design.InfoRow(stringResource(R.string.acct_added_new_balance),
-                    subtitle = at, trailing = done.newBalance?.rupees() ?: "…")
+            androidx.compose.material3.TextButton(onClick = onOrderWater, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.acct_added_order), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.CustomerPrimary)
             }
         }
-        done.coverage?.let { c ->
-            val n = done.deliveriesCovered
-            if (n != null) item {
-                com.neerly.mobile.core.design.Notice(
-                    androidx.compose.ui.res.pluralStringResource(R.plurals.acct_added_covers, n,
-                        c.shopName ?: stringResource(R.string.cust_the_shop), c.perDelivery.rupees(),
-                        done.newBalance!!.rupees(), n),
-                    com.neerly.mobile.core.design.Tone.Info)
+    }) { pad ->
+        Column(Modifier.fillMaxSize().padding(pad).padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Spacer(Modifier.height(96.dp))
+            Box(Modifier.size(72.dp).background(NeerlyColors.OkSoft, androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+                Text("✓", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = NeerlyColors.Ok)
             }
+            Text(stringResource(R.string.acct_added_title).uppercase(), fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp, color = NeerlyColors.Ok, modifier = Modifier.semantics { heading() })
+            Text(done.amount.rupees(), fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = 52.sp, color = NeerlyColors.Ink900)
+            Text(androidx.compose.ui.text.buildAnnotatedString {
+                append(stringResource(R.string.acct_added_new_balance)); append(" ")
+                pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold, color = NeerlyColors.Ink900))
+                append(done.newBalance?.rupees() ?: "…"); pop()
+                append(" · "); append(at)
+            }, fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink600, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }

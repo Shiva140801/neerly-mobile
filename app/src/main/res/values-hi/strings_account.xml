@@ -638,4 +638,9 @@
         <item quantity="other">%1$d जार</item>
     </plurals>
     <string name="acct_ntf_mark_failed">पढ़ा हुआ नहीं कर पाए। कनेक्शन देखकर फिर कोशिश करें।</string>
+    <string name="acct_wallet_balance_now">अभी बैलेंस %1$s</string>
+    <string name="acct_wallet_topup_range">%1$s से %2$s के बीच डालें</string>
+    <string name="acct_wallet_pay_from">UPI या कार्ड</string>
+    <string name="acct_wallet_pay_from_sub">Razorpay से भुगतान · अगले कदम में ऐप चुनें</string>
+    <string name="acct_wallet_add_amount">%1$s जोड़ें</string>
 </resources>

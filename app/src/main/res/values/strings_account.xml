@@ -638,4 +638,9 @@
         <item quantity="other">%1$d jars</item>
     </plurals>
     <string name="acct_ntf_mark_failed">Couldn\'t mark them read. Check your connection and try again.</string>
+    <string name="acct_wallet_balance_now">Balance now %1$s</string>
+    <string name="acct_wallet_topup_range">Enter between %1$s and %2$s</string>
+    <string name="acct_wallet_pay_from">UPI or card</string>
+    <string name="acct_wallet_pay_from_sub">Paid through Razorpay · pick the app next</string>
+    <string name="acct_wallet_add_amount">Add %1$s</string>
 </resources>
