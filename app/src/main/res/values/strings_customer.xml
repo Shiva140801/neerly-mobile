@@ -799,4 +799,5 @@
     <string name="cust_ps_pay_today_line">You pay today</string>
     <string name="cust_ps_close">Close</string>
     <string name="cust_oos_tomorrow">tomorrow</string>
+    <string name="cust_cx_cancel_anyway">Cancel anyway · get %1$s</string>
 </resources>

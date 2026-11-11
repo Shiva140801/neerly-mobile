@@ -799,4 +799,5 @@
     <string name="cust_ps_pay_today_line">आज आप देंगे</string>
     <string name="cust_ps_close">बंद करें</string>
     <string name="cust_oos_tomorrow">कल</string>
+    <string name="cust_cx_cancel_anyway">फिर भी रद्द करें · %1$s वापस</string>
 </resources>

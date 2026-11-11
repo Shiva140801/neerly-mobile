@@ -107,6 +107,17 @@ fun CancelOrderScreen(onBack: () -> Unit, onRefunds: () -> Unit, onRefundSetting
             if (s.cancelled) {
                 if (prepaid && q.refund.signum() > 0) PrimaryButton(stringResource(R.string.cust_cx_see_refunds), onRefunds)
                 SecondaryButton(stringResource(R.string.cust_cx_back_orders), onBack)
+            } else if (q.allowed && q.late) {
+                // Board CancelOrderLate: the driver is already on the way, so keeping the order
+                // is the main button and cancelling is the secondary, red one.
+                PrimaryButton(stringResource(R.string.cust_cx_keep), onBack)
+                OutlinedButton(onClick = { reasonText?.let(vm::cancel) }, enabled = reason != null && !s.cancelling,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, NeerlyColors.Ink300)) {
+                    Text(when { s.cancelling -> stringResource(R.string.cust_cx_cancelling); reason == null -> stringResource(R.string.cust_cx_pick_reason)
+                                prepaid -> stringResource(R.string.cust_cx_cancel_anyway, q.refund.rupees()); else -> stringResource(R.string.cust_tr_cancel) },
+                        color = if (reason == null) NeerlyColors.Ink500 else NeerlyColors.Err, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             } else if (q.allowed) {
                 PrimaryButton(
                     when { s.cancelling -> stringResource(R.string.cust_cx_cancelling); reason == null -> stringResource(R.string.cust_cx_pick_reason)
@@ -131,6 +142,24 @@ fun CancelOrderScreen(onBack: () -> Unit, onRefunds: () -> Unit, onRefundSetting
             Text(stringResource(R.string.cust_cx_late_body),
                 fontSize = 15.sp, lineHeight = 22.sp, color = NeerlyColors.Ink700)
         }
+        // Late: the money comes first (board CancelOrderLate), then why.
+        if (q.late) {
+        if (prepaid) item {
+                BoondhCard {
+                    SectionLabel(stringResource(R.string.cust_cx_your_refund))
+                    InfoRow(stringResource(R.string.cust_paid), trailing = o.totalAmount.rupees())
+                    InfoRow(if (q.late) stringResource(R.string.cust_cx_trip_fee) else stringResource(R.string.cust_cx_fee),
+                        trailing = if (q.fee.signum() > 0) stringResource(R.string.cust_minus_amount, q.fee.rupees()) else stringResource(R.string.cust_cx_zero),
+                        trailingColor = if (q.fee.signum() > 0) NeerlyColors.Err else NeerlyColors.Ink900)
+                    HorizontalDivider(color = NeerlyColors.Ink200)
+                    InfoRow(stringResource(R.string.cust_cx_back_to_you), trailing = q.refund.rupees(), trailingColor = NeerlyColors.Ok)
+                    Text(stringResource(R.string.cust_cx_goes_to, destination), fontSize = 13.sp, color = NeerlyColors.Ink600)
+                    if (o.paymentMethod != "WALLET") TextButton(onClick = onRefundSetting, contentPadding = PaddingValues(0.dp)) {
+                        Text(stringResource(R.string.cust_cx_change_dest), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            } else item { Notice(stringResource(R.string.cust_cx_cash_nothing), Tone.Info) }
+        }
         // Board CancelOrder: "**What happened?** — helps the shop" in sentence case, then
         // hairline-separated reason rows (one list item, so rows sit tight like the board).
         item {
@@ -153,20 +182,23 @@ fun CancelOrderScreen(onBack: () -> Unit, onRefunds: () -> Unit, onRefundSetting
                 }
             }
         }
+        if (!q.late) {
         if (prepaid) item {
-            BoondhCard {
-                SectionLabel(stringResource(R.string.cust_cx_your_refund))
-                InfoRow(stringResource(R.string.cust_paid), trailing = o.totalAmount.rupees())
-                InfoRow(if (q.late) stringResource(R.string.cust_cx_trip_fee) else stringResource(R.string.cust_cx_fee),
-                    trailing = if (q.fee.signum() > 0) stringResource(R.string.cust_minus_amount, q.fee.rupees()) else stringResource(R.string.cust_cx_zero))
-                HorizontalDivider(color = NeerlyColors.Ink200)
-                InfoRow(stringResource(R.string.cust_cx_back_to_you), trailing = q.refund.rupees(), trailingColor = NeerlyColors.Ok)
-                Text(stringResource(R.string.cust_cx_goes_to, destination), fontSize = 13.sp, color = NeerlyColors.Ink600)
-                if (o.paymentMethod != "WALLET") TextButton(onClick = onRefundSetting, contentPadding = PaddingValues(0.dp)) {
-                    Text(stringResource(R.string.cust_cx_change_dest), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+                BoondhCard {
+                    SectionLabel(stringResource(R.string.cust_cx_your_refund))
+                    InfoRow(stringResource(R.string.cust_paid), trailing = o.totalAmount.rupees())
+                    InfoRow(if (q.late) stringResource(R.string.cust_cx_trip_fee) else stringResource(R.string.cust_cx_fee),
+                        trailing = if (q.fee.signum() > 0) stringResource(R.string.cust_minus_amount, q.fee.rupees()) else stringResource(R.string.cust_cx_zero),
+                        trailingColor = if (q.fee.signum() > 0) NeerlyColors.Err else NeerlyColors.Ink900)
+                    HorizontalDivider(color = NeerlyColors.Ink200)
+                    InfoRow(stringResource(R.string.cust_cx_back_to_you), trailing = q.refund.rupees(), trailingColor = NeerlyColors.Ok)
+                    Text(stringResource(R.string.cust_cx_goes_to, destination), fontSize = 13.sp, color = NeerlyColors.Ink600)
+                    if (o.paymentMethod != "WALLET") TextButton(onClick = onRefundSetting, contentPadding = PaddingValues(0.dp)) {
+                        Text(stringResource(R.string.cust_cx_change_dest), color = NeerlyColors.CustomerPrimary, fontWeight = FontWeight.SemiBold)
+                    }
                 }
-            }
-        } else item { Notice(stringResource(R.string.cust_cx_cash_nothing), Tone.Info) }
+            } else item { Notice(stringResource(R.string.cust_cx_cash_nothing), Tone.Info) }
+        }
         if (q.late) item { Notice(stringResource(R.string.cust_cx_late_tip), Tone.Warn) }
         s.error?.let { e -> item { Notice(e, Tone.Bad) } }
     }
